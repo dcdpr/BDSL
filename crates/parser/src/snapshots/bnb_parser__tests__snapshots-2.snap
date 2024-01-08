@@ -1,0 +1,64 @@
+---
+source: crates/parser/src/lib.rs
+expression: parse(case)
+---
+Ok(
+    Breadboard {
+        places: [
+            Place {
+                name: "Registration",
+                affordances: [
+                    Affordance {
+                        name: "Username",
+                        connections: [],
+                    },
+                    Affordance {
+                        name: "Password",
+                        connections: [],
+                    },
+                    Affordance {
+                        name: "Sign Up",
+                        connections: [
+                            Connection {
+                                target_place: "Home",
+                                description: None,
+                            },
+                        ],
+                    },
+                ],
+                component_references: [
+                    "Header",
+                ],
+                sketch: None,
+            },
+            Place {
+                name: "Home",
+                affordances: [
+                    Affordance {
+                        name: "Dashboard",
+                        connections: [],
+                    },
+                ],
+                component_references: [
+                    "Header",
+                ],
+                sketch: None,
+            },
+        ],
+        components: [
+            Component {
+                name: "Header",
+                affordances: [
+                    Affordance {
+                        name: "Logo",
+                        connections: [],
+                    },
+                    Affordance {
+                        name: "Contact",
+                        connections: [],
+                    },
+                ],
+            },
+        ],
+    },
+)

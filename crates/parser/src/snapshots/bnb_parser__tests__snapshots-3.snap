@@ -1,0 +1,117 @@
+---
+source: crates/parser/src/lib.rs
+expression: parse(case)
+---
+Ok(
+    Breadboard {
+        places: [
+            Place {
+                name: "invoice",
+                affordances: [
+                    Affordance {
+                        name: "Turn on autopay",
+                        connections: [
+                            Connection {
+                                target_place: "Set up autopay",
+                                description: None,
+                            },
+                            Connection {
+                                target_place: "Foo bar",
+                                description: None,
+                            },
+                            Connection {
+                                target_place: "test 2",
+                                description: Some(
+                                    "test",
+                                ),
+                            },
+                        ],
+                    },
+                ],
+                component_references: [],
+                sketch: None,
+            },
+            Place {
+                name: "two",
+                affordances: [],
+                component_references: [],
+                sketch: None,
+            },
+            Place {
+                name: "three and more!",
+                affordances: [
+                    Affordance {
+                        name: "free -> form!",
+                        connections: [
+                            Connection {
+                                target_place: "Not",
+                                description: None,
+                            },
+                            Connection {
+                                target_place: "(test)",
+                                description: None,
+                            },
+                        ],
+                    },
+                    Affordance {
+                        name: "another one!",
+                        connections: [],
+                    },
+                ],
+                component_references: [],
+                sketch: Some(
+                    Sketch {
+                        path: "foo/bar.png",
+                        connections: [
+                            (
+                                Area {
+                                    top_left: (
+                                        0,
+                                        0,
+                                    ),
+                                    width: 10,
+                                    height: 10,
+                                },
+                                [
+                                    Connection {
+                                        target_place: "Pay Invoice",
+                                        description: Some(
+                                            "if foo",
+                                        ),
+                                    },
+                                    Connection {
+                                        target_place: "Another one",
+                                        description: None,
+                                    },
+                                ],
+                            ),
+                            (
+                                Area {
+                                    top_left: (
+                                        20,
+                                        20,
+                                    ),
+                                    width: 10,
+                                    height: 10,
+                                },
+                                [
+                                    Connection {
+                                        target_place: "Pay Twice",
+                                        description: None,
+                                    },
+                                ],
+                            ),
+                        ],
+                    },
+                ),
+            },
+            Place {
+                name: "four!",
+                affordances: [],
+                component_references: [],
+                sketch: None,
+            },
+        ],
+        components: [],
+    },
+)

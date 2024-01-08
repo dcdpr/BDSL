@@ -22,3 +22,7 @@ an interactive GUI for a visual exploration of designs.
 Whether you're a developer, a designer, or someone interested in software
 project planning, Bread'n'Butter is designed to be accessible, user-friendly,
 and a valuable addition to your toolkit.
+
+## Libraries
+
+- [`bnb-parser`](./crates/parser) — Parses a breadboard string into an AST.

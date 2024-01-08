@@ -1,0 +1,11 @@
+[package]
+name = "bnb-parser"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+thiserror = { version = "1", default-features = false }
+
+[dev-dependencies]
+indoc = { version = "2", default-features = false }
+insta = { version = "1", default-features = false, features = ["colors"] }
