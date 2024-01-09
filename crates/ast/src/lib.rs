@@ -106,9 +106,6 @@ pub struct Connection {
 }
 
 /// Represents a graphical sketch or design associated with a [`Place`].
-///
-/// # Fields
-/// * `connections` - A list of connections, each associated with a specific area of the sketch.
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct Sketch {
     /// The file path to the sketch image or file.
