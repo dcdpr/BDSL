@@ -1,0 +1,135 @@
+---
+source: crates/converters/json/src/lib.rs
+expression: deserialized_breadboard
+---
+{
+  "places": [
+    {
+      "name": "Registration",
+      "affordances": [
+        {
+          "name": "Username",
+          "connections": []
+        },
+        {
+          "name": "Password",
+          "connections": []
+        },
+        {
+          "name": "Sign Up",
+          "connections": [
+            {
+              "target_place": "Home",
+              "description": "success"
+            },
+            {
+              "target_place": "Support",
+              "description": "failure"
+            }
+          ]
+        }
+      ],
+      "component_references": [
+        "Header"
+      ],
+      "sketch": {
+        "path": "sketches/registration.png",
+        "connections": [
+          [
+            {
+              "top_left": [
+                50,
+                20
+              ],
+              "width": 110,
+              "height": 40
+            },
+            [
+              {
+                "target_place": "Home",
+                "description": "success"
+              },
+              {
+                "target_place": "Support",
+                "description": "failure"
+              }
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "name": "Support",
+      "affordances": [
+        {
+          "name": "Error Message",
+          "connections": []
+        },
+        {
+          "name": "Try Again",
+          "connections": [
+            {
+              "target_place": "Registration",
+              "description": null
+            }
+          ]
+        }
+      ],
+      "component_references": [
+        "Header"
+      ],
+      "sketch": {
+        "path": "sketches/support.png",
+        "connections": [
+          [
+            {
+              "top_left": [
+                50,
+                20
+              ],
+              "width": 110,
+              "height": 40
+            },
+            [
+              {
+                "target_place": "Registration",
+                "description": null
+              }
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "name": "Home",
+      "affordances": [
+        {
+          "name": "Dashboard",
+          "connections": []
+        }
+      ],
+      "component_references": [
+        "Header"
+      ],
+      "sketch": {
+        "path": "sketches/home.png",
+        "connections": []
+      }
+    }
+  ],
+  "components": [
+    {
+      "name": "Header",
+      "affordances": [
+        {
+          "name": "Logo",
+          "connections": []
+        },
+        {
+          "name": "Contact",
+          "connections": []
+        }
+      ]
+    }
+  ]
+}

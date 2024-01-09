@@ -1,5 +1,5 @@
 [workspace]
-members = ["crates/ast", "crates/parser"]
+members = ["crates/ast", "crates/converters/json", "crates/parser"]
 resolver = "2"
 
 [profile.dev]
