@@ -551,7 +551,14 @@ mod tests {
 
                   Username
                   Password
-                  Sign Up -> Home
+                  Sign Up -> (success) Home
+                          -> (failure) Support
+
+                place Support
+                  include Header
+
+                  Error Message
+                  Try Again -> Registration
 
                 place Home
                   include Header

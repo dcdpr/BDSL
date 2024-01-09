@@ -21,6 +21,36 @@ Ok(
                         connections: [
                             Connection {
                                 target_place: "Home",
+                                description: Some(
+                                    "success",
+                                ),
+                            },
+                            Connection {
+                                target_place: "Support",
+                                description: Some(
+                                    "failure",
+                                ),
+                            },
+                        ],
+                    },
+                ],
+                component_references: [
+                    "Header",
+                ],
+                sketch: None,
+            },
+            Place {
+                name: "Support",
+                affordances: [
+                    Affordance {
+                        name: "Error Message",
+                        connections: [],
+                    },
+                    Affordance {
+                        name: "Try Again",
+                        connections: [
+                            Connection {
+                                target_place: "Registration",
                                 description: None,
                             },
                         ],
