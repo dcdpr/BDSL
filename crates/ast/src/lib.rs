@@ -43,10 +43,12 @@
 //! // ...
 //! ```
 
+use serde::{Deserialize, Serialize};
+
 /// The root node of the [Breadboard], containing [`Place`]s and [`Component`]s.
 ///
 /// [Breadboard]: https://basecamp.com/shapeup/1.3-chapter-04
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct Breadboard {
     /// A vector of `Place` instances, representing different locations on the breadboard.
     pub places: Vec<Place>,
@@ -57,7 +59,7 @@ pub struct Breadboard {
 }
 
 /// Represents a specific place or location on the breadboard.
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct Place {
     /// A unique identifier for the place.
     pub name: String,
@@ -73,7 +75,7 @@ pub struct Place {
 }
 
 /// Represents a component that can be referenced from [`Place`]s.
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct Component {
     /// A unique identifier for the component.
     pub name: String,
@@ -83,7 +85,7 @@ pub struct Component {
 }
 
 /// Describes an affordance, detailing an action or capability of a [`Place`].
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct Affordance {
     /// A unique identifier for the affordance.
     pub name: String,
@@ -94,7 +96,7 @@ pub struct Affordance {
 }
 
 /// Represents a connection from an [`Affordance`] to [`Place`]s on the breadboard.
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct Connection {
     /// The name of the target [`Place`] for this connection.
     pub target_place: String,
@@ -107,7 +109,7 @@ pub struct Connection {
 ///
 /// # Fields
 /// * `connections` - A list of connections, each associated with a specific area of the sketch.
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct Sketch {
     /// The file path to the sketch image or file.
     pub path: std::path::PathBuf,
@@ -117,7 +119,7 @@ pub struct Sketch {
 }
 
 /// Defines a specific clickable area within a `Sketch`.
-#[derive(Debug, PartialEq, Copy, Clone)]
+#[derive(Debug, PartialEq, Copy, Clone, Serialize, Deserialize)]
 pub struct Area {
     /// The top-left coordinates of the area (x, y).
     pub top_left: (u32, u32),
