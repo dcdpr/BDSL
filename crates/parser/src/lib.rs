@@ -554,16 +554,25 @@ mod tests {
                   Sign Up -> (success) Home
                           -> (failure) Support
 
+                  sketch sketches/registration.png
+                    [50,20 110,40] -> (success) Home
+                    [50,20 110,40] -> (failure) Support
+
                 place Support
                   include Header
 
                   Error Message
                   Try Again -> Registration
 
+                  sketch sketches/registration.png
+                    [50,20 110,40] -> Registration
+
                 place Home
                   include Header
 
                   Dashboard
+
+                  sketch sketches/home.png
 
                 component Header
                   Logo
