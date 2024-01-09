@@ -3,9 +3,14 @@
 version = 3
 
 [[package]]
+name = "bnb-ast"
+version = "0.1.0"
+
+[[package]]
 name = "bnb-parser"
 version = "0.1.0"
 dependencies = [
+ "bnb-ast",
  "indoc",
  "insta",
  "thiserror",
