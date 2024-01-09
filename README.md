@@ -1,5 +1,7 @@
 # Bread'n'Butter
 
+<img align="right" alt="Logo" width="300" height="300" src="./.github/logo.png">
+
 **A Buttery smooth [Breadboarding][] experience for software development.**
 
 [breadboarding]: https://basecamp.com/shapeup/1.3-chapter-04
