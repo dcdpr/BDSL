@@ -38,7 +38,7 @@ application, the affordances within them, and the relationships between them.
 
 Here's a basic example to illustrate the syntax and concepts:
 
-```txt
+```bnb
 place Registration
     include Header
 
