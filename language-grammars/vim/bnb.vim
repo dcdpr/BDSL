@@ -10,12 +10,14 @@ endif
 syn keyword bnbPlace     place     nextgroup=bnbPlaceName     skipwhite
 syn keyword bnbInclude   include   nextgroup=bnbComponentRef  skipwhite
 syn keyword bnbComponent component nextgroup=bnbComponentName skipwhite
+syn keyword bnbPosition  position  nextgroup=bnbCoordinates   skipwhite
 syn keyword bnbSketch    sketch    nextgroup=bnbSketchPath    skipwhite
 
 " Match Patterns
 syn match bnbPlaceName       ".\+" contained
 syn match bnbComponentName   ".\+" contained
 syn match bnbComponentRef    ".\+" contained
+syn match bnbCoordinates     ".\+" contained
 syn match bnbSketchPath      ".\+" contained nextgroup=bnbClickable skipwhite skipempty
 syn match bnbAffordance      "\s*\zs[^->]\+" nextgroup=bnbConnection skipwhite
 syn match bnbConnection      "->" contained nextgroup=bnbAffordance,bnbConnectionLabel skipwhite
@@ -31,6 +33,8 @@ hi def link bnbInclude         Include
 hi def link bnbComponent       Type
 hi def link bnbComponentRef    Type
 hi def link bnbComponentName   Identifier
+hi def link bnbPosition        PreProc
+hi def link bnbCoordinates     Constant
 hi def link bnbSketch          PreProc
 hi def link bnbSketchPath      Label
 hi def link bnbAffordance      String
