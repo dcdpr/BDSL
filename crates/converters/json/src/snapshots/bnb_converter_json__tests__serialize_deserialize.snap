@@ -42,17 +42,15 @@ expression: deserialized_breadboard
       },
       "sketch": {
         "path": "sketches/registration.png",
-        "connections": [
-          [
-            {
-              "top_left": [
-                50,
-                20
-              ],
-              "width": 110,
-              "height": 40
-            },
-            [
+        "areas": [
+          {
+            "top_left": [
+              50,
+              20
+            ],
+            "width": 110,
+            "height": 40,
+            "connections": [
               {
                 "target_place": "Home",
                 "description": "success"
@@ -62,7 +60,7 @@ expression: deserialized_breadboard
                 "description": "failure"
               }
             ]
-          ]
+          }
         ]
       }
     },
@@ -89,23 +87,21 @@ expression: deserialized_breadboard
       "position": null,
       "sketch": {
         "path": "sketches/support.png",
-        "connections": [
-          [
-            {
-              "top_left": [
-                50,
-                20
-              ],
-              "width": 110,
-              "height": 40
-            },
-            [
+        "areas": [
+          {
+            "top_left": [
+              50,
+              20
+            ],
+            "width": 110,
+            "height": 40,
+            "connections": [
               {
                 "target_place": "Registration",
                 "description": null
               }
             ]
-          ]
+          }
         ]
       }
     },
@@ -123,7 +119,7 @@ expression: deserialized_breadboard
       "position": null,
       "sketch": {
         "path": "sketches/home.png",
-        "connections": []
+        "areas": []
       }
     }
   ],

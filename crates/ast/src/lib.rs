@@ -167,12 +167,12 @@ pub struct Sketch {
     /// The file path to the sketch image or file.
     pub path: std::path::PathBuf,
 
-    /// A list of connections, each associated with a specific [`Area`] of the sketch.
-    pub connections: Vec<(Area, Vec<Connection>)>,
+    /// A list of clickable areas.
+    pub areas: Vec<Area>,
 }
 
 /// Defines a specific clickable area within a `Sketch`.
-#[derive(Debug, PartialEq, Copy, Clone, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct Area {
     /// The top-left coordinates of the area (x, y).
     pub top_left: (u32, u32),
@@ -182,4 +182,7 @@ pub struct Area {
 
     /// The height of the area.
     pub height: u32,
+
+    /// One or more [`Connection`]s linked to this area.
+    pub connections: Vec<Connection>,
 }

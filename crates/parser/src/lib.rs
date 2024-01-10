@@ -297,20 +297,20 @@ fn parse_sketch(chars: &mut Chars) -> Result<Option<Sketch>, Error> {
     let path = PathBuf::from(parse_line(chars));
     skip_whitespace(chars);
 
-    let mut connections = vec![];
+    let mut areas = vec![];
     while chars.clone().next() == Some('[') {
-        let area = parse_area(chars)?;
+        let mut area = parse_area(chars)?;
         skip_whitespace(chars);
 
-        let conn = parse_connections(chars)?;
-        if conn.is_empty() {
+        area.connections = parse_connections(chars)?;
+        if area.connections.is_empty() {
             return Err(Error::SketchAreaMissingConnection);
         }
 
-        connections.push((area, conn));
+        areas.push(area);
     }
 
-    Ok(Some(Sketch { path, connections }))
+    Ok(Some(Sketch { path, areas }))
 }
 
 fn parse_area(chars: &mut Chars) -> Result<Area, Error> {
@@ -354,6 +354,7 @@ fn parse_area(chars: &mut Chars) -> Result<Area, Error> {
         top_left: (top, left),
         width,
         height,
+        connections: vec![],
     })
 }
 
