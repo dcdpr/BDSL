@@ -29,12 +29,14 @@ Ok(
                     },
                 ],
                 component_references: [],
+                position: None,
                 sketch: None,
             },
             Place {
                 name: "two",
                 affordances: [],
                 component_references: [],
+                position: None,
                 sketch: None,
             },
             Place {
@@ -59,6 +61,7 @@ Ok(
                     },
                 ],
                 component_references: [],
+                position: None,
                 sketch: Some(
                     Sketch {
                         path: "foo/bar.png",
@@ -109,6 +112,7 @@ Ok(
                 name: "four!",
                 affordances: [],
                 component_references: [],
+                position: None,
                 sketch: None,
             },
         ],

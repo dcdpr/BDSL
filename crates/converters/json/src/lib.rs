@@ -62,7 +62,9 @@ pub fn deserialize(reader: impl Read) -> Result<Breadboard> {
 mod tests {
     use std::path::PathBuf;
 
-    use bnb_ast::{Affordance, Area, Component, Connection, Place, Sketch};
+    use bnb_ast::{
+        Affordance, Area, Component, Connection, Coordinate, Pivot, Place, Position, Sketch,
+    };
 
     use super::*;
 
@@ -71,105 +73,111 @@ mod tests {
         let breadboard = Breadboard {
             places: vec![
                 Place {
-                    name: "Registration".to_string(),
+                    name: "Registration".to_owned(),
                     affordances: vec![
                         Affordance {
-                            name: "Username".to_string(),
+                            name: "Username".to_owned(),
                             connections: vec![],
                         },
                         Affordance {
-                            name: "Password".to_string(),
+                            name: "Password".to_owned(),
                             connections: vec![],
                         },
                         Affordance {
-                            name: "Sign Up".to_string(),
+                            name: "Sign Up".to_owned(),
                             connections: vec![
                                 Connection {
-                                    target_place: "Home".to_string(),
-                                    description: Some("success".to_string()),
+                                    target_place: "Home".to_owned(),
+                                    description: Some("success".to_owned()),
                                 },
                                 Connection {
-                                    target_place: "Support".to_string(),
-                                    description: Some("failure".to_string()),
+                                    target_place: "Support".to_owned(),
+                                    description: Some("failure".to_owned()),
                                 },
                             ],
                         },
                     ],
-                    component_references: vec!["Header".to_string()],
+                    component_references: vec!["Header".to_owned()],
+                    position: Some(Position {
+                        x: Coordinate::Absolute(-10),
+                        y: Coordinate::Relative {
+                            place: "Support".to_owned(),
+                            offset: 20,
+                            pivot: Pivot::Left,
+                        },
+                    }),
                     sketch: Some(Sketch {
                         path: std::path::PathBuf::from("sketches/registration.png"),
-                        connections: vec![(
-                            Area {
-                                top_left: (50, 20),
-                                width: 110,
-                                height: 40,
-                            },
-                            vec![
+                        areas: vec![Area {
+                            top_left: (50, 20),
+                            width: 110,
+                            height: 40,
+                            connections: vec![
                                 Connection {
-                                    target_place: "Home".to_string(),
-                                    description: Some("success".to_string()),
+                                    target_place: "Home".to_owned(),
+                                    description: Some("success".to_owned()),
                                 },
                                 Connection {
-                                    target_place: "Support".to_string(),
-                                    description: Some("failure".to_string()),
+                                    target_place: "Support".to_owned(),
+                                    description: Some("failure".to_owned()),
                                 },
                             ],
-                        )],
+                        }],
                     }),
                 },
                 Place {
-                    name: "Support".to_string(),
+                    name: "Support".to_owned(),
                     affordances: vec![
                         Affordance {
-                            name: "Error Message".to_string(),
+                            name: "Error Message".to_owned(),
                             connections: vec![],
                         },
                         Affordance {
-                            name: "Try Again".to_string(),
+                            name: "Try Again".to_owned(),
                             connections: vec![Connection {
-                                target_place: "Registration".to_string(),
+                                target_place: "Registration".to_owned(),
                                 description: None,
                             }],
                         },
                     ],
-                    component_references: vec!["Header".to_string()],
+                    component_references: vec!["Header".to_owned()],
+                    position: None,
                     sketch: Some(Sketch {
                         path: PathBuf::from("sketches/support.png"),
-                        connections: vec![(
-                            Area {
-                                top_left: (50, 20),
-                                width: 110,
-                                height: 40,
-                            },
-                            vec![Connection {
-                                target_place: "Registration".to_string(),
+                        areas: vec![Area {
+                            top_left: (50, 20),
+                            width: 110,
+                            height: 40,
+                            connections: vec![Connection {
+                                target_place: "Registration".to_owned(),
                                 description: None,
                             }],
-                        )],
+                        }],
                     }),
                 },
                 Place {
-                    name: "Home".to_string(),
+                    name: "Home".to_owned(),
                     affordances: vec![Affordance {
-                        name: "Dashboard".to_string(),
+                        name: "Dashboard".to_owned(),
                         connections: vec![],
                     }],
-                    component_references: vec!["Header".to_string()],
+                    component_references: vec!["Header".to_owned()],
+                    position: None,
                     sketch: Some(Sketch {
                         path: PathBuf::from("sketches/home.png"),
-                        connections: vec![],
+                        areas: vec![],
                     }),
                 },
             ],
             components: vec![Component {
-                name: "Header".to_string(),
+                name: "Header".to_owned(),
                 affordances: vec![
                     Affordance {
-                        name: "Logo".to_string(),
+                        name: "Logo".to_owned(),
                         connections: vec![],
                     },
                     Affordance {
-                        name: "Contact".to_string(),
+                        name: "Contact".to_owned(),
                         connections: vec![],
                     },
                 ],

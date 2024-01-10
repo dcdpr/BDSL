@@ -60,8 +60,13 @@
 //! If parsing fails, a descriptive [`Error`] enum variant is returned.
 //!
 
-use bnb_ast::{Affordance, Area, Breadboard, Component, Connection, Place, Sketch};
-use std::{path::PathBuf, str::Chars};
+use bnb_ast::{
+    Affordance, Area, Breadboard, Component, Connection, Coordinate, Pivot, Place, Position, Sketch,
+};
+use std::{
+    path::PathBuf,
+    str::{Chars, FromStr},
+};
 
 /// Parses a string input to create a [`Breadboard`] structure.
 ///
@@ -121,13 +126,12 @@ fn parse_place(chars: &mut Chars) -> Result<Place, Error> {
         name,
         component_references: parse_component_references(chars)?,
         affordances: parse_affordances(chars)?,
+        position: parse_position(chars)?,
         sketch: parse_sketch(chars)?,
     })
 }
 
 fn parse_component_references(chars: &mut Chars) -> Result<Vec<String>, Error> {
-    skip_whitespace(chars);
-
     let mut references = vec![];
 
     while chars.clone().next().is_some() {
@@ -151,6 +155,132 @@ fn parse_component_references(chars: &mut Chars) -> Result<Vec<String>, Error> {
     }
 
     Ok(references)
+}
+
+fn parse_position(chars: &mut Chars) -> Result<Option<Position>, Error> {
+    skip_whitespace(chars);
+
+    if !chars.as_str().starts_with("position") {
+        return Ok(None);
+    }
+
+    // Consume the 'position' word
+    let _ = parse_word(chars);
+    parse_while(chars, |c| c.is_whitespace() && c != '\n');
+
+    let mut x = parse_coordinate(chars)?.ok_or(Error::MissingCoordinate)?;
+
+    parse_until(chars, ",\n");
+    if chars.clone().next() == Some(',') {
+        chars.next();
+    }
+
+    let y = parse_coordinate(chars)?;
+    let y_missing = y.is_none();
+
+    let mut y = y.unwrap_or_else(|| match &x {
+        Coordinate::Absolute(_) => Coordinate::Absolute(0),
+        Coordinate::Relative { place, .. } => Coordinate::Relative {
+            place: place.to_owned(),
+            offset: 0,
+            pivot: Pivot::Center,
+        },
+    });
+
+    // Swap x and y if x is a relative coordinate with 'top' or 'bottom' pivot
+    if let &Coordinate::Relative { pivot, .. } = &x {
+        if y_missing && (pivot == Pivot::Top || pivot == Pivot::Bottom) {
+            (x, y) = (y, x);
+        }
+    }
+
+    // Validate pivot points
+    if let &Coordinate::Relative { pivot, .. } = &x {
+        if pivot == Pivot::Top || pivot == Pivot::Bottom {
+            return Err(Error::InvalidCoordinatePivot);
+        }
+    }
+    if let &Coordinate::Relative { pivot, .. } = &y {
+        if pivot == Pivot::Left || pivot == Pivot::Right {
+            return Err(Error::InvalidCoordinatePivot);
+        }
+    }
+
+    Ok(Some(Position { x, y }))
+}
+
+fn parse_coordinate(chars: &mut Chars) -> Result<Option<Coordinate>, Error> {
+    parse_while(chars, |c| c.is_whitespace() && c != '\n');
+
+    // If we start with a newline char or there are no more characters, there's no coordinate
+    if chars.clone().next().map_or(true, |c| c == '\n') {
+        return Ok(None);
+    }
+
+    let pivot = match chars.clone().next() {
+        Some('^') => Pivot::Top,
+        Some('>') => Pivot::Right,
+        Some('_') => Pivot::Bottom,
+        Some('<') => Pivot::Left,
+        _ => Pivot::Center,
+    };
+
+    // Consume the pivot character, if any.
+    if !matches!(pivot, Pivot::Center) {
+        chars.next();
+    }
+
+    parse_while(chars, |c| c.is_whitespace() && c != '\n');
+
+    // After the optional pivot, more characters should follow.
+    let c = match chars.clone().next() {
+        None | Some('\n') => return Err(Error::InvalidPosition),
+        Some(c) => c,
+    };
+
+    // If the next non-whitespace character is a quote, we need to parse every character until the
+    // next unescaped quote as a quoted string.
+    //
+    // If not, we check if there's any valid "unquoted string" character (e.g. anything except `+`,
+    // `-`, a newline, or a digit character), and take those as being an unquoted string.
+    let place = (c == '"')
+        .then(|| parse_quoted_string(chars).map(ToOwned::to_owned))
+        .transpose()?
+        .or_else(|| {
+            (c != '+' && c != '-' && c != '\n' && c != ',' && !c.is_digit(10))
+                .then(|| parse_until(chars, "+-\n,").trim().to_owned())
+        });
+
+    parse_while(chars, |c| c.is_whitespace() && c != '\n');
+
+    // If there is a non-whitespace character next, we continue parsing the offset, but if not, we
+    // have an invalid coordinate, *unless* we parsed a "place" before, which is valid.
+    let c = match chars.clone().next() {
+        None | Some('\n') => {
+            let place = place.ok_or(Error::InvalidPosition)?;
+
+            return Ok(Some(Coordinate::Relative {
+                place,
+                offset: 0,
+                pivot,
+            }));
+        }
+        Some(c) => c,
+    };
+
+    let offset = if c == '+' || c == '-' || c.is_digit(10) {
+        parse_int(chars)?
+    } else {
+        0
+    };
+
+    let position = place.map_or(Coordinate::Absolute(offset), |place| Coordinate::Relative {
+        place,
+        offset,
+        pivot,
+    });
+
+    Ok(Some(position))
 }
 
 fn parse_sketch(chars: &mut Chars) -> Result<Option<Sketch>, Error> {
@@ -227,14 +357,25 @@ fn parse_area(chars: &mut Chars) -> Result<Area, Error> {
     })
 }
 
-fn parse_int(chars: &mut Chars<'_>) -> Result<u32, Error> {
+fn parse_int<E: ToString, T: FromStr<Err = E>>(chars: &mut Chars<'_>) -> Result<T, Error> {
+    let mut sign = '+';
+    if let Some(c) = chars.clone().next() {
+        if c == '+' || c == '-' {
+            chars.next();
+        }
+        if c == '-' {
+            sign = c;
+        }
+    }
+
+    skip_whitespace(chars);
     let str = chars.as_str();
     while chars.clone().next().map_or(false, |c| c.is_digit(10)) {
         chars.next();
     }
 
-    str[..str.len() - chars.as_str().len()]
-        .parse::<u32>()
+    format!("{sign}{}", &str[..str.len() - chars.as_str().len()])
+        .parse::<T>()
         .map_err(|e| Error::InvalidInteger(e.to_string()))
 }
 
@@ -251,6 +392,7 @@ fn parse_affordances(chars: &mut Chars) -> Result<Vec<Affordance>, Error> {
             || str.starts_with("place")
             || str.starts_with("component")
             || str.starts_with("sketch")
+            || str.starts_with("position")
         {
             return Ok(affordances);
         }
@@ -371,6 +513,26 @@ fn parse_quoted_string<'a>(chars: &'a mut Chars) -> Result<&'a str, Error> {
     Err(Error::UnterminatedQuotedString)
 }
 
+fn parse_while<'a>(chars: &'a mut Chars, fun: impl Fn(char) -> bool) -> &'a str {
+    let str = chars.as_str();
+
+    while chars.clone().next().map_or(false, &fun) {
+        chars.next();
+    }
+
+    &str[..str.len() - chars.as_str().len()]
+}
+
+fn parse_until<'a>(chars: &'a mut Chars, until: &str) -> &'a str {
+    let str = chars.as_str();
+
+    while chars.clone().next().map_or(false, |c| !until.contains(c)) {
+        chars.next();
+    }
+
+    &str[..str.len() - chars.as_str().len()]
+}
+
 fn parse_word<'a>(chars: &'a mut Chars) -> &'a str {
     let str = chars.as_str();
 
@@ -408,6 +570,9 @@ pub enum Error {
     #[error("missing component reference")]
     MissingComponentReference,
 
+    #[error("missing position coordinate")]
+    MissingCoordinate,
+
     #[error("expected quoted string")]
     ExpectedQuotedString,
 
@@ -444,6 +609,12 @@ pub enum Error {
     #[error("invalid integer: {0}")]
     InvalidInteger(String),
 
+    #[error("invalid position")]
+    InvalidPosition,
+
+    #[error("invalid coordinate pivot")]
+    InvalidCoordinatePivot,
+
     #[error("unexpected token: {0}")]
     UnexpectedToken(String),
 }
@@ -479,6 +650,7 @@ mod tests {
                   Error Message
                   Try Again -> Registration
 
+                  position > Registration
                   sketch sketches/registration.png
                     [50,20 110,40] -> Registration
 
@@ -487,6 +659,7 @@ mod tests {
 
                   Dashboard
 
+                  position 0, ^ Registration - 12
                   sketch sketches/home.png
 
                 component Header
@@ -648,6 +821,123 @@ mod tests {
             let mut chars = input.chars();
             skip_whitespace(&mut chars);
             let result: String = chars.collect();
+            assert_eq!(result, expected);
+        }
+    }
+
+    #[test]
+    fn test_parse_position() {
+        let test_cases = vec![
+            (
+                r#"position > "0,0",0"#,
+                Ok(Some(Position {
+                    x: Coordinate::Relative {
+                        place: "0,0".to_owned(),
+                        offset: 0,
+                        pivot: Pivot::Right,
+                    },
+                    y: Coordinate::Absolute(0),
+                })),
+            ),
+            (
+                r#"position "foo",",bar""#,
+                Ok(Some(Position {
+                    x: Coordinate::Relative {
+                        place: "foo".to_owned(),
+                        offset: 0,
+                        pivot: Pivot::Center,
+                    },
+                    y: Coordinate::Relative {
+                        place: ",bar".to_owned(),
+                        offset: 0,
+                        pivot: Pivot::Center,
+                    },
+                })),
+            ),
+            (
+                r#"position < foo bar - 10,^bar baz | qux ! + 12"#,
+                Ok(Some(Position {
+                    x: Coordinate::Relative {
+                        place: "foo bar".to_owned(),
+                        offset: -10,
+                        pivot: Pivot::Left,
+                    },
+                    y: Coordinate::Relative {
+                        place: "bar baz | qux !".to_owned(),
+                        offset: 12,
+                        pivot: Pivot::Top,
+                    },
+                })),
+            ),
+            (r#"position _ foo,^bar"#, Err(Error::InvalidCoordinatePivot)),
+            (
+                r#"position -10,23"#,
+                Ok(Some(Position {
+                    x: Coordinate::Absolute(-10),
+                    y: Coordinate::Absolute(23),
+                })),
+            ),
+            (
+                r#"position > foo + 10, 0"#,
+                Ok(Some(Position {
+                    x: Coordinate::Relative {
+                        place: "foo".to_owned(),
+                        offset: 10,
+                        pivot: Pivot::Right,
+                    },
+                    y: Coordinate::Absolute(0),
+                })),
+            ),
+            (
+                r#"position foo-10,^foo+20"#,
+                Ok(Some(Position {
+                    x: Coordinate::Relative {
+                        place: "foo".to_owned(),
+                        offset: -10,
+                        pivot: Pivot::Center,
+                    },
+                    y: Coordinate::Relative {
+                        place: "foo".to_owned(),
+                        offset: 20,
+                        pivot: Pivot::Top,
+                    },
+                })),
+            ),
+            (
+                r#"position ^foo"#,
+                Ok(Some(Position {
+                    x: Coordinate::Relative {
+                        place: "foo".to_owned(),
+                        offset: 0,
+                        pivot: Pivot::Center,
+                    },
+                    y: Coordinate::Relative {
+                        place: "foo".to_owned(),
+                        offset: 0,
+                        pivot: Pivot::Top,
+                    },
+                })),
+            ),
+            (
+                r#"position >"foo+" + 12"#,
+                Ok(Some(Position {
+                    x: Coordinate::Relative {
+                        place: "foo+".to_owned(),
+                        offset: 12,
+                        pivot: Pivot::Right,
+                    },
+                    y: Coordinate::Relative {
+                        place: "foo+".to_owned(),
+                        offset: 0,
+                        pivot: Pivot::Center,
+                    },
+                })),
+            ),
+        ];
+
+        for (input, expected) in test_cases {
+            let mut chars = input.chars();
+            let result = parse_position(&mut chars);
             assert_eq!(result, expected);
         }
     }

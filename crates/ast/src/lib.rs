@@ -48,7 +48,7 @@ use serde::{Deserialize, Serialize};
 /// The root node of the [Breadboard], containing [`Place`]s and [`Component`]s.
 ///
 /// [Breadboard]: https://basecamp.com/shapeup/1.3-chapter-04
-#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Clone, Default, Serialize, Deserialize)]
 pub struct Breadboard {
     /// A vector of `Place` instances, representing different locations on the breadboard.
     pub places: Vec<Place>,
@@ -70,8 +70,64 @@ pub struct Place {
     /// A list of references to [`Component`]s.
     pub component_references: Vec<String>,
 
+    /// The desired position of the place, as x/y coordinates.
+    ///
+    /// Note that relative positions are expected to be correct for their given axis. Meaning, for
+    /// the `x` axis, the relative offset can be to the left or right of the target, but *not* top
+    /// or bottom, those are used for the `y` axis.
+    pub position: Option<Position>,
+
     /// An optional `Sketch` representing a visual layout or design for this place.
     pub sketch: Option<Sketch>,
+}
+
+/// Represents the desired position for a given place.
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
+pub struct Position {
+    pub x: Coordinate,
+    pub y: Coordinate,
+}
+
+/// Represents one coordinate of a desired position for a given place.
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum Coordinate {
+    /// An absolute position within the [`Breadboard`] canvas.
+    ///
+    /// `0` is the center of the canvas, positive numbers to to the right and downwards.
+    Absolute(i32),
+
+    /// A relative position calculated from the given *other* [`Place`].
+    ///
+    /// A relative position with `offset` set to `0` and `pivot` set to [`Pivot::Center`] means
+    /// this place is positioned exactly on top of the reference place.
+    ///
+    /// Note that these are marked as *desired* positions, any implementation such as a GUI will
+    /// likely not render two places on top of each other, to avoid any confusion or visual
+    /// artifacts.
+    ///
+    /// Any other pivot variant moves the current place to one of the four sides of the target. For
+    /// example, `Right` aligns the left side of the current place with the right side of the
+    /// target place, essentially aligning the current place to the right of the target.
+    ///
+    /// Again, libraries might add their own interpretation. For example, a GUI might always add
+    /// some padding between two aligned places, even if `offset` is set to `0`.
+    Relative {
+        place: String,
+        offset: i32,
+        pivot: Pivot,
+    },
+}
+
+/// The relative position from which an offset is calculated.
+#[derive(Debug, PartialEq, Clone, Copy, Default, Serialize, Deserialize)]
+pub enum Pivot {
+    #[default]
+    Center,
+    Top,
+    Right,
+    Bottom,
+    Left,
 }
 
 /// Represents a component that can be referenced from [`Place`]s.

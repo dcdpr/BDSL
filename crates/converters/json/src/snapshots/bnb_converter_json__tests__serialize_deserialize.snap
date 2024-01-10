@@ -32,6 +32,14 @@ expression: deserialized_breadboard
       "component_references": [
         "Header"
       ],
+      "position": {
+        "x": -10,
+        "y": {
+          "place": "Support",
+          "offset": 20,
+          "pivot": "Left"
+        }
+      },
       "sketch": {
         "path": "sketches/registration.png",
         "connections": [
@@ -78,6 +86,7 @@ expression: deserialized_breadboard
       "component_references": [
         "Header"
       ],
+      "position": null,
       "sketch": {
         "path": "sketches/support.png",
         "connections": [
@@ -111,6 +120,7 @@ expression: deserialized_breadboard
       "component_references": [
         "Header"
       ],
+      "position": null,
       "sketch": {
         "path": "sketches/home.png",
         "connections": []

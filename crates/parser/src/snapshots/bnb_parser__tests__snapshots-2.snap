@@ -37,6 +37,7 @@ Ok(
                 component_references: [
                     "Header",
                 ],
+                position: None,
                 sketch: Some(
                     Sketch {
                         path: "sketches/registration.png",
@@ -101,6 +102,20 @@ Ok(
                 component_references: [
                     "Header",
                 ],
+                position: Some(
+                    (
+                        Relative {
+                            place: "Registration",
+                            offset: 0,
+                            pivot: Right,
+                        },
+                        Relative {
+                            place: "Registration",
+                            offset: 0,
+                            pivot: Center,
+                        },
+                    ),
+                ),
                 sketch: Some(
                     Sketch {
                         path: "sketches/registration.png",
@@ -136,6 +151,18 @@ Ok(
                 component_references: [
                     "Header",
                 ],
+                position: Some(
+                    (
+                        Absolute(
+                            0,
+                        ),
+                        Relative {
+                            place: "Registration",
+                            offset: -12,
+                            pivot: Top,
+                        },
+                    ),
+                ),
                 sketch: Some(
                     Sketch {
                         path: "sketches/home.png",

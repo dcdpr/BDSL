@@ -63,6 +63,7 @@ place Support
     Error Message
     Try Again -> Registration
 
+    position > Registration
     sketch sketches/registration.png
         [50,20 110,40] -> Registration
 
@@ -71,6 +72,7 @@ place Home
 
     Dashboard
 
+    position 0, ^ Registration - 12
     sketch sketches/home.png
 
 component Header
@@ -106,7 +108,45 @@ component Header
    - `Header` component includes `Logo` and `Contact`, indicating these
      affordances are part of the header.
 
-6. **Defining Sketches:**
+6. **Positioning:**
+
+   The `position` attribute in the DSL is designed to specify the preferred
+   placement of a `Place` within the breadboard layout. It serves as a
+   suggestion for layout engines to optimally display the breadboard
+   components.
+
+   The syntax for `position` is defined as `position <x>, <y>`, where `<x>`
+   and `<y>` represent the coordinates and can be expressed in several ways:
+
+   1. **Absolute Coordinates**: Direct numeric values (positive or negative)
+      indicating a specific point on the board, e.g., `10`, `-12`.
+
+   2. **Relative Coordinates**: Reference to another `Place`'s position, e.g.,
+      `Home`. This sets the current `Place` in relation to the referenced
+      `Place`.
+
+   3. **Relative with Offset**: A `Place` name followed by an offset value,
+      e.g., `Home - 10`. This positions the current `Place` relative to the
+      named `Place`, adjusted by the specified offset.
+
+   4. **Relative with Pivot Point**: A `Place` name with an optional pivot
+      indicator (`<`, `^`, `>`, `_`), defaulting to "center" if not specified.
+      Each pivot point indicates a specific direction relative to the named
+      `Place`:
+
+       - `<`: Left
+       - `^`: Above
+       - `>`: Right
+       - `_`: Below
+
+   5. **Assumed Coordinates**: If only one coordinate is given and it's a
+      relative position, the second coordinate is assumed to be relative to
+      the same `Place` with no offset and a center pivot. However, if the
+      first coordinate uses a `top` (`^`) or `bottom` (`_`) pivot, then it's
+      interpreted as a `y` coordinate, and the assumed second coordinate is
+      treated as an `x` axis position.
+
+7. **Defining Sketches:**
    - `sketch` is used to provide visual representations of places.
    - Each sketch can have one or more "clickable areas" (using the notation
      `[<y-top>,<x-left> <y-bottom>,<x-right>]` in pixels), used by the GUI to

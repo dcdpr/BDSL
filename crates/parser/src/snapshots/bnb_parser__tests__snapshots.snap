@@ -9,6 +9,7 @@ Ok(
                 name: "Home",
                 affordances: [],
                 component_references: [],
+                position: None,
                 sketch: None,
             },
         ],
