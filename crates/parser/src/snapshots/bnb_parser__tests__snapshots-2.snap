@@ -76,18 +76,18 @@ Ok(
                     "Header",
                 ],
                 position: Some(
-                    (
-                        Relative {
+                    Position {
+                        x: Relative {
                             place: "Registration",
                             offset: 0,
                             pivot: Right,
                         },
-                        Relative {
+                        y: Relative {
                             place: "Registration",
                             offset: 0,
                             pivot: Center,
                         },
-                    ),
+                    },
                 ),
                 sketch: Some(
                     Sketch {
@@ -118,16 +118,16 @@ Ok(
                     "Header",
                 ],
                 position: Some(
-                    (
-                        Absolute(
+                    Position {
+                        x: Absolute(
                             0,
                         ),
-                        Relative {
+                        y: Relative {
                             place: "Registration",
                             offset: -12,
                             pivot: Top,
                         },
-                    ),
+                    },
                 ),
                 sketch: Some(
                     Sketch {
