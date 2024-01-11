@@ -183,6 +183,6 @@ pub struct Area {
     /// The height of the area.
     pub height: u32,
 
-    /// One or more [`Connection`]s linked to this area.
-    pub connections: Vec<Connection>,
+    /// The name of the [`Affordance`] within the [`Place`] of the sketch, this area belongs to.
+    pub affordance: String,
 }

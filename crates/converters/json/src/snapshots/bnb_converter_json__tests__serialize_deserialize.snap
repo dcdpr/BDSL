@@ -50,16 +50,7 @@ expression: deserialized_breadboard
             ],
             "width": 110,
             "height": 40,
-            "connections": [
-              {
-                "target_place": "Home",
-                "description": "success"
-              },
-              {
-                "target_place": "Support",
-                "description": "failure"
-              }
-            ]
+            "affordance": "Sign Up"
           }
         ]
       }
@@ -95,12 +86,7 @@ expression: deserialized_breadboard
             ],
             "width": 110,
             "height": 40,
-            "connections": [
-              {
-                "target_place": "Registration",
-                "description": null
-              }
-            ]
+            "affordance": "Try Again"
           }
         ]
       }

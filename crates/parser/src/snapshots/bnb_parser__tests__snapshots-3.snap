@@ -65,45 +65,25 @@ Ok(
                 sketch: Some(
                     Sketch {
                         path: "foo/bar.png",
-                        connections: [
-                            (
-                                Area {
-                                    top_left: (
-                                        0,
-                                        0,
-                                    ),
-                                    width: 10,
-                                    height: 10,
-                                },
-                                [
-                                    Connection {
-                                        target_place: "Pay Invoice",
-                                        description: Some(
-                                            "if foo",
-                                        ),
-                                    },
-                                    Connection {
-                                        target_place: "Another one",
-                                        description: None,
-                                    },
-                                ],
-                            ),
-                            (
-                                Area {
-                                    top_left: (
-                                        20,
-                                        20,
-                                    ),
-                                    width: 10,
-                                    height: 10,
-                                },
-                                [
-                                    Connection {
-                                        target_place: "Pay Twice",
-                                        description: None,
-                                    },
-                                ],
-                            ),
+                        areas: [
+                            Area {
+                                top_left: (
+                                    0,
+                                    0,
+                                ),
+                                width: 10,
+                                height: 10,
+                                affordance: "free -> form!",
+                            },
+                            Area {
+                                top_left: (
+                                    20,
+                                    20,
+                                ),
+                                width: 10,
+                                height: 10,
+                                affordance: "another one!",
+                            },
                         ],
                     },
                 ),

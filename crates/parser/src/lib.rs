@@ -300,14 +300,14 @@ fn parse_sketch(chars: &mut Chars) -> Result<Option<Sketch>, Error> {
     let mut areas = vec![];
     while chars.clone().next() == Some('[') {
         let mut area = parse_area(chars)?;
-        skip_whitespace(chars);
 
-        area.connections = parse_connections(chars)?;
-        if area.connections.is_empty() {
-            return Err(Error::SketchAreaMissingConnection);
+        area.affordance = parse_line(chars).trim().to_owned();
+        if area.affordance.is_empty() {
+            return Err(Error::SketchAreaMissingAffordance);
         }
 
         areas.push(area);
+        skip_whitespace(chars)
     }
 
     Ok(Some(Sketch { path, areas }))
@@ -354,7 +354,7 @@ fn parse_area(chars: &mut Chars) -> Result<Area, Error> {
         top_left: (top, left),
         width,
         height,
-        connections: vec![],
+        affordance: "".to_owned(),
     })
 }
 
@@ -589,8 +589,8 @@ pub enum Error {
     #[error("invalid sketch path: {0}")]
     InvalidSketchPath(String),
 
-    #[error("sketch area must have at least one connection")]
-    SketchAreaMissingConnection,
+    #[error("sketch area must reference an affordance")]
+    SketchAreaMissingAffordance,
 
     #[error("expected sketch area")]
     ExpectedSketchArea,
@@ -642,8 +642,7 @@ mod tests {
                           -> (failure) Support
 
                   sketch sketches/registration.png
-                    [50,20 110,40] -> (success) Home
-                    [50,20 110,40] -> (failure) Support
+                    [50,20 110,40] Sign Up
 
                 place Support
                   include Header
@@ -653,7 +652,7 @@ mod tests {
 
                   position > Registration
                   sketch sketches/registration.png
-                    [50,20 110,40] -> Registration
+                    [50,20 110,40] Try Again
 
                 place Home
                   include Header
@@ -675,8 +674,8 @@ mod tests {
                   "free -> form!" -> Not -> "(test)"
                   another one!
                   sketch foo/bar.png
-                    [0,0 10,10] -> (if foo) Pay Invoice -> Another one
-                    [20,20 30,30] -> Pay Twice
+                    [0,0 10,10] free -> form!
+                    [20,20 30,30] another one!
                 place four!
             "#},
         ];

@@ -41,43 +41,16 @@ Ok(
                 sketch: Some(
                     Sketch {
                         path: "sketches/registration.png",
-                        connections: [
-                            (
-                                Area {
-                                    top_left: (
-                                        50,
-                                        20,
-                                    ),
-                                    width: 20,
-                                    height: 60,
-                                },
-                                [
-                                    Connection {
-                                        target_place: "Home",
-                                        description: Some(
-                                            "success",
-                                        ),
-                                    },
-                                ],
-                            ),
-                            (
-                                Area {
-                                    top_left: (
-                                        50,
-                                        20,
-                                    ),
-                                    width: 20,
-                                    height: 60,
-                                },
-                                [
-                                    Connection {
-                                        target_place: "Support",
-                                        description: Some(
-                                            "failure",
-                                        ),
-                                    },
-                                ],
-                            ),
+                        areas: [
+                            Area {
+                                top_left: (
+                                    50,
+                                    20,
+                                ),
+                                width: 20,
+                                height: 60,
+                                affordance: "Sign Up",
+                            },
                         ],
                     },
                 ),
@@ -119,23 +92,16 @@ Ok(
                 sketch: Some(
                     Sketch {
                         path: "sketches/registration.png",
-                        connections: [
-                            (
-                                Area {
-                                    top_left: (
-                                        50,
-                                        20,
-                                    ),
-                                    width: 20,
-                                    height: 60,
-                                },
-                                [
-                                    Connection {
-                                        target_place: "Registration",
-                                        description: None,
-                                    },
-                                ],
-                            ),
+                        areas: [
+                            Area {
+                                top_left: (
+                                    50,
+                                    20,
+                                ),
+                                width: 20,
+                                height: 60,
+                                affordance: "Try Again",
+                            },
                         ],
                     },
                 ),
@@ -166,7 +132,7 @@ Ok(
                 sketch: Some(
                     Sketch {
                         path: "sketches/home.png",
-                        connections: [],
+                        areas: [],
                     },
                 ),
             },

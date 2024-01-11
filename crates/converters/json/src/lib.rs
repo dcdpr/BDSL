@@ -112,16 +112,7 @@ mod tests {
                             top_left: (50, 20),
                             width: 110,
                             height: 40,
-                            connections: vec![
-                                Connection {
-                                    target_place: "Home".to_owned(),
-                                    description: Some("success".to_owned()),
-                                },
-                                Connection {
-                                    target_place: "Support".to_owned(),
-                                    description: Some("failure".to_owned()),
-                                },
-                            ],
+                            affordance: "Sign Up".to_owned(),
                         }],
                     }),
                 },
@@ -148,10 +139,7 @@ mod tests {
                             top_left: (50, 20),
                             width: 110,
                             height: 40,
-                            connections: vec![Connection {
-                                target_place: "Registration".to_owned(),
-                                description: None,
-                            }],
+                            affordance: "Try Again".to_owned(),
                         }],
                     }),
                 },

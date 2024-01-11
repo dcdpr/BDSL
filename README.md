@@ -54,8 +54,7 @@ place Registration
             -> (failure) Support
 
     sketch sketches/registration.png
-        [50,20 110,40] -> (success) Home
-        [50,20 110,40] -> (failure) Support
+        [50,20 110,40] Sign Up
 
 place Support
     include Header
@@ -151,6 +150,8 @@ component Header
    - Each sketch can have one or more "clickable areas" (using the notation
      `[<y-top>,<x-left> <y-bottom>,<x-right>]` in pixels), used by the GUI to
      navigate by clicking on the sketch images.
+   - Each clickable area must reference one affordance in the same place that
+     has one or more connections.
 
 ### Use-Case of the DSL
 
