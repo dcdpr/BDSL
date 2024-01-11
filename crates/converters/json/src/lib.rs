@@ -36,11 +36,12 @@ use serde_json::Result;
 ///
 /// let breadboard = Breadboard { places: vec![], components: vec![] };
 /// let mut buffer = vec![];
-/// serialize(&mut buffer, &breadboard).unwrap();
+/// serialize(&mut buffer, &breadboard);
 /// ```
 ///
-pub fn serialize(writer: impl Write, breadboard: &Breadboard) -> Result<()> {
-    serde_json::to_writer(writer, breadboard)
+#[allow(clippy::missing_panics_doc)]
+pub fn serialize(writer: impl Write, breadboard: &Breadboard) {
+    serde_json::to_writer(writer, breadboard).expect("Breadboard serialization cannot fail");
 }
 
 /// Deserializes JSON data into a `Breadboard` structure.
@@ -53,6 +54,13 @@ pub fn serialize(writer: impl Write, breadboard: &Breadboard) -> Result<()> {
 /// let json = r#"{"places": [], "components": []}"#;
 /// let breadboard = deserialize(json.as_bytes()).unwrap();
 /// ```
+///
+/// # Errors
+///
+/// This conversion can fail if the structure of the input does not match the structure expected by
+/// `Breadboard`. It can also fail if the structure is correct but something is wrong with the
+/// data, for example required struct fields are missing from the JSON map or some number is too
+/// big to fit in the expected primitive type.
 ///
 pub fn deserialize(reader: impl Read) -> Result<Breadboard> {
     serde_json::from_reader(reader)
@@ -69,6 +77,7 @@ mod tests {
     use super::*;
 
     #[test]
+    #[allow(clippy::too_many_lines)]
     fn test_serialize_deserialize() {
         let breadboard = Breadboard {
             places: vec![
@@ -174,7 +183,7 @@ mod tests {
 
         // Serialize the Breadboard
         let mut serialized_data = Vec::new();
-        serialize(&mut serialized_data, &breadboard).expect("Serialization failed");
+        serialize(&mut serialized_data, &breadboard);
 
         // Deserialize the Breadboard
         let deserialized_breadboard: Breadboard =

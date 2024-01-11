@@ -2,6 +2,25 @@
 members = ["crates/ast", "crates/converters/json", "crates/parser"]
 resolver = "2"
 
+[workspace.package]
+edition = "2021"
+license = "MIT OR Apache-2.0"
+readme = "README.md"
+repository = "https://github.com/dcdpr/BDSL"
+
+[workspace.lints.rust]
+future-incompatible = "warn"
+let-underscore = "warn"
+nonstandard-style = "warn"
+rust-2018-compatibility = "warn"
+rust-2018-idioms = "warn"
+rust-2021-compatibility = "warn"
+unused = "warn"
+
+[workspace.lints.clippy]
+all = "warn"
+pedantic = "warn"
+
 [profile.dev]
 opt-level = 1
 

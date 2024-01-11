@@ -20,13 +20,11 @@
 //! ```rust
 //! use bnb_parser::parse;
 //!
-//! fn main() {
-//!     let input = "place Registration\nUsername\nPassword\nSign Up -> Home";
+//! let input = "place Registration\nUsername\nPassword\nSign Up -> Home";
 //!
-//!     match parse(input) {
-//!         Ok(breadboard) => { /* explore the data! */ },
-//!         Err(error) => panic!("{}", error),
-//!     }
+//! match parse(input) {
+//!     Ok(breadboard) => { /* explore the data! */ },
+//!     Err(error) => panic!("{}", error),
 //! }
 //! ```
 //!
@@ -100,7 +98,7 @@ pub fn parse(input: &str) -> Result<Breadboard, Error> {
     Ok(Breadboard { places, components })
 }
 
-fn parse_component(chars: &mut Chars) -> Result<Component, Error> {
+fn parse_component(chars: &mut Chars<'_>) -> Result<Component, Error> {
     skip_whitespace(chars);
 
     let name = parse_line(chars).to_owned();
@@ -114,7 +112,7 @@ fn parse_component(chars: &mut Chars) -> Result<Component, Error> {
     })
 }
 
-fn parse_place(chars: &mut Chars) -> Result<Place, Error> {
+fn parse_place(chars: &mut Chars<'_>) -> Result<Place, Error> {
     skip_whitespace(chars);
 
     let name = parse_line(chars).to_owned();
@@ -131,7 +129,7 @@ fn parse_place(chars: &mut Chars) -> Result<Place, Error> {
     })
 }
 
-fn parse_component_references(chars: &mut Chars) -> Result<Vec<String>, Error> {
+fn parse_component_references(chars: &mut Chars<'_>) -> Result<Vec<String>, Error> {
     let mut references = vec![];
 
     while chars.clone().next().is_some() {
@@ -157,7 +155,7 @@ fn parse_component_references(chars: &mut Chars) -> Result<Vec<String>, Error> {
     Ok(references)
 }
 
-fn parse_position(chars: &mut Chars) -> Result<Option<Position>, Error> {
+fn parse_position(chars: &mut Chars<'_>) -> Result<Option<Position>, Error> {
     skip_whitespace(chars);
 
     if !chars.as_str().starts_with("position") {
@@ -209,7 +207,7 @@ fn parse_position(chars: &mut Chars) -> Result<Option<Position>, Error> {
     Ok(Some(Position { x, y }))
 }
 
-fn parse_coordinate(chars: &mut Chars) -> Result<Option<Coordinate>, Error> {
+fn parse_coordinate(chars: &mut Chars<'_>) -> Result<Option<Coordinate>, Error> {
     parse_while(chars, |c| c.is_whitespace() && c != '\n');
 
     // If we start with a newline char or there are no more characters, there's no coordinate
@@ -247,7 +245,7 @@ fn parse_coordinate(chars: &mut Chars) -> Result<Option<Coordinate>, Error> {
         .then(|| parse_quoted_string(chars).map(ToOwned::to_owned))
         .transpose()?
         .or_else(|| {
-            (c != '+' && c != '-' && c != '\n' && c != ',' && !c.is_digit(10))
+            (c != '+' && c != '-' && c != '\n' && c != ',' && !c.is_ascii_digit())
                 .then(|| parse_until(chars, "+-\n,").trim().to_owned())
         });
 
@@ -268,7 +266,7 @@ fn parse_coordinate(chars: &mut Chars) -> Result<Option<Coordinate>, Error> {
         Some(c) => c,
     };
 
-    let offset = if c == '+' || c == '-' || c.is_digit(10) {
+    let offset = if c == '+' || c == '-' || c.is_ascii_digit() {
         parse_int(chars)?
     } else {
         0
@@ -283,7 +281,7 @@ fn parse_coordinate(chars: &mut Chars) -> Result<Option<Coordinate>, Error> {
     Ok(Some(position))
 }
 
-fn parse_sketch(chars: &mut Chars) -> Result<Option<Sketch>, Error> {
+fn parse_sketch(chars: &mut Chars<'_>) -> Result<Option<Sketch>, Error> {
     skip_whitespace(chars);
 
     if !chars.as_str().starts_with("sketch") {
@@ -307,19 +305,19 @@ fn parse_sketch(chars: &mut Chars) -> Result<Option<Sketch>, Error> {
         }
 
         areas.push(area);
-        skip_whitespace(chars)
+        skip_whitespace(chars);
     }
 
     Ok(Some(Sketch { path, areas }))
 }
 
-fn parse_area(chars: &mut Chars) -> Result<Area, Error> {
+fn parse_area(chars: &mut Chars<'_>) -> Result<Area, Error> {
     if chars.next() != Some('[') {
         return Err(Error::ExpectedSketchArea);
     }
 
     let parse_coordinate =
-        |chars: &mut Chars, expected_delimiter: Option<char>| -> Result<u32, Error> {
+        |chars: &mut Chars<'_>, expected_delimiter: Option<char>| -> Result<u32, Error> {
             let coord = parse_int(chars)?;
             skip_whitespace(chars);
             if let Some(delimiter) = expected_delimiter {
@@ -354,7 +352,7 @@ fn parse_area(chars: &mut Chars) -> Result<Area, Error> {
         top_left: (top, left),
         width,
         height,
-        affordance: "".to_owned(),
+        affordance: String::new(),
     })
 }
 
@@ -371,7 +369,7 @@ fn parse_int<E: ToString, T: FromStr<Err = E>>(chars: &mut Chars<'_>) -> Result<
 
     skip_whitespace(chars);
     let str = chars.as_str();
-    while chars.clone().next().map_or(false, |c| c.is_digit(10)) {
+    while chars.clone().next().map_or(false, |c| c.is_ascii_digit()) {
         chars.next();
     }
 
@@ -380,7 +378,7 @@ fn parse_int<E: ToString, T: FromStr<Err = E>>(chars: &mut Chars<'_>) -> Result<
         .map_err(|e| Error::InvalidInteger(e.to_string()))
 }
 
-fn parse_affordances(chars: &mut Chars) -> Result<Vec<Affordance>, Error> {
+fn parse_affordances(chars: &mut Chars<'_>) -> Result<Vec<Affordance>, Error> {
     skip_whitespace(chars);
 
     let mut affordances = vec![];
@@ -412,7 +410,7 @@ fn parse_affordances(chars: &mut Chars) -> Result<Vec<Affordance>, Error> {
     Ok(affordances)
 }
 
-fn parse_connections(chars: &mut Chars) -> Result<Vec<Connection>, Error> {
+fn parse_connections(chars: &mut Chars<'_>) -> Result<Vec<Connection>, Error> {
     let mut connections = vec![];
     while chars.clone().next().is_some() {
         skip_whitespace(chars);
@@ -440,49 +438,47 @@ fn parse_connections(chars: &mut Chars) -> Result<Vec<Connection>, Error> {
     Ok(connections)
 }
 
-fn parse_affordance_or_target_name<'a>(chars: &'a mut Chars) -> Result<&'a str, Error> {
+fn parse_affordance_or_target_name<'a>(chars: &'a mut Chars<'_>) -> Result<&'a str, Error> {
     let str = chars.as_str();
 
-    match chars.clone().next() {
-        Some('"') => parse_quoted_string(chars),
-        _ => {
-            while chars
-                .clone()
-                .next()
-                .map_or(false, |c| c != '\n' && c != '(')
-            {
-                if chars.as_str().starts_with("->") {
-                    break;
-                }
-
-                chars.next();
-            }
-
-            Ok(str[..str.len() - chars.as_str().len()].trim())
-        }
+    if let Some('"') = chars.clone().next() {
+        return parse_quoted_string(chars);
     }
+
+    while chars
+        .clone()
+        .next()
+        .map_or(false, |c| c != '\n' && c != '(')
+    {
+        if chars.as_str().starts_with("->") {
+            break;
+        }
+
+        chars.next();
+    }
+
+    Ok(str[..str.len() - chars.as_str().len()].trim())
 }
 
-fn parse_connection_description<'a>(chars: &'a mut Chars) -> Result<String, Error> {
+fn parse_connection_description(chars: &mut Chars<'_>) -> Result<String, Error> {
     if chars.next() != Some('(') {
         return Err(Error::ExpectedConnectionDescription);
     }
 
     let start = chars.as_str();
-    let desc = match chars.clone().next() {
-        Some('"') => parse_quoted_string(chars)?.to_owned(),
-        _ => {
-            while chars
-                .clone()
-                .next()
-                .map_or(false, |c| c != '\n' && c != ')')
-            {
-                chars.next();
-            }
-
-            let end = chars.as_str();
-            start[..start.len() - end.len()].to_owned()
+    let desc = if let Some('"') = chars.clone().next() {
+        parse_quoted_string(chars)?.to_owned()
+    } else {
+        while chars
+            .clone()
+            .next()
+            .map_or(false, |c| c != '\n' && c != ')')
+        {
+            chars.next();
         }
+
+        let end = chars.as_str();
+        start[..start.len() - end.len()].to_owned()
     };
 
     if chars.next() != Some(')') {
@@ -492,7 +488,7 @@ fn parse_connection_description<'a>(chars: &'a mut Chars) -> Result<String, Erro
     Ok(desc)
 }
 
-fn parse_quoted_string<'a>(chars: &'a mut Chars) -> Result<&'a str, Error> {
+fn parse_quoted_string<'a>(chars: &'a mut Chars<'_>) -> Result<&'a str, Error> {
     match chars.next() {
         Some('"') => (),
         _ => return Err(Error::ExpectedQuotedString),
@@ -514,7 +510,7 @@ fn parse_quoted_string<'a>(chars: &'a mut Chars) -> Result<&'a str, Error> {
     Err(Error::UnterminatedQuotedString)
 }
 
-fn parse_while<'a>(chars: &'a mut Chars, fun: impl Fn(char) -> bool) -> &'a str {
+fn parse_while<'a>(chars: &'a mut Chars<'_>, fun: impl Fn(char) -> bool) -> &'a str {
     let str = chars.as_str();
 
     while chars.clone().next().map_or(false, &fun) {
@@ -524,7 +520,7 @@ fn parse_while<'a>(chars: &'a mut Chars, fun: impl Fn(char) -> bool) -> &'a str 
     &str[..str.len() - chars.as_str().len()]
 }
 
-fn parse_until<'a>(chars: &'a mut Chars, until: &str) -> &'a str {
+fn parse_until<'a>(chars: &'a mut Chars<'_>, until: &str) -> &'a str {
     let str = chars.as_str();
 
     while chars.clone().next().map_or(false, |c| !until.contains(c)) {
@@ -534,7 +530,7 @@ fn parse_until<'a>(chars: &'a mut Chars, until: &str) -> &'a str {
     &str[..str.len() - chars.as_str().len()]
 }
 
-fn parse_word<'a>(chars: &'a mut Chars) -> &'a str {
+fn parse_word<'a>(chars: &'a mut Chars<'_>) -> &'a str {
     let str = chars.as_str();
 
     while chars.clone().next().map_or(false, |c| !c.is_whitespace()) {
@@ -544,7 +540,7 @@ fn parse_word<'a>(chars: &'a mut Chars) -> &'a str {
     &str[..str.len() - chars.as_str().len()]
 }
 
-fn parse_line<'a>(chars: &'a mut Chars) -> &'a str {
+fn parse_line<'a>(chars: &'a mut Chars<'_>) -> &'a str {
     let str = chars.as_str();
 
     while chars.clone().next().map_or(false, |c| c != '\n') {
@@ -554,7 +550,7 @@ fn parse_line<'a>(chars: &'a mut Chars) -> &'a str {
     &str[..str.len() - chars.as_str().len()]
 }
 
-fn skip_whitespace(chars: &mut Chars) {
+fn skip_whitespace(chars: &mut Chars<'_>) {
     while chars.clone().next().map_or(false, char::is_whitespace) {
         chars.next();
     }
@@ -629,10 +625,10 @@ mod tests {
     #[test]
     fn test_snapshots() {
         let test_cases = vec![
-            indoc! {r#"
+            indoc! {"
                 place Home
-            "#},
-            indoc! {r#"
+            "},
+            indoc! {"
                 place Registration
                   include Header
 
@@ -665,7 +661,7 @@ mod tests {
                 component Header
                   Logo
                   Contact
-            "#},
+            "},
             indoc! {r#"
                 place invoice
                   Turn on autopay -> Set up autopay -> Foo bar -> (test) test 2
@@ -715,7 +711,7 @@ mod tests {
                 "(unterminated \"quoted string)",
                 Ok("unterminated \"quoted string".to_owned()),
             ),
-            ("()", Ok("".to_owned())),
+            ("()", Ok(String::new())),
             (
                 "(description with ) inside)",
                 Ok("description with ".to_owned()),
@@ -826,6 +822,7 @@ mod tests {
     }
 
     #[test]
+    #[allow(clippy::too_many_lines)]
     fn test_parse_position() {
         let test_cases = vec![
             (
@@ -855,7 +852,7 @@ mod tests {
                 })),
             ),
             (
-                r#"position < foo bar - 10,^bar baz | qux ! + 12"#,
+                "position < foo bar - 10,^bar baz | qux ! + 12",
                 Ok(Some(Position {
                     x: Coordinate::Relative {
                         place: "foo bar".to_owned(),
@@ -869,16 +866,16 @@ mod tests {
                     },
                 })),
             ),
-            (r#"position _ foo,^bar"#, Err(Error::InvalidCoordinatePivot)),
+            ("position _ foo,^bar", Err(Error::InvalidCoordinatePivot)),
             (
-                r#"position -10,23"#,
+                "position -10,23",
                 Ok(Some(Position {
                     x: Coordinate::Absolute(-10),
                     y: Coordinate::Absolute(23),
                 })),
             ),
             (
-                r#"position > foo + 10, 0"#,
+                "position > foo + 10, 0",
                 Ok(Some(Position {
                     x: Coordinate::Relative {
                         place: "foo".to_owned(),
@@ -889,7 +886,7 @@ mod tests {
                 })),
             ),
             (
-                r#"position foo-10,^foo+20"#,
+                "position foo-10,^foo+20",
                 Ok(Some(Position {
                     x: Coordinate::Relative {
                         place: "foo".to_owned(),
@@ -904,7 +901,7 @@ mod tests {
                 })),
             ),
             (
-                r#"position ^foo"#,
+                "position ^foo",
                 Ok(Some(Position {
                     x: Coordinate::Relative {
                         place: "foo".to_owned(),
