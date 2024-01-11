@@ -64,7 +64,7 @@ place Support
 
     position > Registration
     sketch sketches/registration.png
-        [50,20 110,40] -> Registration
+        [50,20 110,40] Try Again
 
 place Home
     include Header
