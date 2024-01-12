@@ -19,7 +19,10 @@ pub fn run(config: Config) {
         .add_plugins((
             AssetManagementPlugin,
             BevyPlugin,
-            DebugPlugin { enable: debug },
+            DebugPlugin {
+                enable: debug,
+                ambiguity_detection: debug,
+            },
             InputPlugin,
             SchedulePlugin,
             WindowPlugin,
