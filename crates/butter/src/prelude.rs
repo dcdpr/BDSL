@@ -4,3 +4,4 @@ pub(crate) use bevy_ecs::prelude::*;
 pub(crate) use bevy_render::prelude::*;
 pub(crate) use bevy_transform::prelude::*;
 pub(crate) use bevy_utils::prelude::*;
+pub(crate) use tracing::instrument;

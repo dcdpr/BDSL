@@ -4,7 +4,8 @@ mod plugins;
 pub(crate) mod prelude;
 
 use plugins::{
-    AssetManagementPlugin, BevyPlugin, DebugPlugin, InputPlugin, SchedulePlugin, WindowPlugin,
+    AssetManagementPlugin, BevyPlugin, DebugPlugin, InputPlugin, SchedulePlugin, StartupPlugin,
+    WindowPlugin,
 };
 use prelude::*;
 
@@ -25,6 +26,7 @@ pub fn run(config: Config) {
             },
             InputPlugin,
             SchedulePlugin,
+            StartupPlugin,
             WindowPlugin,
         ))
         .run();

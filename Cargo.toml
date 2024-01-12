@@ -5,6 +5,7 @@ members = [
   "crates/converters/json",
   "crates/parser",
 ]
+exclude = ["crates/converters/mermaidjs"]
 resolver = "2"
 
 [workspace.package]
