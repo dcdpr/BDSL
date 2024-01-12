@@ -878,6 +878,7 @@ version = "0.1.0"
 dependencies = [
  "bevy_a11y",
  "bevy_app",
+ "bevy_asset",
  "bevy_core_pipeline",
  "bevy_dylib",
  "bevy_ecs",

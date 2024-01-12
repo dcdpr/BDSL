@@ -4,7 +4,9 @@ mod plugins;
 pub(crate) mod prelude;
 
 use bevy_window::PresentMode;
-use plugins::{debug::DebugPlugin, schedule::SchedulePlugin};
+use plugins::{
+    asset_management::AssetManagementPlugin, debug::DebugPlugin, schedule::SchedulePlugin,
+};
 use prelude::*;
 
 pub struct Config {
@@ -32,6 +34,10 @@ pub fn run(config: Config) {
             WinitPlugin::default(),
         ))
         // User defined plugins.
-        .add_plugins((DebugPlugin { enable: debug }, SchedulePlugin))
+        .add_plugins((
+            AssetManagementPlugin,
+            DebugPlugin { enable: debug },
+            SchedulePlugin,
+        ))
         .run();
 }
