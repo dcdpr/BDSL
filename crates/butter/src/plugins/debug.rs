@@ -2,18 +2,42 @@ use bevy_ecs::schedule::{LogLevel, ScheduleBuildSettings};
 
 use crate::prelude::*;
 
-use super::schedule::AppSet;
-
 /// Generic debugging utilities.
 pub(crate) struct DebugPlugin {
-    pub enable: bool,
+    /// Enable tracing.
+    pub trace: bool,
+
+    /// Enable ECS system run order ambiguity detection.
     pub ambiguity_detection: bool,
+}
+impl DebugPlugin {
+    #[cfg(feature = "trace")]
+    fn enable_tracing(&self) {
+        use tracing::level_filters::LevelFilter;
+        use tracing_subscriber::{fmt::format::FmtSpan, EnvFilter};
+
+        let filter = EnvFilter::builder()
+            .with_default_directive(LevelFilter::INFO.into())
+            .with_env_var("LOG")
+            .from_env_lossy()
+            .add_directive("bevy_ecs=error".parse().unwrap());
+
+        tracing_subscriber::fmt::fmt()
+            .with_env_filter(filter)
+            .with_span_events(FmtSpan::ENTER)
+            .with_target(true)
+            .with_line_number(true)
+            .init();
+    }
+
+    #[cfg(not(feature = "trace"))]
+    fn enable_tracing(&self) {}
 }
 
 impl Default for DebugPlugin {
     fn default() -> Self {
         Self {
-            enable: true,
+            trace: false,
             ambiguity_detection: false,
         }
     }
@@ -21,8 +45,8 @@ impl Default for DebugPlugin {
 
 impl Plugin for DebugPlugin {
     fn build(&self, app: &mut App) {
-        if self.enable {
-            app.add_systems(Update, print_position.after(AppSet::EntityUpdates));
+        if self.trace {
+            self.enable_tracing();
         }
 
         if self.ambiguity_detection {
@@ -33,15 +57,5 @@ impl Plugin for DebugPlugin {
                 });
             });
         };
-    }
-}
-
-/// Log the [`Entity`] ID and translation of each entity with a [`Transform`] component.
-fn print_position(query: Query<(Entity, &Transform)>) {
-    for (entity, transform) in &query {
-        info!(
-            "Entity {:?} is at position {:?},",
-            entity, transform.translation
-        );
     }
 }

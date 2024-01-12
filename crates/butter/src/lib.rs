@@ -20,7 +20,7 @@ pub fn run(config: Config) {
             AssetManagementPlugin,
             BevyPlugin,
             DebugPlugin {
-                enable: debug,
+                trace: debug,
                 ambiguity_detection: debug,
             },
             InputPlugin,
