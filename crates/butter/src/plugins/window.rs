@@ -9,7 +9,7 @@ pub(crate) struct WindowPlugin;
 
 impl Plugin for WindowPlugin {
     fn build(&self, app: &mut App) {
-        app.insert_resource(ClearColor(Color::rgb(0.1, 0.0, 0.15)))
+        app.insert_resource(ClearColor(Color::rgb(0.945, 0.945, 0.941)))
             .insert_resource(WinitSettings::desktop_app())
             .add_plugins((
                 AccessibilityPlugin,
