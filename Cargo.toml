@@ -1,5 +1,10 @@
 [workspace]
-members = ["crates/ast", "crates/converters/json", "crates/parser"]
+members = [
+  "crates/ast",
+  "crates/butter",
+  "crates/converters/json",
+  "crates/parser",
+]
 resolver = "2"
 
 [workspace.package]
@@ -21,8 +26,10 @@ unused = "warn"
 all = "warn"
 pedantic = "warn"
 
+# Enable a small amount of optimization in debug mode
 [profile.dev]
 opt-level = 1
 
+# Enable high optimizations for dependencies, but not for our code:
 [profile.dev.package."*"]
 opt-level = 3

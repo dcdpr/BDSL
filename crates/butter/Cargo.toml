@@ -1,0 +1,34 @@
+[package]
+name = "bnb-butter"
+version = "0.1.0"
+description = "A Buttery Smooth Breadboarding UI."
+edition.workspace = true
+license.workspace = true
+readme.workspace = true
+repository.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+# Core Bevy crates.
+bevy_a11y = { version = "0.12", default-features = false }
+bevy_app = { version = "0.12", default-features = false }
+bevy_core_pipeline = { version = "0.12", default-features = false }
+bevy_ecs = { version = "0.12", default-features = false }
+bevy_input = { version = "0.12", default-features = false }
+bevy_log = { version = "0.12", default-features = false }
+bevy_render = { version = "0.12", default-features = false }
+bevy_transform = { version = "0.12", default-features = false }
+bevy_utils = { version = "0.12", default-features = false }
+bevy_window = { version = "0.12", default-features = false }
+bevy_winit = { version = "0.12", default-features = false }
+
+# Dynamic linking, see: <https://bevyengine.org/learn/book/getting-started/setup/#enable-fast-compiles-optional>.
+bevy_dylib = { version = "0.12", default-features = false, optional = true }
+bevy_internal = { version = "0.12", default-features = false, optional = true }
+
+
+[features]
+default = ["fast-compile"]
+fast-compile = ["dep:bevy_dylib", "bevy_internal/dynamic_linking"]

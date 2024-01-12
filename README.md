@@ -28,10 +28,11 @@ and a valuable addition to your toolkit.
 ## Libraries
 
 - [`bnb-ast`](./crates/ast) — The public `Breadboard` AST.
-- [`bnb-parser`](./crates/parser) — Parses the "bnb" DSL into a `Breadboard`
-  type.
+- [`bnb-butter`](./crates/butter) — Interactive breadboarding GUI.
 - [`bnb-converter-json`](./crates/converters/json) — Convert a `Breadboard`
   type to/from JSON.
+- [`bnb-parser`](./crates/parser) — Parses the "bnb" DSL into a `Breadboard`
+  type.
 
 ## Example
 
