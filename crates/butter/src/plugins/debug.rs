@@ -23,7 +23,8 @@ impl DebugPlugin {
             .add_directive("bevy_ecs=error".parse().unwrap())
             .add_directive("bevy_render=error".parse().unwrap())
             .add_directive("wgpu_core=error".parse().unwrap())
-            .add_directive("wgpu_hal=error".parse().unwrap());
+            .add_directive("wgpu_hal=error".parse().unwrap())
+            .add_directive("naga=error".parse().unwrap());
 
         tracing_subscriber::fmt::fmt()
             .with_env_filter(filter)
