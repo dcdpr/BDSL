@@ -58,12 +58,13 @@
 //! If parsing fails, a descriptive [`Error`] enum variant is returned.
 //!
 
-use bnb_ast::{
-    Affordance, Area, Breadboard, Component, Connection, Coordinate, Pivot, Place, Position, Sketch,
-};
 use std::{
     path::PathBuf,
     str::{Chars, FromStr},
+};
+
+use bnb_ast::{
+    Affordance, Area, Breadboard, Component, Connection, Coordinate, Pivot, Place, Position, Sketch,
 };
 
 /// Parses a string input to create a [`Breadboard`] structure.
