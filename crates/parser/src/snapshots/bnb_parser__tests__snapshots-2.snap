@@ -138,19 +138,24 @@ Ok(
             },
         ],
         components: [
-            Component {
-                name: "Header",
-                affordances: [
-                    Affordance {
-                        name: "Logo",
-                        connections: [],
-                    },
-                    Affordance {
-                        name: "Contact",
-                        connections: [],
-                    },
-                ],
-            },
+            Component(
+                Place {
+                    name: "Header",
+                    affordances: [
+                        Affordance {
+                            name: "Logo",
+                            connections: [],
+                        },
+                        Affordance {
+                            name: "Contact",
+                            connections: [],
+                        },
+                    ],
+                    component_references: [],
+                    position: None,
+                    sketch: None,
+                },
+            ),
         ],
     },
 )

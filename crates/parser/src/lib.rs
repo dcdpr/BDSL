@@ -100,17 +100,9 @@ pub fn parse(input: &str) -> Result<Breadboard, Error> {
 }
 
 fn parse_component(chars: &mut Chars<'_>) -> Result<Component, Error> {
-    skip_whitespace(chars);
+    let place = parse_place(chars)?;
 
-    let name = parse_line(chars).to_owned();
-    if name.is_empty() {
-        return Err(Error::MissingComponentName);
-    }
-
-    Ok(Component {
-        name,
-        affordances: parse_affordances(chars)?,
-    })
+    Ok(Component::new(place))
 }
 
 fn parse_place(chars: &mut Chars<'_>) -> Result<Place, Error> {

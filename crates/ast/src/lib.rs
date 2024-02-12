@@ -43,6 +43,8 @@
 //! // ...
 //! ```
 
+use std::ops::Deref;
+
 use serde::{Deserialize, Serialize};
 
 /// The root node of the [Breadboard], containing [`Place`]s and [`Component`]s.
@@ -72,9 +74,9 @@ pub struct Place {
 
     /// The desired position of the place, as x/y coordinates.
     ///
-    /// Note that relative positions are expected to be correct for their given axis. Meaning, for
-    /// the `x` axis, the relative offset can be to the left or right of the target, but *not* top
-    /// or bottom, those are used for the `y` axis.
+    /// Note that relative position [`Coordinate`]s are expected to be correct for their given
+    /// axis. Meaning, for the `x` axis, the relative offset can be to the left or right of the
+    /// target, but *not* top or bottom, those are used for the `y` axis.
     pub position: Option<Position>,
 
     /// An optional `Sketch` representing a visual layout or design for this place.
@@ -131,13 +133,24 @@ pub enum Pivot {
 }
 
 /// Represents a component that can be referenced from [`Place`]s.
+///
+/// Internally, a component is the same as a [`Place`].
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
-pub struct Component {
-    /// A unique identifier for the component.
-    pub name: String,
+pub struct Component(Place);
 
-    /// Grouped [`Affordance`] items, which can be collectively referenced from one or more places.
-    pub affordances: Vec<Affordance>,
+impl Component {
+    /// Creates a new [`Component`] from the given [`Place`].
+    pub fn new(place: Place) -> Self {
+        Self(place)
+    }
+}
+
+impl Deref for Component {
+    type Target = Place;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
 }
 
 /// Describes an affordance, detailing an action or capability of a [`Place`].
