@@ -99,6 +99,28 @@ pub fn parse(input: &str) -> Result<Breadboard, Error> {
     Ok(Breadboard { places, components })
 }
 
+fn parse_comment<'a>(chars: &mut Chars<'_>) -> Vec<String> {
+    let mut comment = vec![];
+
+    // Continuously parse consecutive comment lines (even if the comments are interleaved with
+    // empty lines).
+    loop {
+        skip_whitespace(chars);
+
+        if !chars.as_str().starts_with('#') {
+            break;
+        }
+
+        let line = &parse_line(chars)[1..];
+
+        // Remove exactly *one* leading space, if present.
+        let n = line.starts_with(' ').into();
+        comment.push(line[n..].to_owned());
+    }
+
+    comment
+}
+
 fn parse_component(chars: &mut Chars<'_>) -> Result<Component, Error> {
     let place = parse_place(chars)?;
 
@@ -389,6 +411,8 @@ fn parse_affordances(chars: &mut Chars<'_>) -> Result<Vec<Affordance>, Error> {
             return Ok(affordances);
         }
 
+        let level = parse_level(chars);
+
         let name = parse_affordance_or_target_name(chars)?.to_owned();
         if name.is_empty() {
             return Ok(affordances);
@@ -397,6 +421,7 @@ fn parse_affordances(chars: &mut Chars<'_>) -> Result<Vec<Affordance>, Error> {
         affordances.push(Affordance {
             name,
             connections: parse_connections(chars)?,
+            level,
         });
     }
 
@@ -429,6 +454,18 @@ fn parse_connections(chars: &mut Chars<'_>) -> Result<Vec<Connection>, Error> {
     }
 
     Ok(connections)
+}
+
+fn parse_level<'a>(chars: &'a mut Chars<'_>) -> usize {
+    // Don't do any implicit trimming, the first character should be a "level" character.
+    if !chars.as_str().starts_with(">") {
+        return 0;
+    }
+
+    // Parse one or more levels, and allow spaces between and after `>`.
+    let str = parse_while(chars, |c| c == '>' || (c.is_whitespace() && c != '\n'));
+
+    str.matches('>').count()
 }
 
 fn parse_affordance_or_target_name<'a>(chars: &'a mut Chars<'_>) -> Result<&'a str, Error> {
@@ -667,6 +704,45 @@ mod tests {
                     [20,20 30,30] another one!
                 place four!
             "#},
+        ];
+
+        for case in test_cases {
+            insta::assert_debug_snapshot!(parse(case));
+        }
+    }
+
+    #[test]
+    fn test_parse_level() {
+        let test_cases = vec![
+            indoc! {"
+                place NoLevel
+                  No Level
+            "},
+            indoc! {"
+                place OneLevel
+                  > One Level
+            "},
+            indoc! {"
+                place MultipleLevels
+                  > One Level
+                  > Two Level
+                  > Three Level
+            "},
+            indoc! {"
+                place NestedLevels
+                  > One Level
+                  >> Two Level
+                  >> Three Level
+                  >> > Four Level
+            "},
+            indoc! {"
+                component MixedLevels
+                  > One Level
+                  >> Two Level
+                  >> > Three Level
+                  > Four Level
+                  Five Level
+            "},
         ];
 
         for case in test_cases {

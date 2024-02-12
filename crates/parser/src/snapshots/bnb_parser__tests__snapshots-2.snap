@@ -11,10 +11,12 @@ Ok(
                     Affordance {
                         name: "Username",
                         connections: [],
+                        level: 0,
                     },
                     Affordance {
                         name: "Password",
                         connections: [],
+                        level: 0,
                     },
                     Affordance {
                         name: "Sign Up",
@@ -32,6 +34,7 @@ Ok(
                                 ),
                             },
                         ],
+                        level: 0,
                     },
                 ],
                 component_references: [
@@ -61,6 +64,7 @@ Ok(
                     Affordance {
                         name: "Error Message",
                         connections: [],
+                        level: 0,
                     },
                     Affordance {
                         name: "Try Again",
@@ -70,6 +74,7 @@ Ok(
                                 description: None,
                             },
                         ],
+                        level: 0,
                     },
                 ],
                 component_references: [
@@ -112,6 +117,7 @@ Ok(
                     Affordance {
                         name: "Dashboard",
                         connections: [],
+                        level: 0,
                     },
                 ],
                 component_references: [
@@ -145,10 +151,12 @@ Ok(
                         Affordance {
                             name: "Logo",
                             connections: [],
+                            level: 0,
                         },
                         Affordance {
                             name: "Contact",
                             connections: [],
+                            level: 0,
                         },
                     ],
                     component_references: [],

@@ -1,0 +1,46 @@
+---
+source: crates/parser/src/lib.rs
+expression: parse(case)
+---
+Ok(
+    Breadboard {
+        places: [],
+        components: [
+            Component(
+                Place {
+                    name: "MixedLevels",
+                    affordances: [
+                        Affordance {
+                            name: "One Level",
+                            connections: [],
+                            level: 1,
+                        },
+                        Affordance {
+                            name: "Two Level",
+                            connections: [],
+                            level: 2,
+                        },
+                        Affordance {
+                            name: "Three Level",
+                            connections: [],
+                            level: 3,
+                        },
+                        Affordance {
+                            name: "Four Level",
+                            connections: [],
+                            level: 1,
+                        },
+                        Affordance {
+                            name: "Five Level",
+                            connections: [],
+                            level: 0,
+                        },
+                    ],
+                    component_references: [],
+                    position: None,
+                    sketch: None,
+                },
+            ),
+        ],
+    },
+)

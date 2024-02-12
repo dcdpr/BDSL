@@ -162,6 +162,11 @@ pub struct Affordance {
     /// A list of [`Connection`] items, specifying how this affordance interacts with other parts
     /// of the breadboard.
     pub connections: Vec<Connection>,
+
+    /// The nesting level of the affordance.
+    ///
+    /// By default this is set to 0.
+    pub level: usize,
 }
 
 /// Represents a connection from an [`Affordance`] to [`Place`]s on the breadboard.

@@ -1,0 +1,24 @@
+---
+source: crates/parser/src/lib.rs
+expression: parse(case)
+---
+Ok(
+    Breadboard {
+        places: [
+            Place {
+                name: "NoLevel",
+                affordances: [
+                    Affordance {
+                        name: "No Level",
+                        connections: [],
+                        level: 0,
+                    },
+                ],
+                component_references: [],
+                position: None,
+                sketch: None,
+            },
+        ],
+        components: [],
+    },
+)
