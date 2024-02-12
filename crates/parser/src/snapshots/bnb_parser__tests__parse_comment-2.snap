@@ -6,26 +6,28 @@ Ok(
     Breadboard {
         places: [
             Place {
-                name: "MultipleLevels",
+                name: "AffordanceComment",
                 description: [],
                 affordances: [
                     Affordance {
-                        name: "One Level",
+                        name: "Not Here",
                         description: [],
                         connections: [],
-                        level: 1,
+                        level: 0,
                     },
                     Affordance {
-                        name: "Two Level",
-                        description: [],
+                        name: "But Here",
+                        description: [
+                            "An affordance comment.",
+                        ],
                         connections: [],
-                        level: 1,
+                        level: 0,
                     },
                     Affordance {
-                        name: "Three Level",
+                        name: "And No Longer Here",
                         description: [],
                         connections: [],
-                        level: 1,
+                        level: 0,
                     },
                 ],
                 component_references: [],

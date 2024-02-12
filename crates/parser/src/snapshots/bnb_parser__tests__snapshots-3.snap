@@ -7,9 +7,11 @@ Ok(
         places: [
             Place {
                 name: "invoice",
+                description: [],
                 affordances: [
                     Affordance {
                         name: "Turn on autopay",
+                        description: [],
                         connections: [
                             Connection {
                                 target_place: "Set up autopay",
@@ -35,6 +37,7 @@ Ok(
             },
             Place {
                 name: "two",
+                description: [],
                 affordances: [],
                 component_references: [],
                 position: None,
@@ -42,9 +45,11 @@ Ok(
             },
             Place {
                 name: "three and more!",
+                description: [],
                 affordances: [
                     Affordance {
                         name: "free -> form!",
+                        description: [],
                         connections: [
                             Connection {
                                 target_place: "Not",
@@ -59,6 +64,7 @@ Ok(
                     },
                     Affordance {
                         name: "another one!",
+                        description: [],
                         connections: [],
                         level: 0,
                     },
@@ -93,6 +99,7 @@ Ok(
             },
             Place {
                 name: "four!",
+                description: [],
                 affordances: [],
                 component_references: [],
                 position: None,

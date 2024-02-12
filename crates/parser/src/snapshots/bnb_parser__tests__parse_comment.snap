@@ -6,8 +6,10 @@ Ok(
     Breadboard {
         places: [
             Place {
-                name: "Home",
-                description: [],
+                name: "PlaceComment",
+                description: [
+                    "A comment as a description for the place.",
+                ],
                 affordances: [],
                 component_references: [],
                 position: None,

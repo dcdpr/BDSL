@@ -7,19 +7,23 @@ Ok(
         places: [
             Place {
                 name: "Registration",
+                description: [],
                 affordances: [
                     Affordance {
                         name: "Username",
+                        description: [],
                         connections: [],
                         level: 0,
                     },
                     Affordance {
                         name: "Password",
+                        description: [],
                         connections: [],
                         level: 0,
                     },
                     Affordance {
                         name: "Sign Up",
+                        description: [],
                         connections: [
                             Connection {
                                 target_place: "Home",
@@ -60,14 +64,17 @@ Ok(
             },
             Place {
                 name: "Support",
+                description: [],
                 affordances: [
                     Affordance {
                         name: "Error Message",
+                        description: [],
                         connections: [],
                         level: 0,
                     },
                     Affordance {
                         name: "Try Again",
+                        description: [],
                         connections: [
                             Connection {
                                 target_place: "Registration",
@@ -113,9 +120,11 @@ Ok(
             },
             Place {
                 name: "Home",
+                description: [],
                 affordances: [
                     Affordance {
                         name: "Dashboard",
+                        description: [],
                         connections: [],
                         level: 0,
                     },
@@ -147,14 +156,17 @@ Ok(
             Component(
                 Place {
                     name: "Header",
+                    description: [],
                     affordances: [
                         Affordance {
                             name: "Logo",
+                            description: [],
                             connections: [],
                             level: 0,
                         },
                         Affordance {
                             name: "Contact",
+                            description: [],
                             connections: [],
                             level: 0,
                         },

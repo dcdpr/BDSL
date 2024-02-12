@@ -1,0 +1,34 @@
+---
+source: crates/parser/src/lib.rs
+expression: parse(case)
+---
+Ok(
+    Breadboard {
+        places: [],
+        components: [
+            Component(
+                Place {
+                    name: "MultiLineComment",
+                    description: [
+                        "Multi-level",
+                        "comments are supported.",
+                    ],
+                    affordances: [
+                        Affordance {
+                            name: "Affordance",
+                            description: [
+                                "For components,",
+                                "and affordances.",
+                            ],
+                            connections: [],
+                            level: 0,
+                        },
+                    ],
+                    component_references: [],
+                    position: None,
+                    sketch: None,
+                },
+            ),
+        ],
+    },
+)

@@ -6,30 +6,32 @@ Ok(
     Breadboard {
         places: [
             Place {
-                name: "NestedLevels",
-                description: [],
+                name: "MultipleComments",
+                description: [
+                    "Both a place comment,",
+                ],
                 affordances: [
                     Affordance {
-                        name: "One Level",
-                        description: [],
+                        name: "One",
+                        description: [
+                            "and",
+                        ],
                         connections: [],
-                        level: 1,
+                        level: 0,
                     },
                     Affordance {
-                        name: "Two Level",
-                        description: [],
-                        connections: [],
-                        level: 2,
-                    },
-                    Affordance {
-                        name: "Three Level",
-                        description: [],
+                        name: "Two",
+                        description: [
+                            "affordance",
+                        ],
                         connections: [],
                         level: 2,
                     },
                     Affordance {
-                        name: "Four Level",
-                        description: [],
+                        name: "Three",
+                        description: [
+                            "comments!",
+                        ],
                         connections: [],
                         level: 3,
                     },

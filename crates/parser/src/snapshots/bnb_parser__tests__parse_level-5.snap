@@ -9,29 +9,35 @@ Ok(
             Component(
                 Place {
                     name: "MixedLevels",
+                    description: [],
                     affordances: [
                         Affordance {
                             name: "One Level",
+                            description: [],
                             connections: [],
                             level: 1,
                         },
                         Affordance {
                             name: "Two Level",
+                            description: [],
                             connections: [],
                             level: 2,
                         },
                         Affordance {
                             name: "Three Level",
+                            description: [],
                             connections: [],
                             level: 3,
                         },
                         Affordance {
                             name: "Four Level",
+                            description: [],
                             connections: [],
                             level: 1,
                         },
                         Affordance {
                             name: "Five Level",
+                            description: [],
                             connections: [],
                             level: 0,
                         },

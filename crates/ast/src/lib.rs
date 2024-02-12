@@ -66,6 +66,9 @@ pub struct Place {
     /// A unique identifier for the place.
     pub name: String,
 
+    /// An optional description added to the place.
+    pub description: Vec<String>,
+
     /// A list of [`Affordance`] items, representing what can be done at this place.
     pub affordances: Vec<Affordance>,
 
@@ -158,6 +161,9 @@ impl Deref for Component {
 pub struct Affordance {
     /// A unique identifier for the affordance.
     pub name: String,
+
+    /// An optional description added to the affordance.
+    pub description: Vec<String>,
 
     /// A list of [`Connection`] items, specifying how this affordance interacts with other parts
     /// of the breadboard.

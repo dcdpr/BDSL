@@ -7,9 +7,11 @@ Ok(
         places: [
             Place {
                 name: "OneLevel",
+                description: [],
                 affordances: [
                     Affordance {
                         name: "One Level",
+                        description: [],
                         connections: [],
                         level: 1,
                     },

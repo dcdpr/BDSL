@@ -88,9 +88,11 @@ pub fn parse(input: &str) -> Result<Breadboard, Error> {
     let mut components = vec![];
 
     loop {
+        let description = parse_comment(&mut chars);
+
         match parse_word(&mut chars) {
-            "place" => places.push(parse_place(&mut chars)?),
-            "component" => components.push(parse_component(&mut chars)?),
+            "place" => places.push(parse_place(&mut chars, description)?),
+            "component" => components.push(parse_component(&mut chars, description)?),
             "" => break,
             v => return Err(Error::UnexpectedToken(v.to_owned())),
         }
@@ -121,13 +123,13 @@ fn parse_comment<'a>(chars: &mut Chars<'_>) -> Vec<String> {
     comment
 }
 
-fn parse_component(chars: &mut Chars<'_>) -> Result<Component, Error> {
-    let place = parse_place(chars)?;
+fn parse_component(chars: &mut Chars<'_>, description: Vec<String>) -> Result<Component, Error> {
+    let place = parse_place(chars, description)?;
 
     Ok(Component::new(place))
 }
 
-fn parse_place(chars: &mut Chars<'_>) -> Result<Place, Error> {
+fn parse_place(chars: &mut Chars<'_>, description: Vec<String>) -> Result<Place, Error> {
     skip_whitespace(chars);
 
     let name = parse_line(chars).to_owned();
@@ -137,6 +139,7 @@ fn parse_place(chars: &mut Chars<'_>) -> Result<Place, Error> {
 
     Ok(Place {
         name,
+        description,
         component_references: parse_component_references(chars)?,
         affordances: parse_affordances(chars)?,
         position: parse_position(chars)?,
@@ -401,7 +404,9 @@ fn parse_affordances(chars: &mut Chars<'_>) -> Result<Vec<Affordance>, Error> {
     while chars.clone().next().is_some() {
         skip_whitespace(chars);
 
-        let str = chars.as_str();
+        let mut ch = chars.clone();
+        drop(parse_comment(&mut ch));
+        let str = ch.as_str();
         if str.is_empty()
             || str.starts_with("place")
             || str.starts_with("component")
@@ -411,15 +416,23 @@ fn parse_affordances(chars: &mut Chars<'_>) -> Result<Vec<Affordance>, Error> {
             return Ok(affordances);
         }
 
+        let description = parse_comment(chars);
+
         let level = parse_level(chars);
 
         let name = parse_affordance_or_target_name(chars)?.to_owned();
+
+        // If there is no name, it means we've reached the end of the board.
+        //
+        // We might still have captured a comment and one or more level characters, but we'll
+        // ignore them for now, instead of (more correctly) raising a syntax error.
         if name.is_empty() {
             return Ok(affordances);
         }
 
         affordances.push(Affordance {
             name,
+            description,
             connections: parse_connections(chars)?,
             level,
         });
@@ -742,6 +755,66 @@ mod tests {
                   >> > Three Level
                   > Four Level
                   Five Level
+            "},
+        ];
+
+        for case in test_cases {
+            insta::assert_debug_snapshot!(parse(case));
+        }
+    }
+
+    #[test]
+    fn test_parse_comment() {
+        let test_cases = vec![
+            indoc! {"
+                # A comment as a description for the place.
+                place PlaceComment
+            "},
+            indoc! {"
+                place AffordanceComment
+                  Not Here
+                  # An affordance comment.
+                  But Here
+                  And No Longer Here
+            "},
+            indoc! {"
+                # Both a place comment,
+                place MultipleComments
+                  # and
+                  One
+                  # affordance
+                  >> Two
+                  # comments!
+                  >>> Three
+            "},
+            indoc! {"
+                # Multi-level
+                # comments are supported.
+                component MultiLineComment
+                  # For components,
+                  # and affordances.
+                  Affordance
+            "},
+            indoc! {"
+                #Starting whitespace is
+                # optional.
+                #   and more than one whitespace
+                #  is preserved.
+                #   As is trailing whitespace  
+                place WhiteSpace
+                  #  > Here as well < 
+                  Affordance
+            "},
+            indoc! {"
+                # Comments for multiple places.
+                place MultiplePlaces
+                  # And affordances.
+                  Affordance
+
+                # Also works!
+                place Works
+                  # And affordances.
+                  Affordance
             "},
         ];
 

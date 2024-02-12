@@ -1,0 +1,49 @@
+---
+source: crates/parser/src/lib.rs
+expression: parse(case)
+---
+Ok(
+    Breadboard {
+        places: [
+            Place {
+                name: "MultiplePlaces",
+                description: [
+                    "Comments for multiple places.",
+                ],
+                affordances: [
+                    Affordance {
+                        name: "Affordance",
+                        description: [
+                            "And affordances.",
+                        ],
+                        connections: [],
+                        level: 0,
+                    },
+                ],
+                component_references: [],
+                position: None,
+                sketch: None,
+            },
+            Place {
+                name: "Works",
+                description: [
+                    "Also works!",
+                ],
+                affordances: [
+                    Affordance {
+                        name: "Affordance",
+                        description: [
+                            "And affordances.",
+                        ],
+                        connections: [],
+                        level: 0,
+                    },
+                ],
+                component_references: [],
+                position: None,
+                sketch: None,
+            },
+        ],
+        components: [],
+    },
+)
