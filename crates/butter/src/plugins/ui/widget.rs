@@ -10,7 +10,7 @@ use bevy_window::PrimaryWindow;
 
 use crate::prelude::*;
 
-pub trait WorldWidgetSystemExt {
+pub(super) trait WorldWidgetSystemExt {
     fn root_widget<S: RootWidgetSystem<Args = ()> + 'static>(
         &mut self,
         id: impl Hash,
@@ -71,7 +71,7 @@ impl WorldWidgetSystemExt for World {
     }
 }
 
-pub trait UiWidgetSystemExt {
+pub(super) trait UiWidgetSystemExt {
     fn add_system<S: WidgetSystem<Args = ()> + 'static>(
         &mut self,
         world: &mut World,
@@ -120,7 +120,7 @@ impl UiWidgetSystemExt for egui::Ui {
     }
 }
 
-pub trait RootWidgetSystem: SystemParam {
+pub(super) trait RootWidgetSystem: SystemParam {
     type Args;
     type Output;
 
@@ -132,7 +132,12 @@ pub trait RootWidgetSystem: SystemParam {
     ) -> Self::Output;
 }
 
-pub trait WidgetSystem: SystemParam {
+/// For more details on this widget system, see:
+///
+/// - <https://github.com/bevyengine/bevy/discussions/5522>
+/// - <https://gist.github.com/ItsDoot/c5e95258ec7b65fb6b2ace32fac79b7e>
+/// - <https://gist.github.com/dmlary/a40e29de0e9ec78950bb5f352115710a>
+pub(super) trait WidgetSystem: SystemParam {
     type Args;
     type Output;
 
@@ -150,10 +155,10 @@ struct StateInstances<T: SystemParam + 'static> {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub struct WidgetId(pub u64);
+struct WidgetId(pub u64);
 
 impl WidgetId {
-    pub fn new(id: impl Hash) -> Self {
+    fn new(id: impl Hash) -> Self {
         let mut hasher = AHasher::default();
         id.hash(&mut hasher);
 

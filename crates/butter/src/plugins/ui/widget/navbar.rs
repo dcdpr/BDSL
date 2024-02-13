@@ -1,12 +1,12 @@
 use bevy_ecs::system::{SystemParam, SystemState};
-use bevy_egui::egui;
+use bevy_egui::egui::{self, Vec2};
+use rfd::FileDialog;
 
-use super::{label::Label, RootWidgetSystem, UiWidgetSystemExt as _};
-// use super::label;
-use crate::prelude::*;
+use super::{RootWidgetSystem, UiWidgetSystemExt as _, WidgetSystem};
+use crate::{plugins::ui::LastLoadPath, prelude::*};
 
 #[derive(SystemParam)]
-pub struct NavBar;
+pub(in crate::plugins::ui) struct NavBar;
 
 impl RootWidgetSystem for NavBar {
     type Args = ();
@@ -19,8 +19,44 @@ impl RootWidgetSystem for NavBar {
         ctx: &mut egui::Context,
         _: Self::Args,
     ) {
-        egui::TopBottomPanel::top("navbar").show(ctx, |ui| {
-            ui.add_system_with::<Label>(world, "hello_world", ());
-        });
+        egui::TopBottomPanel::top("navbar")
+            .show_separator_line(false)
+            .show(ctx, |ui| {
+                egui::menu::bar(ui, |ui| {
+                    ui.set_height(40.);
+                    ui.style_mut().spacing.button_padding = Vec2::splat(10.);
+                    ui.add_system::<LoadButton>(world, "load_button");
+                });
+            });
+    }
+}
+
+#[derive(SystemParam)]
+struct LoadButton<'w> {
+    load_path: ResMut<'w, LastLoadPath>,
+}
+
+impl WidgetSystem for LoadButton<'_> {
+    type Args = ();
+    type Output = ();
+
+    fn system(
+        world: &mut World,
+        state: &mut SystemState<Self>,
+        ui: &mut egui::Ui,
+        _: Self::Args,
+    ) -> Self::Output {
+        let LoadButton { mut load_path } = state.get_mut(world);
+
+        if ui.button("Load Breadboard…").clicked() {
+            if let Some(file) = FileDialog::new()
+                .set_title("Open Breadboard File")
+                .add_filter("breadboard", &["bnb"])
+                .set_directory(&*load_path)
+                .pick_file()
+            {
+                **load_path = file;
+            }
+        }
     }
 }
