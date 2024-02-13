@@ -1,0 +1,35 @@
+{
+  "colors": {
+    "primary": {
+      "$value": "#005f73",
+      "$type": "color",
+      "$description": "Primary brand color used in the navigation bar and buttons."
+    },
+    "secondary": {
+      "$value": "#0a9396",
+      "$type": "color",
+      "$description": "Secondary brand color for hover states and accents."
+    },
+    "background": {
+      "$value": "#94d2bd",
+      "$type": "color",
+      "$description": "Background color for navigation bar."
+    },
+    "text": {
+      "$value": "#e9d8a650",
+      "$type": "color",
+      "$description": "Primary text color."
+    }
+  },
+  "fontFamily": {
+    "global": {
+      "$value": [
+        "Helvetica",
+        "Arial",
+        "sans-serif"
+      ],
+      "$type": "fontFamily",
+      "$description": "Primary font family used globally."
+    }
+  }
+}

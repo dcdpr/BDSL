@@ -4,8 +4,8 @@ mod plugins;
 pub(crate) mod prelude;
 
 use plugins::{
-    AssetManagementPlugin, BevyPlugin, DebugPlugin, InputPlugin, SchedulePlugin, StartupPlugin,
-    UiPlugin, WindowPlugin,
+    AssetManagementPlugin, BevyPlugin, DebugPlugin, DesignTokensPlugin, InputPlugin,
+    SchedulePlugin, StartupPlugin, UiPlugin, WindowPlugin,
 };
 use prelude::*;
 
@@ -18,16 +18,18 @@ pub fn run(config: Config) {
 
     App::new()
         .add_plugins((
-            AssetManagementPlugin,
-            BevyPlugin,
+            // Loaded first to make sure we capture all following traces.
             DebugPlugin {
                 trace: debug,
                 ambiguity_detection: debug,
             },
+            AssetManagementPlugin,
+            BevyPlugin,
+            UiPlugin,
+            DesignTokensPlugin,
             InputPlugin,
             SchedulePlugin,
             StartupPlugin,
-            UiPlugin,
             WindowPlugin,
         ))
         .run();

@@ -940,6 +940,7 @@ dependencies = [
  "bevy_asset",
  "bevy_core",
  "bevy_core_pipeline",
+ "bevy_derive",
  "bevy_dylib",
  "bevy_ecs",
  "bevy_egui",
