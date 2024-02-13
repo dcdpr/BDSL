@@ -1,24 +1,143 @@
 {
   "colors": {
-    "primary": {
-      "$value": "#005f73",
-      "$type": "color",
-      "$description": "Primary brand color used in the navigation bar and buttons."
+    "$type": "color",
+    "rosewater": {
+      "$value": "#f2d5cf"
     },
-    "secondary": {
-      "$value": "#0a9396",
-      "$type": "color",
-      "$description": "Secondary brand color for hover states and accents."
+    "flamingo": {
+      "$value": "#eebebe"
     },
-    "background": {
-      "$value": "#94d2bd",
-      "$type": "color",
-      "$description": "Background color for navigation bar."
+    "pink": {
+      "$value": "#f4b8e4"
+    },
+    "mauve": {
+      "$value": "#ca9ee6"
+    },
+    "red": {
+      "$value": "#e78284"
+    },
+    "maroon": {
+      "$value": "#ea999c"
+    },
+    "peach": {
+      "$value": "#ef9f76"
+    },
+    "yellow": {
+      "$value": "#e5c890"
+    },
+    "green": {
+      "$value": "#a6d189"
+    },
+    "teal": {
+      "$value": "#81c8be"
+    },
+    "sky": {
+      "$value": "#99d1db"
+    },
+    "sapphire": {
+      "$value": "#85c1dc"
+    },
+    "blue": {
+      "$value": "#8caaee"
+    },
+    "lavender": {
+      "$value": "#babbf1"
     },
     "text": {
-      "$value": "#e9d8a650",
-      "$type": "color",
-      "$description": "Primary text color."
+      "$value": "#c6d0f5"
+    },
+    "subtext1": {
+      "$value": "#b5bfe2"
+    },
+    "subtext0": {
+      "$value": "#a5adce"
+    },
+    "overlay2": {
+      "$value": "#949cbb"
+    },
+    "overlay1": {
+      "$value": "#838ba7"
+    },
+    "overlay0": {
+      "$value": "#737994"
+    },
+    "surface2": {
+      "$value": "#626880"
+    },
+    "surface1": {
+      "$value": "#51576d"
+    },
+    "surface0": {
+      "$value": "#414559"
+    },
+    "base": {
+      "$value": "#303446"
+    },
+    "mantle": {
+      "$value": "#292c3c"
+    },
+    "crust": {
+      "$value": "#232634"
+    }
+  },
+  "egui": {
+    "visuals": {
+      "override_text_color": {
+        "$value": "{colors.text}"
+      },
+      "hyperlink_color": {
+        "$value": "{colors.rosewater}"
+      },
+      "faint_bg_color": {
+        "$value": "{colors.surface0}"
+      },
+      "extreme_bg_color": {
+        "$value": "{colors.crust}"
+      },
+      "code_bg_color": {
+        "$value": "{colors.mantle}"
+      },
+      "warn_fg_color": {
+        "$value": "{colors.peach}"
+      },
+      "error_fg_color": {
+        "$value": "{colors.maroon}"
+      },
+      "window_fill": {
+        "$value": "{colors.base}"
+      },
+      "panel_fill": {
+        "$value": "{colors.base}"
+      },
+      "window_stroke": {
+        "$value": "{colors.overlay1}"
+      },
+      "widgets": {
+        "noninteractive": {
+          "$value": "{colors.base}"
+        },
+        "inactive": {
+          "$value": "{colors.surface0}"
+        },
+        "hovered": {
+          "$value": "{colors.surface2}"
+        },
+        "active": {
+          "$value": "{colors.surface1}"
+        },
+        "open": {
+          "$value": "{colors.surface0}"
+        }
+      },
+      "selection": {
+        "$value": "{colors.blue}"
+      },
+      "window_shadow": {
+        "$value": "{colors.base}"
+      },
+      "popup_shadow": {
+        "$value": "{colors.base}"
+      }
     }
   },
   "fontFamily": {
