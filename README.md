@@ -49,8 +49,14 @@ Here's a basic example to illustrate the syntax and concepts:
 place Registration
     include Header
 
-    Username
-    Password
+    User Fields
+    > include CommonUserFields
+    > Username
+    > Password
+    > > Show Characters
+    > > Forgot Password
+    > Full Name
+
     Sign Up -> (success) Home
             -> (failure) Support
 
