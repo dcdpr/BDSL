@@ -1,0 +1,31 @@
+---
+source: crates/dtoken/src/lib.rs
+expression: code.to_string()
+---
+pub fn design_tokens() -> design_tokens::DesignTokens {
+    design_tokens::DesignTokens {
+        alias_name: dtoken::types::number::Number(1234f64),
+        group_name: design_tokens::group_name::GroupName {
+            token_name: dtoken::types::number::Number(1234f64),
+        },
+    }
+}
+pub mod design_tokens {
+    /// Root-level Design Tokens type
+    #[derive(Debug)]
+    pub struct DesignTokens {
+        ///
+        pub alias_name: dtoken::types::number::Number,
+        ///
+        pub group_name: group_name::GroupName,
+    }
+    pub mod group_name {
+        ///
+        #[derive(Debug)]
+        pub struct GroupName {
+            ///
+            pub token_name: dtoken::types::number::Number,
+        }
+    }
+}
+

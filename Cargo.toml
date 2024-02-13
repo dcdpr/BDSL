@@ -3,6 +3,7 @@ members = [
   "crates/ast",
   "crates/butter",
   "crates/converters/json",
+  "crates/dtoken",
   "crates/parser",
 ]
 exclude = ["crates/converters/mermaidjs"]
