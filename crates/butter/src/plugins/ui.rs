@@ -1,6 +1,4 @@
-mod widget;
-
-use std::path::{Path, PathBuf};
+mod navbar;
 
 use bevy_egui::{
     egui::{self, Color32, CursorIcon, Visuals},
@@ -8,30 +6,13 @@ use bevy_egui::{
 };
 use dtoken::types::color::Color;
 
-use self::widget::{navbar::NavBar, WorldWidgetSystemExt};
-use crate::prelude::*;
-
-#[derive(Resource, Deref, DerefMut)]
-struct LastLoadPath(PathBuf);
-
-impl Default for LastLoadPath {
-    fn default() -> Self {
-        Self(dirs::home_dir().unwrap_or(PathBuf::new()))
-    }
-}
-
-impl AsRef<Path> for LastLoadPath {
-    fn as_ref(&self) -> &Path {
-        &self.0
-    }
-}
+use crate::{prelude::*, widget::WorldWidgetSystemExt as _};
 
 pub(crate) struct UiPlugin;
 
 impl Plugin for UiPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins(EguiPlugin)
-            .init_resource::<LastLoadPath>()
             .add_systems(
                 PreUpdate,
                 apply_base_theme
@@ -167,5 +148,5 @@ fn apply_base_theme(tokens: Res<DesignTokens>, mut contexts: EguiContexts) {
 /// Specifically, see [`widget::WidgetSystem`] for more details.
 #[instrument(level = "info", skip_all)]
 fn render(world: &mut World) {
-    world.root_widget_with::<NavBar>("navbar", ());
+    world.root_widget_with::<navbar::NavBar>("navbar", ());
 }

@@ -1,5 +1,8 @@
-pub(super) mod label;
-pub(super) mod navbar;
+//! For more details on this widget system, see:
+//!
+//! - <https://github.com/bevyengine/bevy/discussions/5522>
+//! - <https://gist.github.com/ItsDoot/c5e95258ec7b65fb6b2ace32fac79b7e>
+//! - <https://gist.github.com/dmlary/a40e29de0e9ec78950bb5f352115710a>
 
 use std::hash::{Hash, Hasher as _};
 
@@ -10,7 +13,7 @@ use bevy_window::PrimaryWindow;
 
 use crate::prelude::*;
 
-pub(super) trait WorldWidgetSystemExt {
+pub(crate) trait WorldWidgetSystemExt {
     fn root_widget<S: RootWidgetSystem<Args = ()> + 'static>(
         &mut self,
         id: impl Hash,
@@ -71,7 +74,7 @@ impl WorldWidgetSystemExt for World {
     }
 }
 
-pub(super) trait UiWidgetSystemExt {
+pub(crate) trait UiWidgetSystemExt {
     fn add_system<S: WidgetSystem<Args = ()> + 'static>(
         &mut self,
         world: &mut World,
@@ -120,7 +123,7 @@ impl UiWidgetSystemExt for egui::Ui {
     }
 }
 
-pub(super) trait RootWidgetSystem: SystemParam {
+pub(crate) trait RootWidgetSystem: SystemParam {
     type Args;
     type Output;
 
@@ -132,12 +135,7 @@ pub(super) trait RootWidgetSystem: SystemParam {
     ) -> Self::Output;
 }
 
-/// For more details on this widget system, see:
-///
-/// - <https://github.com/bevyengine/bevy/discussions/5522>
-/// - <https://gist.github.com/ItsDoot/c5e95258ec7b65fb6b2ace32fac79b7e>
-/// - <https://gist.github.com/dmlary/a40e29de0e9ec78950bb5f352115710a>
-pub(super) trait WidgetSystem: SystemParam {
+pub(crate) trait WidgetSystem: SystemParam {
     type Args;
     type Output;
 

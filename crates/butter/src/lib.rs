@@ -2,10 +2,11 @@
 
 mod plugins;
 pub(crate) mod prelude;
+pub(crate) mod widget;
 
 use plugins::{
-    AssetManagementPlugin, BevyPlugin, DebugPlugin, DesignTokensPlugin, InputPlugin,
-    SchedulePlugin, StartupPlugin, UiPlugin, WindowPlugin,
+    AssetManagementPlugin, BevyPlugin, DebugPlugin, DesignTokensPlugin, FileWatcherPlugin,
+    InputPlugin, SchedulePlugin, StartupPlugin, UiPlugin, WindowPlugin,
 };
 use prelude::*;
 
@@ -31,6 +32,7 @@ pub fn run(config: Config) {
             SchedulePlugin,
             StartupPlugin,
             WindowPlugin,
+            FileWatcherPlugin,
         ))
         .run();
 }
