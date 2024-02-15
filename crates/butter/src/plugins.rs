@@ -1,5 +1,6 @@
 pub(super) mod asset_management;
 pub(super) mod bevy;
+pub(super) mod canvas;
 pub(super) mod debug;
 pub(super) mod design_tokens;
 pub(super) mod file_watcher;
@@ -12,6 +13,7 @@ pub(super) mod window;
 
 pub(super) use asset_management::AssetManagementPlugin;
 pub(super) use bevy::BevyPlugin;
+pub(super) use canvas::CanvasPlugin;
 pub(super) use debug::DebugPlugin;
 pub(super) use design_tokens::DesignTokensPlugin;
 pub(super) use file_watcher::FileWatcherPlugin;

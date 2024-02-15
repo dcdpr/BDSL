@@ -1,13 +1,13 @@
 #![allow(elided_lifetimes_in_paths, clippy::needless_pass_by_value)]
 
-pub(crate) mod components;
 mod plugins;
 pub(crate) mod prelude;
 pub(crate) mod widget;
 
 use plugins::{
-    AssetManagementPlugin, BevyPlugin, DebugPlugin, DesignTokensPlugin, FileWatcherPlugin,
-    InputPlugin, InspectorPlugin, SchedulePlugin, StartupPlugin, UiPlugin, WindowPlugin,
+    AssetManagementPlugin, BevyPlugin, CanvasPlugin, DebugPlugin, DesignTokensPlugin,
+    FileWatcherPlugin, InputPlugin, InspectorPlugin, SchedulePlugin, StartupPlugin, UiPlugin,
+    WindowPlugin,
 };
 use prelude::*;
 
@@ -36,6 +36,7 @@ pub fn run(config: Config) {
             StartupPlugin,
             WindowPlugin,
             FileWatcherPlugin,
+            CanvasPlugin,
         ))
         .run();
 }

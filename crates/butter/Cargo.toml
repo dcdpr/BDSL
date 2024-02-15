@@ -11,6 +11,11 @@ repository.workspace = true
 workspace = true
 
 [dependencies]
+# Workspace dependencies.
+ast = { package = "bnb-ast", path = "../ast", default-features = false }
+dtoken = { path = "../dtoken", default-features = false }
+parser = { package = "bnb-parser", path = "../parser", default-features = false }
+
 # Core Bevy crates.
 bevy_a11y = { version = "0.12", default-features = false }
 bevy_app = { version = "0.12", default-features = false }
@@ -20,7 +25,10 @@ bevy_core_pipeline = { version = "0.12", default-features = false }
 bevy_derive = { version = "0.12", default-features = false }
 bevy_ecs = { version = "0.12", default-features = false }
 bevy_input = { version = "0.12", default-features = false }
+bevy_math = { version = "0.12", default-features = false }
 bevy_render = { version = "0.12", default-features = false }
+bevy_sprite = { version = "0.12", default-features = false }
+bevy_text = { version = "0.12", default-features = false }
 bevy_time = { version = "0.12", default-features = false }
 bevy_transform = { version = "0.12", default-features = false }
 bevy_utils = { version = "0.12", default-features = false }
@@ -39,7 +47,6 @@ bevy-inspector-egui = { version = "0.22", default-features = false, features = [
   "highlight_changes",
 ], optional = true }
 dirs = { version = "5", default-features = false }
-dtoken = { path = "../dtoken", default-features = false }
 rfd = { version = "0.13", default-features = false, features = ["gtk3"] }
 tracing = { version = "0.1", default-features = false, features = [
   "attributes",
