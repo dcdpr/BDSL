@@ -66,6 +66,12 @@ impl WorldWidgetSystemExt for World {
     fn egui_context_scope<R>(&mut self, f: impl FnOnce(&mut Self, Context) -> R) -> R {
         let ctx = self
             .query_filtered::<&mut EguiContext, With<PrimaryWindow>>()
+            // FIXME: this sometimes panics when exiting the app.
+            //
+            //thread 'main' panicked at crates/butter/src/widget.rs:69:14:
+            // Cannot get single query result: No entities fit the query
+            // bevy_ecs::query::state::QueryState<&mut bevy_egui::EguiContext,
+            // bevy_ecs::query::filter::With<bevy_window::window::PrimaryWindow>>
             .single_mut(self)
             .get_mut()
             .clone();
