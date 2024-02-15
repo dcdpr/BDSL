@@ -26,7 +26,7 @@ impl DebugPlugin {
             .add_directive("wgpu_hal=error".parse().unwrap())
             .add_directive("naga=error".parse().unwrap());
 
-        tracing_subscriber::fmt::fmt()
+        tracing_subscriber::fmt()
             .with_env_filter(filter)
             .with_span_events(FmtSpan::ENTER)
             .with_target(true)
@@ -35,7 +35,9 @@ impl DebugPlugin {
     }
 
     #[cfg(not(feature = "trace"))]
-    fn enable_tracing(&self) {}
+    fn enable_tracing(&self) {
+        tracing::warn!("`trace` option enabled, but binary built without `trace` feature")
+    }
 }
 
 impl Default for DebugPlugin {

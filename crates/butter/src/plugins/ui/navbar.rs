@@ -10,7 +10,7 @@ impl RootWidgetSystem for NavBar {
     type Args = ();
     type Output = ();
 
-    #[instrument(name = "navbar", level = "info", skip_all)]
+    #[instrument(name = "navbar", level = "trace", skip_all)]
     fn system(
         world: &mut World,
         _: &mut SystemState<Self>,

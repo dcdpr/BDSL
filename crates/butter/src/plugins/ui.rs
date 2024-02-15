@@ -146,7 +146,7 @@ fn apply_base_theme(tokens: Res<DesignTokens>, mut contexts: EguiContexts) {
 /// to avoid having one giant system implementation to render all the UI at once.
 ///
 /// Specifically, see [`widget::WidgetSystem`] for more details.
-#[instrument(level = "info", skip_all)]
+#[instrument(level = "trace", skip_all)]
 fn render(world: &mut World) {
     world.root_widget_with::<navbar::NavBar>("navbar", ());
 }
