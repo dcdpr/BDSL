@@ -37,15 +37,6 @@ impl Plugin for CanvasPlugin {
             place::PlacePlugin,
             affordance::AffordancePlugin,
             connection::ConnectionPlugin,
-        ))
-        .add_systems(
-            Update,
-            (
-                apply_deferred.after(CanvasSet::Breadboard),
-                apply_deferred.after(CanvasSet::Place),
-                apply_deferred.after(CanvasSet::Affordance),
-                apply_deferred.after(CanvasSet::Connection),
-            ),
-        );
+        ));
     }
 }

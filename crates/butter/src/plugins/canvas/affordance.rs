@@ -109,7 +109,7 @@ fn create_title(
 
         cmd.spawn(TitleBundle::new(name.to_owned()))
             .insert(Text2dBundle {
-                text: Text::from_section(name, style).with_alignment(TextAlignment::Center),
+                text: Text::from_section(name, style).with_justify(JustifyText::Center),
                 text_anchor: Anchor::TopCenter,
                 text_2d_bounds: Text2dBounds {
                     size: Vec2::new(200., f32::INFINITY),

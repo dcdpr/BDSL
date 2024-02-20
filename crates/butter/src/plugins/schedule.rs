@@ -35,7 +35,7 @@ impl Plugin for SchedulePlugin {
             )
                 .chain(),
         )
-        .add_state::<AppState>()
+        .init_state::<AppState>()
         .add_systems(
             Update,
             apply_deferred

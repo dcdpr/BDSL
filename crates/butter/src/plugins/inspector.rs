@@ -23,7 +23,7 @@ impl Plugin for InspectorPlugin {
 
         app.add_plugins((
             bevy_core::TypeRegistrationPlugin,
-            WorldInspectorPlugin::default().run_if(input_toggle_active(false, KeyCode::I)),
+            WorldInspectorPlugin::default().run_if(input_toggle_active(false, KeyCode::KeyI)),
         ));
     }
 
