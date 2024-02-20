@@ -6,8 +6,8 @@ pub(crate) mod widget;
 
 use plugins::{
     AssetManagementPlugin, BevyPlugin, CanvasPlugin, DebugPlugin, DesignTokensPlugin,
-    FileWatcherPlugin, InputPlugin, InspectorPlugin, SchedulePlugin, StartupPlugin, UiPlugin,
-    WindowPlugin,
+    FileWatcherPlugin, InputPlugin, InspectorPlugin, RngPlugin, SchedulePlugin, StartupPlugin,
+    UiPlugin, WindowPlugin,
 };
 use prelude::*;
 
@@ -37,6 +37,7 @@ pub fn run(config: Config) {
             WindowPlugin,
             FileWatcherPlugin,
             CanvasPlugin,
+            RngPlugin,
         ))
         .run();
 }

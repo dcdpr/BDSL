@@ -1,5 +1,6 @@
 use bevy_internal::hierarchy::{Children, HierarchyQueryExt};
 use bevy_text::TextLayoutInfo;
+use bevy_turborand::RngComponent;
 
 use crate::{plugins::file_watcher::FileLoadedEvent, prelude::*};
 
@@ -65,28 +66,38 @@ fn replace(
     mut loaded: EventReader<FileLoadedEvent>,
     mut created: EventWriter<BreadboardCreated>,
 ) {
-    let Some(file) = loaded.read().last() else {
-        return;
-    };
+    for FileLoadedEvent { name, contents } in loaded.read() {
+        let span = info_span!("spawn", %name, breadboard = field::Empty).entered();
 
-    let Ok(ast::Breadboard { places, .. }) = parser::parse(file.contents()) else {
-        // TODO: Trigger `alert` widget.
-        return;
-    };
+        let Ok(ast::Breadboard { places, .. }) = parser::parse(contents) else {
+            // TODO: Trigger `alert` widget.
+            continue;
+        };
 
-    let name = Name::new(file.name().to_owned());
+        let name = Name::new(name.to_owned());
 
-    // Despawn existing breadboard with matching names.
-    boards
-        .iter()
-        .filter_map(|(entity, n)| (n == &name).then_some(entity))
-        .for_each(|entity| cmd.entity(entity).despawn_recursive());
+        // Despawn existing breadboard with matching names.
+        boards
+            .iter()
+            .filter_map(|(entity, n)| (n == &name).then_some(entity))
+            .for_each(|entity| cmd.entity(entity).despawn_recursive());
 
-    // Spawn new breadboard entity.
-    let entity = cmd.spawn(BreadboardBundle::new(name)).id();
+        // Random elements of the breadboard (slight font changes, underline changes, etc, to give
+        // it more of a hand-drawn feel) are seeded based on the name of the breadboard, this
+        // ensures consistent rendering between sessions.
+        let seed: u64 = name.bytes().fold(0, |acc, n| acc + n as u64);
 
-    // Trigger creation event.
-    created.send(BreadboardCreated { entity, places });
+        // Spawn new breadboard entity.
+        let entity = cmd
+            .spawn(BreadboardBundle::new(name))
+            .insert(RngComponent::with_seed(seed))
+            .id();
+
+        span.record("breadboard", format!("{entity:?}"));
+
+        // Trigger creation event.
+        created.send(BreadboardCreated { entity, places });
+    }
 }
 
 #[instrument(level = "info", skip_all)]

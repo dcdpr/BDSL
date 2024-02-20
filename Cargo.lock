@@ -847,6 +847,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "bevy_turborand"
+version = "0.8.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e575e1c93c119c01331e5257fab401504affa9bb83946303e5434856543b6d03"
+dependencies = [
+ "bevy",
+ "turborand",
+]
+
+[[package]]
 name = "bevy_utils"
 version = "0.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1050,6 +1060,7 @@ dependencies = [
  "bevy_text",
  "bevy_time",
  "bevy_transform",
+ "bevy_turborand",
  "bevy_utils",
  "bevy_window",
  "bevy_winit",
@@ -2066,6 +2077,15 @@ dependencies = [
  "serde",
  "similar",
  "yaml-rust",
+]
+
+[[package]]
+name = "instant"
+version = "0.1.12"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7a5bbe824c507c5da5956355e86a746d82e0e1464f65d862cc5e71da70e94b2c"
+dependencies = [
+ "cfg-if",
 ]
 
 [[package]]
@@ -3284,6 +3304,16 @@ name = "ttf-parser"
 version = "0.20.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "17f77d76d837a7830fe1d4f12b7b4ba4192c1888001c7164257e4bc6d21d96b4"
+
+[[package]]
+name = "turborand"
+version = "0.10.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e28d61f1c96db8c016037a77961fa5da84fc3a57fe69a15283ace0ab1647bac0"
+dependencies = [
+ "getrandom",
+ "instant",
+]
 
 [[package]]
 name = "unicode-bidi"
