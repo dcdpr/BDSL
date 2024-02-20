@@ -24,9 +24,11 @@ bevy_core = { version = "0.13", default-features = false }
 bevy_core_pipeline = { version = "0.13", default-features = false }
 bevy_derive = { version = "0.13", default-features = false }
 bevy_ecs = { version = "0.13", default-features = false }
+bevy_hierarchy = { version = "0.13", default-features = false }
 bevy_input = { version = "0.13", default-features = false }
 bevy_math = { version = "0.13", default-features = false }
-bevy_render = { version = "0.13", default-features = false }
+bevy_reflect = { version = "0.13", default-features = false }
+bevy_render = { version = "0.13", default-features = false, features = ["png"] }
 bevy_sprite = { version = "0.13", default-features = false }
 bevy_text = { version = "0.13", default-features = false }
 bevy_time = { version = "0.13", default-features = false }
