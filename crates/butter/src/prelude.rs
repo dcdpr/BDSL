@@ -8,6 +8,7 @@ pub(crate) use bevy_derive::{Deref, DerefMut};
 pub(crate) use bevy_ecs::prelude::*;
 pub(crate) use bevy_ecs::system::{SystemParam, SystemState};
 pub(crate) use bevy_egui::egui;
+pub(crate) use bevy_input::prelude::*;
 pub(crate) use bevy_internal::hierarchy::{BuildChildren as _, DespawnRecursiveExt as _};
 pub(crate) use bevy_math::prelude::*;
 pub(crate) use bevy_render::prelude::*;
