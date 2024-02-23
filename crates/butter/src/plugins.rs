@@ -1,3 +1,6 @@
+//! The plugin architecture allows for modular development and integration, enabling each aspect of
+//! the application to be managed efficiently.
+
 pub(super) mod asset_management;
 pub(super) mod bevy;
 pub(super) mod canvas;

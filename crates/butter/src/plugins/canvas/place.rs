@@ -1,3 +1,16 @@
+//! Place Plugin: Orchestrating Place Entities Within Breadboards
+//!
+//! Dedicated to the management and organization of *places* within a breadboard, the
+//! [`PlacePlugin`] integrates closely with the broader canvas rendering system. It is designed to
+//! respond dynamically to the creation of breadboards by initializing and managing place entities,
+//! which represent distinct functional areas or components within a breadboard's layout.
+//!
+//! The plugin employs a series of event-driven and conditional systems to adapt the layout and
+//! presentation of places in real-time, enhancing the application's interactivity and user experience.
+//!
+//! For detailed information on individual parts of this plugin, please refer to the respective
+//! documentation within this module.
+
 use bevy_asset::Assets;
 use bevy_internal::hierarchy::Parent;
 use bevy_sprite::{SpriteSheetBundle, TextureAtlas, TextureAtlasLayout};
@@ -6,20 +19,23 @@ use tracing::field;
 use crate::prelude::*;
 
 use super::{
-    breadboard::BreadboardCreated,
+    breadboard::BreadboardCreatedEvent,
     shared::{Body, BodyBundle, Description, Header, HeaderBundle, Title, TitleBundle},
     CanvasSet,
 };
 
-/// Manage *places* in a breadboard.
+/// Facilitates the management of *places* within breadboards.
+///
+/// For a detailed overview of the plugin's architecture and functionalities, refer to the
+/// module-level documentation.
 pub(super) struct PlacePlugin;
 
 impl Plugin for PlacePlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<PlaceCreated>().add_systems(
+        app.add_event::<PlaceCreatedEvent>().add_systems(
             Update,
             (
-                create.run_if(on_event::<BreadboardCreated>()),
+                create.run_if(on_event::<BreadboardCreatedEvent>()),
                 position_underline.run_if(
                     |underlines: Query<&Parent, With<Underline>>,
                      titles: Query<&Parent, Changed<ComputedSize>>,
@@ -53,7 +69,11 @@ impl Plugin for PlacePlugin {
     }
 }
 
-/// Marker component for place entities.
+/// Denotes entities as individual places within a breadboard.
+///
+/// Applied to entities to mark them as places, which are conceptual areas or components within a
+/// breadboard's structure. This marker is essential for distinguishing these entities within the
+/// ECS architecture, facilitating targeted queries and operations on places.
 #[derive(Component, Default)]
 pub(super) struct Place;
 
@@ -77,22 +97,37 @@ impl Default for PlaceBundle {
     }
 }
 
+/// Signifies the creation of a place entity within the breadboard.
+///
+/// Dispatched upon the successful creation of a place entity, this event carries the entity's
+/// identifier and a list of its affordances as defined in the breadboard's DSL. It enables other
+/// systems and components to react to the addition of new places, facilitating further
+/// initialization or modification of affordances associated with the place.
 #[derive(Event)]
-pub(crate) struct PlaceCreated {
+pub(crate) struct PlaceCreatedEvent {
     pub entity: Entity,
     pub affordances: Vec<ast::Affordance>,
 }
 
+/// Initiates place entities within a newly created breadboard.
+///
+/// Iterates over [`BreadboardCreatedEvent`]s to spawn place entities as defined in the event's
+/// associated breadboard. Each place entity is then structured with a header and body, and
+/// potentially a description, reflecting its definition in the DSL. This process includes
+/// generating unique visual elements for each place, such as titles and underlines, utilizing a
+/// seeded random number generator for consistency. Upon successful creation, a
+/// [`PlaceCreatedEvent`] is emitted for each place, indicating its readiness for further
+/// interactions or modifications.
 #[instrument(skip_all)]
 fn create(
     mut cmd: Commands,
-    mut breadboard: EventReader<BreadboardCreated>,
-    mut created: EventWriter<PlaceCreated>,
+    mut breadboard: EventReader<BreadboardCreatedEvent>,
+    mut created: EventWriter<PlaceCreatedEvent>,
     asset_server: Res<AssetServer>,
     mut texture_atlases: ResMut<Assets<TextureAtlasLayout>>,
     mut rng: Rng,
 ) {
-    for &BreadboardCreated {
+    for &BreadboardCreatedEvent {
         entity: breadboard,
         ref places,
         ..
@@ -134,7 +169,7 @@ fn create(
             cmd.entity(place).add_child(body);
 
             // TODO: Should this trigger *after* title & underline are positioned?
-            created.send(PlaceCreated {
+            created.send(PlaceCreatedEvent {
                 entity: place,
                 affordances,
             });
@@ -142,6 +177,12 @@ fn create(
     }
 }
 
+/// Constructs a header entity for a place, including a title and an underline.
+///
+/// Utilizes the name provided to generate a visually distinct header for each place. This includes
+/// loading specific font and texture assets to create a title entity and an underline entity,
+/// respectively. The underline is positioned relative to the title, and both are grouped under a
+/// single header entity with custom padding at the bottom.
 #[instrument(skip_all)]
 fn create_header(
     cmd: &mut Commands,
@@ -170,6 +211,11 @@ fn create_header(
     header
 }
 
+/// Creates a title entity for a place with specified styling.
+///
+/// Generates a title entity using the provided name and font, applying a defined [`TextStyle`] to
+/// ensure consistent visual appearance. The title is centered both horizontally and vertically,
+/// with specific bounds to accommodate the text size.
 #[instrument(skip_all)]
 fn create_title(cmd: &mut Commands, name: &str, font: Handle<Font>) -> Entity {
     let style = TextStyle {
@@ -203,6 +249,13 @@ pub(super) struct UnderlineBundle {
     transform: TransformBundle,
 }
 
+/// Generates an underline entity with randomized visual attributes.
+///
+/// Creates an underline entity for a title, employing a texture atlas to allow for varied visual
+/// styles. The underline's size and orientation are randomly determined, providing a unique,
+/// hand-drawn feel to each instance. This variability is achieved through a combination of size,
+/// position, rotation, and texture selection, with randomness seeded to ensure consistent
+/// presentation across sessions.
 #[instrument(skip_all)]
 fn create_underline(
     cmd: &mut Commands,
@@ -250,6 +303,11 @@ fn create_underline(
     underline
 }
 
+/// Adjusts underline positions relative to their associated titles.
+///
+/// This system repositions underlines directly beneath the titles of places, ensuring visual
+/// alignment and consistency. It calculates the new position based on the computed size of the
+/// title, effectively moving the underline to sit neatly below the title text.
 #[instrument(skip_all)]
 fn position_underline(
     headers: Query<(), With<Header>>,
@@ -287,6 +345,10 @@ fn position_underline(
         });
 }
 
+/// Creates a body entity for a place.
+///
+/// Initiates a body entity with default settings, serving as a container for additional components
+/// or information related to the place.
 #[instrument(skip_all)]
 fn create_body(cmd: &mut Commands) -> Entity {
     let span = info_span!("spawn", body = field::Empty).entered();
@@ -297,6 +359,10 @@ fn create_body(cmd: &mut Commands) -> Entity {
     body
 }
 
+/// Adjusts the position of body entities relative to their corresponding headers.
+///
+/// This system updates the position of body entities to align with the bottom edge of their
+/// associated header entities, based on the header's computed size.
 #[instrument(skip_all)]
 fn position_body(
     headers: Query<(Entity, &Parent), (With<Header>, Changed<ComputedSize>)>,

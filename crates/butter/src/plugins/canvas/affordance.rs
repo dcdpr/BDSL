@@ -1,7 +1,7 @@
 use crate::prelude::*;
 
 use super::{
-    place::{Place, PlaceCreated},
+    place::{Place, PlaceCreatedEvent},
     shared::{Body, Description, Header, Index, Title, TitleBundle},
     CanvasSet,
 };
@@ -20,7 +20,7 @@ impl Plugin for AffordancePlugin {
                         titles.iter().any(|parent| affordances.contains(parent.get()))
                     },
                 ),
-                create.run_if(on_event::<PlaceCreated>()),
+                create.run_if(on_event::<PlaceCreatedEvent>()),
                 create_title.run_if(on_event::<AffordanceCreated>()),
                 // position_affordances,
 
@@ -68,11 +68,11 @@ struct NestingLevel(usize);
 #[instrument(skip_all)]
 fn create(
     mut cmd: Commands,
-    mut places: EventReader<PlaceCreated>,
+    mut places: EventReader<PlaceCreatedEvent>,
     bodies: Query<(Entity, &Parent), With<Body>>,
     mut created: EventWriter<AffordanceCreated>,
 ) {
-    for &PlaceCreated {
+    for &PlaceCreatedEvent {
         entity: place,
         ref affordances,
         ..

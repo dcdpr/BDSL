@@ -1,24 +1,54 @@
+//! Canvas Plugin: Visualizing Breadboard Configurations
+//!
+//! Hosts the core functionality for rendering the dynamic visual representation of breadboards.
+//! Through a set of sub-plugins:
+//!
+//! - [`BreadboardPlugin`]
+//! - [`PlacePlugin`]
+//! - [`AffordancePlugin`]
+//! - [`ConnectionPlugin`]
+//!
+//! It orchestrates the visualization of the breadboard's components, enabling an intuitive and
+//! interactive layout for users to explore and understand their designs. This plugin plays a
+//! crucial role in bridging the gap between the abstract definitions of a breadboard DSL and their
+//! tangible representation on the screen.
+//!
+//! For detailed information on individual parts of this plugin, please refer to the respective
+//! documentation within this module.
+
 mod affordance;
 mod breadboard;
 mod connection;
 mod place;
 mod shared;
 
-use bevy_text::TextLayoutInfo;
-
 use crate::prelude::*;
 
-use super::{computed_size::ComputedSize, schedule::AppSet};
-
 pub(crate) use affordance::AffordanceCreated;
-pub(crate) use breadboard::BreadboardCreated;
+pub(crate) use breadboard::BreadboardCreatedEvent;
 pub(crate) use connection::ConnectionCreated;
-pub(crate) use place::PlaceCreated;
+pub(crate) use place::PlaceCreatedEvent;
+
+use self::{
+    affordance::AffordancePlugin, breadboard::BreadboardPlugin, connection::ConnectionPlugin,
+    place::PlacePlugin,
+};
 
 /// Marker component for the root entity of the canvas.
+///
+/// This component is used to identify the main canvas entity within the ECS architecture. It
+/// serves as a key identifier for systems and queries that need to interact with the canvas as a
+/// whole, distinguishing it from other entities in the scene. Attaching this marker to an entity
+/// effectively designates it as the central hub for breadboard visualization and interaction.
 #[derive(Component)]
 struct Canvas;
 
+/// Represents the distinct stages of the canvas rendering process.
+///
+/// This enum categorizes the various system sets used within the `CanvasPlugin` to manage the
+/// lifecycle and rendering logic of the canvas and its components. Each variant corresponds to a
+/// specific phase in the canvas setup and update cycle, ensuring that systems are executed in the
+/// correct order for proper visual representation and functionality.
 #[derive(Debug, Hash, PartialEq, Eq, Clone, SystemSet)]
 enum CanvasSet {
     Setup,
@@ -28,9 +58,10 @@ enum CanvasSet {
     Connection,
 }
 
-// TODO: Add a `Canvas` entity, under which all breadboards etc live?
-
-/// Render the breadboard canvas.
+/// A plugin for rendering the breadboard canvas.
+///
+/// For a detailed overview of the plugin's architecture and functionalities, refer to the
+/// module-level documentation.
 pub(crate) struct CanvasPlugin;
 
 impl Plugin for CanvasPlugin {
@@ -48,15 +79,15 @@ impl Plugin for CanvasPlugin {
                 .in_set(AppSet::EntityUpdates),
         )
         .add_plugins((
-            breadboard::BreadboardPlugin,
-            place::PlacePlugin,
-            affordance::AffordancePlugin,
-            connection::ConnectionPlugin,
+            BreadboardPlugin,
+            PlacePlugin,
+            AffordancePlugin,
+            ConnectionPlugin,
         ))
         .add_systems(
             Update,
             (
-                setup.run_if(run_once()),
+                spawn_canvas.run_if(run_once()),
                 update_text_computed_size.run_if(
                     |q: Query<(), (With<ComputedSize>, Changed<TextLayoutInfo>)>| !q.is_empty(),
                 ),
@@ -70,8 +101,13 @@ impl Plugin for CanvasPlugin {
     }
 }
 
+/// Spawns the root canvas entity with essential components for rendering.
+///
+/// Initializes the canvas entity, equipping it with the `Canvas` marker component, default
+/// visibility, and transform properties to set up the visual foundation for the breadboard and its
+/// elements.
 #[instrument(skip_all)]
-fn setup(mut cmd: Commands) {
+fn spawn_canvas(mut cmd: Commands) {
     cmd.spawn((
         Canvas,
         VisibilityBundle::default(),
@@ -79,6 +115,11 @@ fn setup(mut cmd: Commands) {
     ));
 }
 
+/// Ensures text entities have a computed size aligned with their text layout.
+///
+/// This function is responsible for adjusting the `ComputedSize` of text entities when there is a
+/// change in their `TextLayoutInfo`. It's crucial for maintaining the visual accuracy of text
+/// elements within the canvas, ensuring that their size matches the layout constraints.
 #[instrument(skip_all)]
 fn update_text_computed_size(
     mut sizes: Query<(Entity, &mut ComputedSize, &TextLayoutInfo), Changed<TextLayoutInfo>>,
@@ -99,6 +140,11 @@ fn update_text_computed_size(
     }
 }
 
+/// Adjusts the computed size of entities in response to transformations.
+///
+/// This function recalculates the `ComputedSize` for entities undergoing scale or rotation
+/// transformations. Such transformations alter the entity's bounding box, necessitating a
+/// corresponding adjustment in the computed size to accurately reflect these changes.
 #[instrument(skip_all)]
 fn update_transformed_computed_size(
     mut sizes: Query<(Entity, &mut ComputedSize, &Transform), Changed<Transform>>,
@@ -117,6 +163,15 @@ fn update_transformed_computed_size(
     }
 }
 
+/// Validates structural invariants within the canvas hierarchy.
+///
+/// This function ensures that every node within the canvas adheres to two key invariants:
+/// 1. All nodes must possess both `Transform` and `ComputedSize` components to guarantee accurate
+///    positioning and sizing within the canvas.
+/// 2. Leaf nodes cannot inherit their size—they must have a statically defined `ComputedSize`.
+///
+/// Enforcing these invariants is essential for the integrity of the canvas layout, ensuring that
+/// each node is correctly represented and interacts as expected within the overall structure.
 #[instrument(level = "trace", skip_all)]
 fn ensure_node_compliance(
     root: Query<Entity, With<Canvas>>,

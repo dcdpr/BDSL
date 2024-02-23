@@ -4,7 +4,9 @@ use bevy_winit::{WinitPlugin, WinitSettings};
 
 use crate::prelude::*;
 
-use super::canvas::{AffordanceCreated, BreadboardCreated, ConnectionCreated, PlaceCreated};
+use super::canvas::{
+    AffordanceCreated, BreadboardCreatedEvent, ConnectionCreated, PlaceCreatedEvent,
+};
 
 /// Window Management.
 pub(crate) struct WindowPlugin;
@@ -32,8 +34,8 @@ impl Plugin for WindowPlugin {
 fn force_redraw(
     mut redraw: EventWriter<RequestRedraw>,
 
-    mut breadboard: EventReader<BreadboardCreated>,
-    mut place: EventReader<PlaceCreated>,
+    mut breadboard: EventReader<BreadboardCreatedEvent>,
+    mut place: EventReader<PlaceCreatedEvent>,
     mut affordance: EventReader<AffordanceCreated>,
     mut connection: EventReader<ConnectionCreated>,
 ) {

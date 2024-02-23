@@ -1,3 +1,14 @@
+//! Breadboard Plugin: Managing Breadboard Entities within the Canvas
+//!
+//! This module introduces the [`BreadboardPlugin`], a component of the larger
+//! [`CanvasPlugin`](super::CanvasPlugin) ecosystem focused on the creation and management of
+//! breadboard entities. It leverages event-driven systems to dynamically respond to changes and
+//! user interactions, specifically handling the instantiation of breadboard entities upon the
+//! loading of DSL files and adjusting their visibility within the canvas.
+//!
+//! For detailed information on individual parts of this plugin, please refer to the respective
+//! documentation within this module.
+
 use crate::{plugins::file_watcher::FileLoadedEvent, prelude::*};
 
 use super::{Canvas, CanvasSet};
@@ -7,10 +18,10 @@ pub(super) struct BreadboardPlugin;
 
 impl Plugin for BreadboardPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<BreadboardCreated>().add_systems(
+        app.add_event::<BreadboardCreatedEvent>().add_systems(
             Update,
             (
-                replace.run_if(on_event::<FileLoadedEvent>()),
+                spawn.run_if(on_event::<FileLoadedEvent>()),
                 make_visible.run_if(|q: Query<&Visibility, With<Breadboard>>| {
                     q.iter().any(|v| v == Visibility::Hidden)
                 }),
@@ -62,20 +73,35 @@ impl BreadboardBundle {
     }
 }
 
+/// An event signaling the creation of a breadboard entity.
+///
+/// This event is dispatched when a new breadboard entity is successfully created, carrying with it
+/// the entity's identifier and a list of its constituent places derived from the parsed DSL. It
+/// serves as a notification mechanism for other systems to react to the introduction of a new
+/// breadboard into the scene, enabling subsequent initialization or update processes related to
+/// the breadboard's components.
 #[derive(Event)]
-pub(crate) struct BreadboardCreated {
+pub(crate) struct BreadboardCreatedEvent {
     pub entity: Entity,
     pub places: Vec<ast::Place>,
 }
 
-/// Replace any existing breadboard with the newly loaded file.
+/// Spawns a new breadboard entity based on the loaded file.
+///
+/// Processes each [`FileLoadedEvent`], attempting to parse the file contents into a breadboard DSL
+/// structure. If parsing succeeds, any existing breadboard with the same name is removed from the
+/// canvas to make room for the new one. The new breadboard entity is then created, with visual
+/// variations seeded by its name to ensure a unique, yet consistent, hand-drawn appearance.
+///
+/// Finally, a [`BreadboardCreatedEvent`] is emitted to signal the successful creation of the
+/// breadboard.
 #[instrument(skip_all)]
-fn replace(
+fn spawn(
     mut cmd: Commands,
     boards: Query<(Entity, &Name), With<Breadboard>>,
     canvas: Query<Entity, With<Canvas>>,
     mut loaded: EventReader<FileLoadedEvent>,
-    mut created: EventWriter<BreadboardCreated>,
+    mut created: EventWriter<BreadboardCreatedEvent>,
 ) {
     for FileLoadedEvent { name, contents } in loaded.read() {
         let span = info_span!("spawn", %name, breadboard = field::Empty).entered();
@@ -108,10 +134,17 @@ fn replace(
         span.record("breadboard", format!("{entity:?}"));
 
         // Trigger creation event.
-        created.send(BreadboardCreated { entity, places });
+        created.send(BreadboardCreatedEvent { entity, places });
     }
 }
 
+/// Makes hidden breadboards visible if they have a computed size.
+///
+/// Iterates over breadboards that are currently not visible and checks if they have a valid
+/// computed size using the `ComputedSizeParam` system parameter. Breadboards with a determined
+/// size are then made visible. This ensures that only breadboards ready for display (i.e., those
+/// with calculated dimensions) are shown, aiding in maintaining a clean and coherent visual
+/// presentation of the canvas.
 #[instrument(skip_all)]
 fn make_visible(
     mut breadboards: Query<(Entity, &mut Visibility), With<Breadboard>>,
