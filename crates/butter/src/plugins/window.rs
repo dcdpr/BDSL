@@ -1,8 +1,10 @@
 use bevy_a11y::AccessibilityPlugin;
-use bevy_window::{PresentMode, Window};
+use bevy_window::{PresentMode, RequestRedraw, Window};
 use bevy_winit::{WinitPlugin, WinitSettings};
 
 use crate::prelude::*;
+
+use super::canvas::{AffordanceCreated, BreadboardCreated, ConnectionCreated, PlaceCreated};
 
 /// Window Management.
 pub(crate) struct WindowPlugin;
@@ -22,6 +24,29 @@ impl Plugin for WindowPlugin {
                     ..default()
                 },
                 WinitPlugin::default(),
-            ));
+            ))
+            .add_systems(Update, force_redraw.before(AppSet::DespawnEntities));
     }
+}
+
+fn force_redraw(
+    mut redraw: EventWriter<RequestRedraw>,
+
+    mut breadboard: EventReader<BreadboardCreated>,
+    mut place: EventReader<PlaceCreated>,
+    mut affordance: EventReader<AffordanceCreated>,
+    mut connection: EventReader<ConnectionCreated>,
+) {
+    if breadboard.is_empty() && place.is_empty() && affordance.is_empty() && connection.is_empty() {
+        return;
+    };
+
+    breadboard.clear();
+    place.clear();
+    affordance.clear();
+    connection.clear();
+
+    debug!("force_redraw");
+
+    redraw.send(RequestRedraw);
 }
