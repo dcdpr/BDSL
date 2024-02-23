@@ -28,7 +28,7 @@ impl Plugin for UiPlugin {
     }
 }
 
-#[instrument(level = "trace", skip_all)]
+#[instrument(skip_all)]
 fn apply_base_theme(tokens: Res<DesignTokens>, mut contexts: EguiContexts) {
     let v = &tokens.egui.visuals;
     let c = |c: Color| Color32::from_rgb(c.r, c.g, c.b);

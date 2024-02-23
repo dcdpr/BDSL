@@ -11,7 +11,7 @@ impl WidgetSystem for Label {
     type Args = ();
     type Output = ();
 
-    #[instrument(name = "label", level = "info", skip_all)]
+    #[instrument(name = "label", skip_all)]
     fn system(_: &mut World, _: &mut SystemState<Self>, ui: &mut egui::Ui, _: Self::Args) {
         ui.label("Hello World!");
     }

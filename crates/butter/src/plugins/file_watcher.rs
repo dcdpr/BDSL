@@ -11,7 +11,7 @@ impl Plugin for FileWatcherPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<SelectedFile>()
             .add_event::<FileLoadedEvent>()
-            .add_systems(Update, load.run_if(resource_changed::<SelectedFile>()));
+            .add_systems(Update, load.run_if(resource_changed::<SelectedFile>));
     }
 }
 
@@ -48,17 +48,8 @@ struct Watcher(());
 /// Event triggered when a file was loaded.
 #[derive(Event)]
 pub(crate) struct FileLoadedEvent {
-    name: String,
-    contents: String,
-}
-
-impl FileLoadedEvent {
-    pub fn name(&self) -> &str {
-        &self.name
-    }
-    pub fn contents(&self) -> &str {
-        &self.contents
-    }
+    pub name: String,
+    pub contents: String,
 }
 
 fn load(source: Res<SelectedFile>, mut event: EventWriter<FileLoadedEvent>) {

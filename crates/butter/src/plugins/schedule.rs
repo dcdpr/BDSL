@@ -17,7 +17,6 @@ pub(crate) enum AppSet {
     DespawnEntities,
     UserInput,
     EntityUpdates,
-    CollisionDetection,
 }
 
 pub(crate) struct SchedulePlugin;
@@ -31,7 +30,6 @@ impl Plugin for SchedulePlugin {
                 // Flush commands (i.e. 'apply_deferred runs)
                 AppSet::UserInput,
                 AppSet::EntityUpdates,
-                AppSet::CollisionDetection,
             )
                 .chain(),
         )

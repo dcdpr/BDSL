@@ -49,6 +49,9 @@ bevy_egui = { version = "0.25", default-features = false, features = [
 bevy-inspector-egui = { git = "https://github.com/Aztro-dev/bevy-inspector-egui", default-features = false, features = [
   "highlight_changes",
 ], optional = true }
+bevy_pancam = { version = "0.11", default-features = false, features = [
+  "bevy_egui",
+] }
 bevy_turborand = { version = "0.8", default-features = false, features = [
   "wyrand",
 ] }

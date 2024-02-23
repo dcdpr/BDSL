@@ -8,7 +8,7 @@ impl Plugin for StartupPlugin {
     }
 }
 
-#[instrument(level = "info", skip_all)]
+#[instrument(skip_all)]
 pub fn spawn_camera(mut commands: Commands) {
     commands.spawn(Camera2dBundle::default());
 }

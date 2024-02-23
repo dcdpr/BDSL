@@ -645,6 +645,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "bevy_pancam"
+version = "0.11.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "34aafade13645f67b973c54ec62dce68a1051faff4f47580ad76f800d26d1de1"
+dependencies = [
+ "bevy",
+ "bevy_egui",
+]
+
+[[package]]
 name = "bevy_ptr"
 version = "0.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1056,6 +1066,7 @@ dependencies = [
  "bevy_input",
  "bevy_internal",
  "bevy_math",
+ "bevy_pancam",
  "bevy_reflect",
  "bevy_render",
  "bevy_sprite",
