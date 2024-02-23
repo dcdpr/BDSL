@@ -5,9 +5,9 @@ pub(crate) mod prelude;
 pub(crate) mod widget;
 
 use plugins::{
-    AssetManagementPlugin, BevyPlugin, CanvasPlugin, DebugPlugin, DesignTokensPlugin,
-    FileWatcherPlugin, InputPlugin, InspectorPlugin, RngPlugin, SchedulePlugin, StartupPlugin,
-    UiPlugin, WindowPlugin,
+    AssetManagementPlugin, BevyPlugin, CanvasPlugin, ComputedSizePlugin, DebugPlugin,
+    DesignTokensPlugin, FileWatcherPlugin, InputPlugin, InspectorPlugin, RngPlugin, SchedulePlugin,
+    StartupPlugin, UiPlugin, WindowPlugin,
 };
 use prelude::*;
 
@@ -24,6 +24,7 @@ pub fn run(config: Config) {
             DebugPlugin {
                 trace: debug,
                 ambiguity_detection: debug,
+                computed_size_changes: debug,
             },
             AssetManagementPlugin,
             BevyPlugin,
@@ -38,6 +39,7 @@ pub fn run(config: Config) {
             FileWatcherPlugin,
             CanvasPlugin,
             RngPlugin,
+            ComputedSizePlugin,
         ))
         .run();
 }
