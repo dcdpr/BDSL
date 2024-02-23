@@ -3,7 +3,7 @@ use crate::prelude::*;
 use super::{affordance::AffordanceCreated, CanvasSet};
 
 /// Manage *affordances* in a place.
-pub(crate) struct ConnectionPlugin;
+pub(super) struct ConnectionPlugin;
 
 impl Plugin for ConnectionPlugin {
     fn build(&self, app: &mut App) {
@@ -26,6 +26,7 @@ struct ConnectionBundle {
     marker: Connection,
     visibility: VisibilityBundle,
     transform: TransformBundle,
+    size: ComputedSize,
 }
 
 #[derive(Event)]
@@ -35,6 +36,7 @@ pub(crate) struct ConnectionCreated {
     pub target_place: Name,
 }
 
+#[instrument(skip_all)]
 fn create(
     mut cmd: Commands,
     mut affordances: EventReader<AffordanceCreated>,
@@ -47,8 +49,7 @@ fn create(
     } in affordances.read()
     {
         for ast::Connection { target_place, .. } in connections.clone() {
-            let span = span!(Level::INFO, "create_connection", affordance = ?entity, target = %target_place);
-            let _enter = span.enter();
+            let _span = info_span!("spawn", affordance = ?entity, target = %target_place).entered();
 
             let entity = cmd
                 .spawn(ConnectionBundle::default())
