@@ -14,7 +14,7 @@ impl Default for InspectorPlugin {
 impl Plugin for InspectorPlugin {
     #[cfg(feature = "inspector")]
     fn build(&self, app: &mut App) {
-        use bevy_input::{common_conditions::input_toggle_active, keyboard::KeyCode};
+        use bevy_input::common_conditions::input_toggle_active;
         use bevy_inspector_egui::quick::WorldInspectorPlugin;
 
         if !self.enable {

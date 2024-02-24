@@ -24,7 +24,7 @@ mod shared;
 
 use crate::prelude::*;
 
-pub(crate) use affordance::AffordanceCreated;
+pub(crate) use affordance::AffordanceCreatedEvent;
 pub(crate) use breadboard::BreadboardCreatedEvent;
 pub(crate) use connection::ConnectionCreated;
 pub(crate) use place::PlaceCreatedEvent;

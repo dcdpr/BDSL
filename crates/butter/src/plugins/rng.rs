@@ -1,3 +1,10 @@
+//! Rng Plugin: Integrating Random Number Generation
+//!
+//! Facilitates the use of random number generation within the application by incorporating the
+//! [`bevy_turborand`] library. This plugin provides a structured approach to accessing and using
+//! [`RngComponent`] across different entities and systems, ensuring consistent and convenient
+//! random number generation.
+
 use bevy_turborand::RngComponent;
 
 use crate::prelude::*;
@@ -16,7 +23,6 @@ impl Rng<'_, '_> {
     }
 }
 
-/// Any generic Bevy setup requirements that aren't handled by more specific plugins.
 pub(crate) struct RngPlugin;
 
 impl Plugin for RngPlugin {

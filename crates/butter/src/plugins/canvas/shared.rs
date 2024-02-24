@@ -1,10 +1,18 @@
 use crate::prelude::*;
 
-/// The index/position of an entity, relative to similar entities.
+/// Represents the sequential index of an entity among its siblings.
+///
+/// This component is used to denote the order or position of an entity relative to others of a
+/// similar kind, facilitating the organization and sorting of entities based on their defined
+/// sequence.
 #[derive(Component, Default, Ord, Eq, PartialEq, PartialOrd)]
 pub(super) struct Index(pub(super) usize);
 
-/// Marker component for header entities.
+/// Identifies entities as headers within the hierarchical structure.
+///
+/// Used to mark entities that serve as headers, providing a way to distinguish these elements for
+/// styling, positioning, or logical grouping purposes within the broader context of their parent
+/// entities, such as places or affordances.
 #[derive(Component, Default)]
 pub(super) struct Header;
 
@@ -28,6 +36,11 @@ impl Default for HeaderBundle {
     }
 }
 
+/// Marks entities as the body section within their respective contexts.
+///
+/// This component distinguishes entities that represent the body sections, typically containing
+/// detailed information or additional components related to the parent entity, such as a place or
+/// affordance.
 #[derive(Component, Default)]
 pub(super) struct Body;
 
@@ -50,6 +63,10 @@ impl Default for BodyBundle {
     }
 }
 
+/// Holds descriptive text for an entity.
+///
+/// Encapsulates a textual description for an entity, providing a flexible means to attach
+/// explanatory or supplementary information directly to entities such as affordances or places.
 #[derive(Component, Deref)]
 pub(super) struct Description(String);
 
@@ -59,7 +76,10 @@ impl From<String> for Description {
     }
 }
 
-/// Marker component for affordance title entities.
+/// Designates entities as titles.
+///
+/// This component is used to label entities that function as titles, facilitating their
+/// identification for styling and positioning.
 #[derive(Component, Default)]
 pub(super) struct Title;
 

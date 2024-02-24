@@ -5,7 +5,7 @@ use bevy_winit::{WinitPlugin, WinitSettings};
 use crate::prelude::*;
 
 use super::canvas::{
-    AffordanceCreated, BreadboardCreatedEvent, ConnectionCreated, PlaceCreatedEvent,
+    AffordanceCreatedEvent, BreadboardCreatedEvent, ConnectionCreated, PlaceCreatedEvent,
 };
 
 /// Window Management.
@@ -36,7 +36,7 @@ fn force_redraw(
 
     mut breadboard: EventReader<BreadboardCreatedEvent>,
     mut place: EventReader<PlaceCreatedEvent>,
-    mut affordance: EventReader<AffordanceCreated>,
+    mut affordance: EventReader<AffordanceCreatedEvent>,
     mut connection: EventReader<ConnectionCreated>,
 ) {
     if breadboard.is_empty() && place.is_empty() && affordance.is_empty() && connection.is_empty() {

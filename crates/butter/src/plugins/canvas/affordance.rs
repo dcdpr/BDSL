@@ -1,3 +1,13 @@
+//! Affordance Plugin: Facilitating Affordance Entities Within Places
+//!
+//! Concentrates on the lifecycle and arrangement of *affordances*—interactive or descriptive
+//! elements associated with places within a breadboard. The [`AffordancePlugin`] operates by
+//! responding to the creation of places and the establishment of affordances, orchestrating their
+//! proper positioning and integration within the visual structure of the canvas.
+//!
+//! For detailed information on individual parts of this plugin, please refer to the respective
+//! documentation within this module.
+
 use crate::prelude::*;
 
 use super::{
@@ -11,7 +21,7 @@ pub(super) struct AffordancePlugin;
 
 impl Plugin for AffordancePlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<AffordanceCreated>().add_systems(
+        app.add_event::<AffordanceCreatedEvent>().add_systems(
             Update,
             (
                 position_affordance.map(err).run_if(
@@ -21,7 +31,7 @@ impl Plugin for AffordancePlugin {
                     },
                 ),
                 create.run_if(on_event::<PlaceCreatedEvent>()),
-                create_title.run_if(on_event::<AffordanceCreated>()),
+                create_title.run_if(on_event::<AffordanceCreatedEvent>()),
                 // position_affordances,
 
             )
@@ -31,11 +41,14 @@ impl Plugin for AffordancePlugin {
     }
 }
 
-/// Marker component for place entities.
+/// Marks entities as affordances within places.
+///
+/// This component is utilized to identify entities that function as affordances in the context of
+/// a place. Affordances represent actionable or informational elements within a place.
 #[derive(Component, Default)]
 struct Affordance;
 
-/// Bundle of required components for place entities.
+/// Bundle of required components for affordance entities.
 #[derive(Bundle)]
 struct AffordanceBundle {
     marker: Affordance,
@@ -55,22 +68,41 @@ impl Default for AffordanceBundle {
     }
 }
 
+/// Signals the creation of an affordance entity within a place.
+///
+/// Dispatched following the successful creation of an affordance, this event carries the new
+/// entity's identifier, its name, and a list of connections as defined in the DSL. It facilitates
+/// further interactions or behaviors associated with the affordance, enabling systems to respond
+/// to its addition and integrate it appropriately within the broader context of the breadboard and
+/// its places.
 #[derive(Event)]
-pub(crate) struct AffordanceCreated {
+pub(crate) struct AffordanceCreatedEvent {
     pub entity: Entity,
     pub name: String,
     pub connections: Vec<ast::Connection>,
 }
 
+/// Represents the nesting level of an affordance within its place.
+///
+/// This component quantifies the hierarchical depth of an affordance, indicating how it is nested
+/// relative to other affordances within the same place. The nesting level affects visual
+/// representation, with indentation or other spatial adjustments used to convey the affordance's
+/// position in the hierarchy.
 #[derive(Component)]
 struct NestingLevel(usize);
 
+/// Spawns affordance entities for each place based on its defined affordances.
+///
+/// Iterates through [`PlaceCreatedEvent`] instances to generate affordances within the
+/// corresponding place's body. Each affordance is created with a specific nesting level and index.
+/// Upon successful creation, an [`AffordanceCreatedEvent`] is emitted for each affordance,
+/// signaling its readiness for further interaction or processing within the system.
 #[instrument(skip_all)]
 fn create(
     mut cmd: Commands,
     mut places: EventReader<PlaceCreatedEvent>,
     bodies: Query<(Entity, &Parent), With<Body>>,
-    mut created: EventWriter<AffordanceCreated>,
+    mut created: EventWriter<AffordanceCreatedEvent>,
 ) {
     for &PlaceCreatedEvent {
         entity: place,
@@ -113,7 +145,7 @@ fn create(
                     .insert(Description::from(description.join("\n")));
             }
 
-            created.send(AffordanceCreated {
+            created.send(AffordanceCreatedEvent {
                 entity,
                 name,
                 connections,
@@ -124,13 +156,17 @@ fn create(
     }
 }
 
+/// Generates titles for affordance entities based on their creation events.
+///
+/// For each [`AffordanceCreatedEvent`], this function creates a title entity with specified
+/// styling, including font size, color, and alignment.
 #[instrument(skip_all)]
 fn create_title(
     mut cmd: Commands,
-    mut places: EventReader<AffordanceCreated>,
+    mut places: EventReader<AffordanceCreatedEvent>,
     asset_server: Res<AssetServer>,
 ) {
-    for &AffordanceCreated {
+    for &AffordanceCreatedEvent {
         entity, ref name, ..
     } in places.read()
     {
@@ -162,6 +198,11 @@ fn create_title(
     }
 }
 
+/// Positions affordances within their respective places based on their computed sizes.
+///
+/// This function aligns affordances vertically within each place, starting directly below the
+/// place's header and stacking them according to their index. It calculates the vertical offset
+/// for each affordance based on the cumulative height of preceding affordances.
 #[instrument(skip_all)]
 fn position_affordance(
     places: Query<Entity, With<Place>>,

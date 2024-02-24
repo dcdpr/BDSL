@@ -1,6 +1,6 @@
 use crate::prelude::*;
 
-use super::{affordance::AffordanceCreated, CanvasSet};
+use super::{affordance::AffordanceCreatedEvent, CanvasSet};
 
 /// Manage *affordances* in a place.
 pub(super) struct ConnectionPlugin;
@@ -10,7 +10,7 @@ impl Plugin for ConnectionPlugin {
         app.add_event::<ConnectionCreated>().add_systems(
             Update,
             create
-                .run_if(on_event::<AffordanceCreated>())
+                .run_if(on_event::<AffordanceCreatedEvent>())
                 .in_set(CanvasSet::Connection),
         );
     }
@@ -39,10 +39,10 @@ pub(crate) struct ConnectionCreated {
 #[instrument(skip_all)]
 fn create(
     mut cmd: Commands,
-    mut affordances: EventReader<AffordanceCreated>,
+    mut affordances: EventReader<AffordanceCreatedEvent>,
     mut created: EventWriter<ConnectionCreated>,
 ) {
-    for &AffordanceCreated {
+    for &AffordanceCreatedEvent {
         entity,
         ref connections,
         ..
