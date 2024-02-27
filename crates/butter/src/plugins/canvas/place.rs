@@ -16,7 +16,7 @@ use bevy_internal::hierarchy::Parent;
 use bevy_sprite::{SpriteSheetBundle, TextureAtlas, TextureAtlasLayout};
 use tracing::field;
 
-use crate::prelude::*;
+use crate::{plugins::computed_size::ComputedSizeUpdatedEvent, prelude::*};
 
 use super::{
     breadboard::BreadboardCreatedEvent,
@@ -35,35 +35,14 @@ impl Plugin for PlacePlugin {
         app.add_event::<PlaceCreatedEvent>().add_systems(
             Update,
             (
-                create.run_if(on_event::<BreadboardCreatedEvent>()),
-                position_underline.run_if(
-                    |underlines: Query<&Parent, With<Underline>>,
-                     titles: Query<&Parent, Changed<ComputedSize>>,
-                     headers: Query<(), With<Header>>| {
-                        // Get all underlines.
-                        underlines.iter().any(|v| {
-                            titles
-                                // And for those underlines, find the parent title with changed
-                                // computed size.
-                                .get(v.get())
-                                // And those titles should be part of the place `Header`.
-                                .map(|v| headers.contains(v.get()))
-                                // Check if there's a match, and skip positioning the underline if
-                                // there isn't.
-                                .is_ok()
-                        })
-                    },
-                ),
-                position_body.run_if(
-                    |bodies: Query<&Parent, With<Body>>,
-                     headers: Query<&Parent, (With<Header>, Changed<ComputedSize>)>| {
-                        bodies.iter().any(|b| {
-                            headers.iter().any(|h| h.get() == b.get())
-                        })
-                    },
-                ),
+                (
+                    create.run_if(on_event::<BreadboardCreatedEvent>()),
+                    position_underline.run_if(run_position_underline),
+                    position_body.run_if(run_position_body),
+                )
+                    .chain(),
+                position_place.map(err),
             )
-                .chain()
                 .in_set(CanvasSet::Place),
         );
     }
@@ -345,6 +324,25 @@ fn position_underline(
         });
 }
 
+fn run_position_underline(
+    underlines: Query<&Parent, With<Underline>>,
+    titles: Query<&Parent, Changed<ComputedSize>>,
+    headers: Query<(), With<Header>>,
+) -> bool {
+    // Get all underlines.
+    underlines.iter().any(|v| {
+        titles
+            // And for those underlines, find the parent title with changed
+            // computed size.
+            .get(v.get())
+            // And those titles should be part of the place `Header`.
+            .map(|v| headers.contains(v.get()))
+            // Check if there's a match, and skip positioning the underline if
+            // there isn't.
+            .is_ok()
+    })
+}
+
 /// Creates a body entity for a place.
 ///
 /// Initiates a body entity with default settings, serving as a container for additional components
@@ -391,4 +389,39 @@ fn position_body(
             }
             Err(error) => error!(?body, %error, "Unexpected error."),
         });
+}
+
+fn run_position_body(
+    bodies: Query<&Parent, With<Body>>,
+    headers: Query<&Parent, (With<Header>, Changed<ComputedSize>)>,
+) -> bool {
+    bodies
+        .iter()
+        .any(|b| headers.iter().any(|h| h.get() == b.get()))
+}
+
+fn position_place(
+    mut events: EventReader<ComputedSizeUpdatedEvent>,
+    places: Query<Entity, With<Place>>,
+    sizes: ComputedSizeParam<()>,
+) -> Result<(), Error> {
+    // Find any place for which any of its children has an updated computed size.
+    let mut places: Vec<_> = events
+        .read()
+        .map(|event| places.iter().filter(|place| event.contains(*place)))
+        .flatten()
+        .collect();
+
+    places.sort();
+    places.dedup();
+
+    for place in places {
+        let Some(size) = sizes.size_of(place)? else {
+            continue;
+        };
+
+        error!(?size);
+    }
+
+    Ok(())
 }
