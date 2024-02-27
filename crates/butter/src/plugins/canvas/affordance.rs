@@ -103,6 +103,7 @@ fn create(
     mut places: EventReader<PlaceCreatedEvent>,
     bodies: Query<(Entity, &Parent), With<Body>>,
     mut created: EventWriter<AffordanceCreatedEvent>,
+    tokens: Res<DesignTokens>,
 ) {
     for &PlaceCreatedEvent {
         entity: place,
@@ -133,7 +134,7 @@ fn create(
                 .spawn(AffordanceBundle::default())
                 .insert(NestingLevel(level))
                 .insert(Index(index))
-                .insert(Padding::default().bottom(10.))
+                .insert(Padding::default().bottom(tokens.canvas.affordance.padding_bottom.as_f32()))
                 .set_parent(body)
                 .id();
 
@@ -165,6 +166,7 @@ fn create_title(
     mut cmd: Commands,
     mut places: EventReader<AffordanceCreatedEvent>,
     asset_server: Res<AssetServer>,
+    tokens: Res<DesignTokens>,
 ) {
     for &AffordanceCreatedEvent {
         entity, ref name, ..
@@ -172,12 +174,13 @@ fn create_title(
     {
         let span = info_span!("create_affordance_title", %name, affordance = ?entity, title = field::Empty).entered();
 
+        let font = &tokens.canvas.affordance.font.primary;
         let style = TextStyle {
-            font_size: 20.,
+            font_size: 16.,
             color: Color::BLACK,
-            font: asset_server.load(
-                "embedded://bnb_butter/plugins/../../assets/fonts/PermanentMarker-Regular.ttf",
-            ),
+            font: asset_server.load(format!(
+                "embedded://bnb_butter/plugins/../../assets/fonts/{font}.ttf"
+            )),
         };
 
         let title = cmd

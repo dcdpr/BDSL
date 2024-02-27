@@ -140,15 +140,28 @@
       }
     }
   },
-  "fontFamily": {
-    "global": {
+  "canvas": {
+    "affordance": {
+      "font": {
+        "$value": "{fonts.shantell-sans}"
+      },
+      "padding_bottom": {
+        "$type": "number",
+        "$value": 4.0
+      }
+    }
+  },
+  "fonts": {
+    "$type": "fontFamily",
+    "shantell-sans": {
       "$value": [
-        "Helvetica",
-        "Arial",
-        "sans-serif"
-      ],
-      "$type": "fontFamily",
-      "$description": "Primary font family used globally."
+        "ShantellSans-Regular"
+      ]
+    },
+    "permanent-marker": {
+      "$value": [
+        "PermanentMarker-Regular"
+      ]
     }
   }
 }
