@@ -51,15 +51,18 @@ fn create(
         for ast::Connection { target_place, .. } in connections.clone() {
             let _span = info_span!("spawn", affordance = ?entity, target = %target_place).entered();
 
-            let entity = cmd
-                .spawn(ConnectionBundle::default())
-                .set_parent(entity)
-                .id();
-
-            created.send(ConnectionCreated {
-                entity,
-                target_place: target_place.into(),
-            });
+            // TODO: Disabled for now, as it results in `ComputedSize::Pending`, which prevents
+            // the board from becoming visible.
+            //
+            // let entity = cmd
+            //     .spawn(ConnectionBundle::default())
+            //     .set_parent(entity)
+            //     .id();
+            //
+            // created.send(ConnectionCreated {
+            //     entity,
+            //     target_place: target_place.into(),
+            // });
         }
     }
 }
