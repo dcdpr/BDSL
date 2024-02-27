@@ -118,6 +118,7 @@ fn create(
             name,
             description,
             affordances,
+            position,
             ..
         } in places.clone()
         {
@@ -134,6 +135,24 @@ fn create(
                 cmd.entity(place)
                     .insert(Description::from(description.join("\n")));
             }
+
+            // Set static position for place, if provided.
+            if let Some(position) = position.and_then(|ast::Position { x, y }| {
+                let ast::Coordinate::Absolute(x) = x else {
+                    return None;
+                };
+
+                let ast::Coordinate::Absolute(y) = y else {
+                    return None;
+                };
+
+                Some(Vec2::new(x as f32, y as f32))
+            }) {
+                cmd.entity(place).insert(Transform {
+                    translation: position.extend(0.0),
+                    ..default()
+                });
+            };
 
             let header = create_header(
                 &mut cmd,
