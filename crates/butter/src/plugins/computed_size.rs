@@ -297,21 +297,83 @@ pub(crate) struct ComputedSizePlugin;
 
 impl Plugin for ComputedSizePlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(
-            Update,
-            computed_size_changed
-                .run_if(
-                    resource_exists::<DebugComputedSize>
-                        .and_then(|q: Query<(), Changed<ComputedSize>>| !q.is_empty()),
+        app.register_type::<ComputedSize>()
+            .add_event::<ComputedSizeUpdatedEvent>()
+            .add_systems(
+                Update,
+                (
+                    computed_size_updated,
+                    debug_computed_size_changed.run_if(resource_exists::<DebugComputedSize>),
                 )
-                .after(AppSet::EntityUpdates),
-        );
+                    .run_if(|q: Query<(), Changed<ComputedSize>>| !q.is_empty())
+                    .after(AppSet::EntityUpdates),
+            );
     }
 }
 
 #[instrument(level = "debug", skip_all)]
-pub(crate) fn computed_size_changed(sizes: Query<(Entity, &ComputedSize), Changed<ComputedSize>>) {
+pub(crate) fn debug_computed_size_changed(
+    sizes: Query<(Entity, &ComputedSize), Changed<ComputedSize>>,
+) {
     for (entity, size) in &sizes {
         debug!(?entity, ?size, "ComputedSize changed.");
+    }
+}
+
+#[derive(Event)]
+pub(crate) struct ComputedSizeUpdatedEvent {
+    /// The source entity for which the computed size was updated.
+    pub source: Entity,
+
+    /// The tree of entities affected by this size update.
+    ///
+    /// These include all source ancestors that have their computed size set to `Inherit` stopping
+    /// at the first ancestor that does not.
+    pub ancestors: Vec<Entity>,
+}
+
+impl ComputedSizeUpdatedEvent {
+    pub fn contains(&self, entity: Entity) -> bool {
+        self.source == entity || self.ancestors.contains(&entity)
+    }
+}
+
+/// Propagates computed size update events through the node tree hierarchy.
+///
+/// This function is called when the [`ComputedSize`] component of an [`Entity`] changes,
+/// indicating that the visual representation of the entity or its layout requirements have been
+/// updated. It ensures that any necessary updates or adjustments can be made in response to these
+/// changes, particularly for entities that inherit or depend on the sizes of their descendants.
+///
+/// The function iterates over all entities that have had their `ComputedSize` changed, recursively
+/// identifying all ancestors that inherit their size. Each identified source entity, along with
+/// its ancestors affected by the size change, is then included in a [`ComputedSizeUpdatedEvent`]
+/// and dispatched.
+#[instrument(level = "trace", skip_all)]
+pub(crate) fn computed_size_updated(
+    mut writer: EventWriter<ComputedSizeUpdatedEvent>,
+    changes: Query<Entity, Changed<ComputedSize>>,
+    sizes: Query<&ComputedSize>,
+    parents: Query<&Parent>,
+) {
+    for source in &changes {
+        let mut ancestors: Vec<Entity> = vec![];
+
+        find_ancestors(source, &mut ancestors, &sizes, &parents);
+        writer.send(ComputedSizeUpdatedEvent { source, ancestors });
+    }
+}
+
+fn find_ancestors(
+    source: Entity,
+    ancestors: &mut Vec<Entity>,
+    sizes: &Query<&ComputedSize>,
+    parents: &Query<&Parent>,
+) {
+    if let Ok(parent) = parents.get(source).map(Parent::get) {
+        if let Ok(ComputedSize::Inherit) = sizes.get(parent) {
+            ancestors.push(parent);
+            find_ancestors(parent, ancestors, sizes, parents);
+        }
     }
 }
