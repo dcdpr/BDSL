@@ -243,6 +243,11 @@ fn create_title(cmd: &mut Commands, index: usize, name: &str, font: Handle<Font>
         .insert(Padding::default().bottom(2.))
         .insert(Text2dBundle {
             text: Text::from_sections([
+                // TODO:
+                //
+                // Render numbering separate from title (calculated to render to the left of the
+                // title), so that enabling/disabling numbers does not move the original title, or
+                // re-size the underline.
                 TextSection::new(format!("{index}. "), number_style),
                 TextSection::new(name, name_style),
             ])

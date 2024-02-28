@@ -197,9 +197,8 @@ fn create_title(
             text: Text::from_sections([
                 TextSection::new(format!("{place_index}.{index}. "), number_style),
                 TextSection::new(name, name_style),
-            ])
-            .with_justify(JustifyText::Center),
-
+            ]),
+            // TODO: left-align text, based on the left edge of the place (title).
             text_anchor: Anchor::TopCenter,
             text_2d_bounds: Text2dBounds {
                 size: Vec2::new(200., f32::INFINITY),
