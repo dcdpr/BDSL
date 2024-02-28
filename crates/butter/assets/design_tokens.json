@@ -1,4 +1,122 @@
 {
+  "canvas": {
+    "place": {
+      "$description": "A group of affordances on the breadboard.",
+      "header": {
+        "$description": "The collection of place title, number, and underline.",
+        "padding-bottom": {
+          "$type": "number",
+          "$value": 20.0
+        },
+        "title": {
+          "$description": "The title of the place.",
+          "font-size": {
+            "$type": "number",
+            "$value": 20.0
+          },
+          "padding-bottom": {
+            "$type": "number",
+            "$value": 2.0
+          },
+          "number": {
+            "$description": "The number in front of the title.",
+            "font-size": {
+              "$type": "number",
+              "$value": 15.0
+            }
+          }
+        }
+      }
+    },
+    "affordance": {
+      "$description": "A single affordance in a place.",
+      "font": {
+        "$value": "{fonts.shantell-sans}"
+      },
+      "padding_bottom": {
+        "$type": "number",
+        "$value": 4.0
+      },
+      "level_padding": {
+        "$type": "number",
+        "$value": 10.0
+      }
+    }
+  },
+  "egui": {
+    "$description": "Egui-specific styling for the non-canvas UI elements.",
+    "visuals": {
+      "override_text_color": {
+        "$value": "{colors.text}"
+      },
+      "hyperlink_color": {
+        "$value": "{colors.rosewater}"
+      },
+      "faint_bg_color": {
+        "$value": "{colors.surface0}"
+      },
+      "extreme_bg_color": {
+        "$value": "{colors.crust}"
+      },
+      "code_bg_color": {
+        "$value": "{colors.mantle}"
+      },
+      "warn_fg_color": {
+        "$value": "{colors.peach}"
+      },
+      "error_fg_color": {
+        "$value": "{colors.maroon}"
+      },
+      "window_fill": {
+        "$value": "{colors.base}"
+      },
+      "panel_fill": {
+        "$value": "{colors.base}"
+      },
+      "window_stroke": {
+        "$value": "{colors.overlay1}"
+      },
+      "widgets": {
+        "noninteractive": {
+          "$value": "{colors.base}"
+        },
+        "inactive": {
+          "$value": "{colors.surface0}"
+        },
+        "hovered": {
+          "$value": "{colors.surface2}"
+        },
+        "active": {
+          "$value": "{colors.surface1}"
+        },
+        "open": {
+          "$value": "{colors.surface0}"
+        }
+      },
+      "selection": {
+        "$value": "{colors.blue}"
+      },
+      "window_shadow": {
+        "$value": "{colors.base}"
+      },
+      "popup_shadow": {
+        "$value": "{colors.base}"
+      }
+    }
+  },
+  "fonts": {
+    "$type": "fontFamily",
+    "shantell-sans": {
+      "$value": [
+        "ShantellSans-Regular"
+      ]
+    },
+    "permanent-marker": {
+      "$value": [
+        "PermanentMarker-Regular"
+      ]
+    }
+  },
   "colors": {
     "$type": "color",
     "rosewater": {
@@ -78,94 +196,6 @@
     },
     "crust": {
       "$value": "#232634"
-    }
-  },
-  "egui": {
-    "visuals": {
-      "override_text_color": {
-        "$value": "{colors.text}"
-      },
-      "hyperlink_color": {
-        "$value": "{colors.rosewater}"
-      },
-      "faint_bg_color": {
-        "$value": "{colors.surface0}"
-      },
-      "extreme_bg_color": {
-        "$value": "{colors.crust}"
-      },
-      "code_bg_color": {
-        "$value": "{colors.mantle}"
-      },
-      "warn_fg_color": {
-        "$value": "{colors.peach}"
-      },
-      "error_fg_color": {
-        "$value": "{colors.maroon}"
-      },
-      "window_fill": {
-        "$value": "{colors.base}"
-      },
-      "panel_fill": {
-        "$value": "{colors.base}"
-      },
-      "window_stroke": {
-        "$value": "{colors.overlay1}"
-      },
-      "widgets": {
-        "noninteractive": {
-          "$value": "{colors.base}"
-        },
-        "inactive": {
-          "$value": "{colors.surface0}"
-        },
-        "hovered": {
-          "$value": "{colors.surface2}"
-        },
-        "active": {
-          "$value": "{colors.surface1}"
-        },
-        "open": {
-          "$value": "{colors.surface0}"
-        }
-      },
-      "selection": {
-        "$value": "{colors.blue}"
-      },
-      "window_shadow": {
-        "$value": "{colors.base}"
-      },
-      "popup_shadow": {
-        "$value": "{colors.base}"
-      }
-    }
-  },
-  "canvas": {
-    "affordance": {
-      "font": {
-        "$value": "{fonts.shantell-sans}"
-      },
-      "padding_bottom": {
-        "$type": "number",
-        "$value": 4.0
-      },
-      "level_padding": {
-        "$type": "number",
-        "$value": 10.0
-      }
-    }
-  },
-  "fonts": {
-    "$type": "fontFamily",
-    "shantell-sans": {
-      "$value": [
-        "ShantellSans-Regular"
-      ]
-    },
-    "permanent-marker": {
-      "$value": [
-        "PermanentMarker-Regular"
-      ]
     }
   }
 }

@@ -12,7 +12,6 @@
 //! documentation within this module.
 
 use bevy_asset::Assets;
-use bevy_input::common_conditions::input_just_pressed;
 use bevy_internal::hierarchy::Parent;
 use bevy_sprite::{Sprite, SpriteSheetBundle, TextureAtlas, TextureAtlasLayout};
 use tracing::field;
@@ -24,7 +23,7 @@ use crate::{
 
 use super::{
     breadboard::{BreadboardCreatedEvent, ShowNumbers},
-    shared::{Body, BodyBundle, Description, Header, HeaderBundle, Index, Title, TitleBundle},
+    shared::{Body, BodyBundle, Description, HeaderBundle, Index, Title, TitleBundle},
     CanvasSet,
 };
 
@@ -112,6 +111,7 @@ fn create(
     asset_server: Res<AssetServer>,
     mut texture_atlases: ResMut<Assets<TextureAtlasLayout>>,
     mut rng: Rng,
+    tokens: Res<DesignTokens>,
 ) {
     for &BreadboardCreatedEvent {
         entity: breadboard,
@@ -170,6 +170,7 @@ fn create(
                 &asset_server,
                 &mut texture_atlases,
                 &mut rng,
+                &tokens,
             );
             cmd.entity(place).add_child(header);
 
@@ -204,6 +205,7 @@ fn create_header(
     asset_server: &AssetServer,
     atlasses: &mut Assets<TextureAtlasLayout>,
     rng: &mut RngComponent,
+    tokens: &DesignTokens,
 ) -> Entity {
     let span = info_span!("spawn", %name, header = field::Empty).entered();
 
@@ -211,14 +213,14 @@ fn create_header(
         .load("embedded://bnb_butter/plugins/../../assets/fonts/PermanentMarker-Regular.ttf");
     let image = asset_server.load("embedded://bnb_butter/plugins/../../assets/textures/lines.png");
 
-    let title = create_title(cmd, index + 1, &name, font);
+    let title = create_title(cmd, index + 1, &name, font, &tokens);
     let underline = create_underline(cmd, atlasses, image, rng);
     cmd.entity(title).add_child(underline);
 
     let header = cmd
         .spawn(HeaderBundle::default())
         .insert(PlaceHeader)
-        .insert(Padding::default().bottom(10.))
+        .insert(Padding::default().bottom(tokens.canvas.place.header.padding_bottom.as_f32()))
         .insert(On::<Pointer<Click>>::run(
             |event: Listener<Pointer<Click>>, mut target: ResMut<Target>| {
                 target.set(event.target);
@@ -237,21 +239,27 @@ fn create_header(
 /// ensure consistent visual appearance. The title is centered both horizontally and vertically,
 /// with specific bounds to accommodate the text size.
 #[instrument(skip_all)]
-fn create_title(cmd: &mut Commands, index: usize, name: &str, font: Handle<Font>) -> Entity {
+fn create_title(
+    cmd: &mut Commands,
+    index: usize,
+    name: &str,
+    font: Handle<Font>,
+    tokens: &DesignTokens,
+) -> Entity {
     let name_style = TextStyle {
-        font_size: 20.,
+        font_size: tokens.canvas.place.header.title.font_size.as_f32(),
         color: Color::BLACK,
         font: font.clone(),
     };
 
     let number_style = TextStyle {
-        font_size: 15.,
+        font_size: tokens.canvas.place.header.title.number.font_size.as_f32(),
         color: Color::DARK_GRAY,
         font,
     };
 
     cmd.spawn(TitleBundle::new(name.to_owned()))
-        .insert(Padding::default().bottom(2.))
+        .insert(Padding::default().bottom(tokens.canvas.place.header.title.padding_bottom.as_f32()))
         .insert(Text2dBundle {
             text: Text::from_sections([
                 // TODO:
