@@ -11,10 +11,26 @@ use super::canvas::{
 /// Window Management.
 pub(crate) struct WindowPlugin;
 
+#[derive(Resource, Default)]
+pub(crate) struct ForceRedraw(pub bool);
+
+impl ForceRedraw {
+    pub fn set(&mut self) {
+        self.0 = true;
+    }
+
+    pub fn reset(&mut self) -> bool {
+        let doit = self.0;
+        self.0 = false;
+        doit
+    }
+}
+
 impl Plugin for WindowPlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(ClearColor(Color::rgb(0.945, 0.945, 0.941)))
             .insert_resource(WinitSettings::desktop_app())
+            .init_resource::<ForceRedraw>()
             .add_plugins((
                 AccessibilityPlugin,
                 bevy_window::WindowPlugin {
@@ -27,11 +43,14 @@ impl Plugin for WindowPlugin {
                 },
                 WinitPlugin::default(),
             ))
-            .add_systems(Update, force_redraw.before(AppSet::DespawnEntities));
+            .add_systems(
+                Update,
+                (canvas_redraw, force_redraw).before(AppSet::DespawnEntities),
+            );
     }
 }
 
-fn force_redraw(
+fn canvas_redraw(
     mut redraw: EventWriter<RequestRedraw>,
 
     mut breadboard: EventReader<BreadboardCreatedEvent>,
@@ -47,6 +66,16 @@ fn force_redraw(
     place.clear();
     affordance.clear();
     connection.clear();
+
+    debug!("canvas_redraw");
+
+    redraw.send(RequestRedraw);
+}
+
+fn force_redraw(mut redraw: EventWriter<RequestRedraw>, mut force_redraw: ResMut<ForceRedraw>) {
+    if !force_redraw.reset() {
+        return;
+    }
 
     debug!("force_redraw");
 

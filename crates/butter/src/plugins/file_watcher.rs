@@ -74,6 +74,7 @@ fn load(source: Res<SelectedFile>, mut event: EventWriter<FileLoadedEvent>) {
 #[derive(SystemParam)]
 pub(crate) struct LoadButton<'w> {
     load_path: ResMut<'w, SelectedFile>,
+    redraw: ResMut<'w, ForceRedraw>,
 }
 
 impl WidgetSystem for LoadButton<'_> {
@@ -86,7 +87,10 @@ impl WidgetSystem for LoadButton<'_> {
         ui: &mut egui::Ui,
         _: Self::Args,
     ) -> Self::Output {
-        let LoadButton { mut load_path } = state.get_mut(world);
+        let LoadButton {
+            mut load_path,
+            mut redraw,
+        } = state.get_mut(world);
 
         if ui.button("Load Breadboard…").clicked() {
             if let Some(file) = FileDialog::new()
@@ -97,6 +101,8 @@ impl WidgetSystem for LoadButton<'_> {
             {
                 **load_path = file;
             }
+
+            redraw.set();
         }
     }
 }

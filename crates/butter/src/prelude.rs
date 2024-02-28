@@ -3,6 +3,7 @@ pub(crate) use crate::plugins::design_tokens::DesignTokens;
 pub(crate) use crate::plugins::error_handler::{err, Error};
 pub(crate) use crate::plugins::rng::Rng;
 pub(crate) use crate::plugins::schedule::AppSet;
+pub(crate) use crate::plugins::window::ForceRedraw;
 pub(crate) use crate::widget::{UiWidgetSystemExt as _, WidgetSystem};
 pub(crate) use bevy_app::prelude::*;
 pub(crate) use bevy_asset::{AssetServer, Handle};
