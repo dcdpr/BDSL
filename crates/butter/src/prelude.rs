@@ -18,6 +18,7 @@ pub(crate) use bevy_hierarchy::{
 };
 pub(crate) use bevy_input::prelude::*;
 pub(crate) use bevy_math::prelude::*;
+pub(crate) use bevy_mod_picking::prelude::*;
 pub(crate) use bevy_reflect::prelude::*;
 pub(crate) use bevy_render::prelude::*;
 pub(crate) use bevy_sprite::Anchor;

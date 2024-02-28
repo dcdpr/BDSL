@@ -49,6 +49,11 @@ bevy_egui = { version = "0.25", default-features = false, features = [
 bevy-inspector-egui = { git = "https://github.com/Aztro-dev/bevy-inspector-egui", default-features = false, features = [
   "highlight_changes",
 ], optional = true }
+bevy_mod_picking = { git = "https://github.com/StrikeForceZero/bevy_mod_picking", branch = "bevy-0.13", default-features = false, features = [
+  "selection",
+  "backend_sprite",
+  "backend_raycast",
+] }
 bevy_pancam = { version = "0.11", default-features = false, features = [
   "bevy_egui",
 ] }
@@ -67,6 +72,7 @@ tracing-subscriber = { version = "0.3", default-features = false, optional = tru
   "env-filter",
   "json",
 ] }
+bevy_tweening = { version = "0.10", default-features = false }
 
 [build-dependencies]
 dtoken = { path = "../dtoken", default-features = false, features = [

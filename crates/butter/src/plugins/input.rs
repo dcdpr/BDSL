@@ -2,6 +2,8 @@ mod camera;
 
 use crate::prelude::*;
 
+pub(crate) use camera::Target;
+
 /// Handle any input in the app.
 pub(crate) struct InputPlugin;
 

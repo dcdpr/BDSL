@@ -31,6 +31,7 @@ impl DebugPlugin {
             .add_directive("wgpu_core=error".parse().unwrap())
             .add_directive("wgpu_hal=error".parse().unwrap())
             .add_directive("bevy_time::virt=error".parse().unwrap())
+            .add_directive("bevy_mod_raycast=error".parse().unwrap())
             .add_directive("naga=error".parse().unwrap());
 
         tracing_subscriber::fmt()

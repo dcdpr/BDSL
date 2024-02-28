@@ -24,6 +24,9 @@ impl Plugin for BevyPlugin {
             TransformPlugin,
             SpritePlugin,
             TextPlugin,
-        ));
+        ))
+        // TODO: move these to their own plugin?
+        .add_plugins(bevy_mod_picking::DefaultPickingPlugins)
+        .add_plugins(bevy_tweening::TweeningPlugin);
     }
 }

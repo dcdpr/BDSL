@@ -12,11 +12,15 @@
 //! documentation within this module.
 
 use bevy_asset::Assets;
+use bevy_input::common_conditions::input_just_pressed;
 use bevy_internal::hierarchy::Parent;
 use bevy_sprite::{Sprite, SpriteSheetBundle, TextureAtlas, TextureAtlasLayout};
 use tracing::field;
 
-use crate::{plugins::computed_size::ComputedSizeUpdatedEvent, prelude::*};
+use crate::{
+    plugins::{computed_size::ComputedSizeUpdatedEvent, input::Target},
+    prelude::*,
+};
 
 use super::{
     breadboard::{BreadboardCreatedEvent, ShowNumbers},
@@ -43,6 +47,8 @@ impl Plugin for PlacePlugin {
                     .chain(),
                 position_place.map(err),
                 toggle_numbering.run_if(resource_changed::<ShowNumbers>),
+                focus_next.run_if(input_just_pressed(KeyCode::ArrowRight)),
+                focus_last.run_if(input_just_pressed(KeyCode::ArrowLeft)),
             )
                 .in_set(CanvasSet::Place),
         );
@@ -213,6 +219,11 @@ fn create_header(
         .spawn(HeaderBundle::default())
         .insert(PlaceHeader)
         .insert(Padding::default().bottom(10.))
+        .insert(On::<Pointer<Click>>::run(
+            |event: Listener<Pointer<Click>>, mut target: ResMut<Target>| {
+                target.set(event.target);
+            },
+        ))
         .add_child(title)
         .id();
     span.record("header", format!("{header:?}"));
@@ -502,4 +513,42 @@ fn toggle_numbering(
             text.sections[0].value.clear();
         }
     }
+}
+
+fn focus_next(places: Query<(Entity, &Index), With<Place>>, mut target: ResMut<Target>) {
+    let next_index = match target.get() {
+        None => 0,
+        Some(target) => places
+            .get(target)
+            .map(|(_, index)| **index + 1)
+            .unwrap_or_default(),
+    };
+
+    let Some(place) = places
+        .iter()
+        .find_map(|(entity, index)| (**index == next_index).then_some(entity))
+    else {
+        return;
+    };
+
+    target.set(place);
+}
+
+fn focus_last(places: Query<(Entity, &Index), With<Place>>, mut target: ResMut<Target>) {
+    let last_index = match target.get() {
+        None => 0,
+        Some(target) => places
+            .get(target)
+            .map(|(_, index)| index.saturating_sub(1))
+            .unwrap_or_default(),
+    };
+
+    let Some(place) = places
+        .iter()
+        .find_map(|(entity, index)| (**index == last_index).then_some(entity))
+    else {
+        return;
+    };
+
+    target.set(place);
 }
