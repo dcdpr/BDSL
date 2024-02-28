@@ -8,6 +8,8 @@
 //! For detailed information on individual parts of this plugin, please refer to the respective
 //! documentation within this module.
 
+use bevy_utils::HashMap;
+
 use crate::prelude::*;
 
 use super::{
@@ -119,7 +121,16 @@ fn create(
             continue;
         };
 
+        // TODO:
+        //
+        // Created nested affordances based on affordance level (e.g. a level 1 affordance
+        // following a level 0 affordance will become a child of the level 0 affordance).
+        //
+        // This makes it easier to render, and reposition a group of nested affordances. It also
+        // makes it easier to hide a tree of nested affordances by iterating all children and
+        // setting them as invisible.
         let mut index = 0;
+        let mut indices = HashMap::new();
         for ast::Affordance {
             name,
             description,
@@ -151,15 +162,7 @@ fn create(
                 "embedded://bnb_butter/plugins/../../assets/fonts/{font_family}.ttf"
             ));
 
-            let title = create_title(
-                &mut cmd,
-                place_index + 1,
-                index + 1,
-                level,
-                &name,
-                font,
-                &tokens,
-            );
+            let title = create_title(&mut cmd, place_index, &indices, level, &name, font, &tokens);
             cmd.entity(affordance).add_child(title);
 
             created.send(AffordanceCreatedEvent {
@@ -168,6 +171,7 @@ fn create(
                 connections,
             });
 
+            *indices.get_mut(&level).unwrap() += 1;
             index += 1;
         }
     }
@@ -181,7 +185,7 @@ fn create(
 fn create_title(
     cmd: &mut Commands,
     place_index: usize,
-    index: usize,
+    indices: &HashMap<usize, usize>,
     level: usize,
     name: &str,
     font: Handle<Font>,
@@ -203,11 +207,24 @@ fn create_title(
 
     let x = tokens.canvas.affordance.level_padding.as_f32() * level as f32;
 
+    let mut numbers = format!("{}.", place_index + 1);
+    for lvl in 0..=level {
+        let index = indices.get(&lvl).copied().unwrap_or_default() + 1;
+        let index = if lvl == level {
+            index
+        } else {
+            index.saturating_sub(1)
+        };
+
+        numbers.push_str(&format!("{}.", index))
+    }
+    numbers.push(' ');
+
     let title = cmd
         .spawn(TitleBundle::new(name.to_owned()))
         .insert(Text2dBundle {
             text: Text::from_sections([
-                TextSection::new(format!("{place_index}.{index}. "), number_style),
+                TextSection::new(numbers, number_style),
                 TextSection::new(name, name_style),
             ]),
             // TODO: left-align text, based on the left edge of the place (title).
