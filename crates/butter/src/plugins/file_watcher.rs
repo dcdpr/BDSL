@@ -102,6 +102,8 @@ impl WidgetSystem for LoadButton<'_> {
                 **load_path = file;
             }
 
+            // TODO: this is supposed to help with the active button state not changing unless you
+            // move the mouse, but it's not working currently.
             redraw.set();
         }
     }

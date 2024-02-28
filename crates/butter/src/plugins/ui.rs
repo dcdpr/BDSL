@@ -114,7 +114,6 @@ fn apply_base_theme(tokens: Res<DesignTokens>, mut contexts: EguiContexts) {
                 },
                 ..old.widgets.inactive
             },
-            ..default()
         },
         selection: egui::style::Selection {
             bg_fill: c(v.selection).linear_multiply(0.4),

@@ -311,12 +311,12 @@ impl Plugin for ComputedSizePlugin {
     }
 }
 
-#[instrument(level = "debug", skip_all)]
+#[instrument(level = "trace", skip_all)]
 pub(crate) fn debug_computed_size_changed(
     sizes: Query<(Entity, &ComputedSize), Changed<ComputedSize>>,
 ) {
     for (entity, size) in &sizes {
-        debug!(?entity, ?size, "ComputedSize changed.");
+        trace!(?entity, ?size, "ComputedSize changed.");
     }
 }
 
