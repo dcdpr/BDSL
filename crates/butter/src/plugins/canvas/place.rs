@@ -13,7 +13,7 @@
 
 use bevy_asset::Assets;
 use bevy_internal::hierarchy::Parent;
-use bevy_sprite::{SpriteSheetBundle, TextureAtlas, TextureAtlasLayout};
+use bevy_sprite::{Sprite, SpriteSheetBundle, TextureAtlas, TextureAtlasLayout};
 use tracing::field;
 
 use crate::{plugins::computed_size::ComputedSizeUpdatedEvent, prelude::*};
@@ -37,7 +37,7 @@ impl Plugin for PlacePlugin {
             (
                 (
                     create.run_if(on_event::<BreadboardCreatedEvent>()),
-                    position_underline.run_if(run_position_underline),
+                    redraw_underline.run_if(run_redraw_underline),
                     position_body.run_if(run_position_body),
                 )
                     .chain(),
@@ -307,7 +307,7 @@ fn create_underline(
                 index: rng.usize(range),
                 layout,
             },
-            sprite: bevy_sprite::Sprite {
+            sprite: Sprite {
                 custom_size: Some(custom_size),
                 flip_x: rng.bool(),
                 flip_y: rng.bool(),
@@ -329,15 +329,17 @@ fn create_underline(
 /// alignment and consistency. It calculates the new position based on the computed size of the
 /// title, effectively moving the underline to sit neatly below the title text.
 #[instrument(skip_all)]
-fn position_underline(
-    headers: Query<(), With<Header>>,
+fn redraw_underline(
+    headers: Query<(), With<PlaceHeader>>,
     titles: Query<(Entity, &Parent), With<Title>>,
     sizes: ComputedSizeParam<Without<Underline>>,
-    mut transforms: Query<(Entity, &Parent, &mut Transform), With<Underline>>,
+    mut underlines: Query<(Entity, &Parent, &mut Sprite, &mut Transform), With<Underline>>,
 ) {
-    transforms
+    const UNDERLINE_STRETCH: f32 = 0.6;
+
+    underlines
         .iter_mut()
-        .filter_map(|(underline, parent, transform)| {
+        .filter_map(|(underline, parent, sprite, transform)| {
             let transform = transform.map_unchanged(|t| &mut t.translation);
 
             titles
@@ -345,27 +347,33 @@ fn position_underline(
                 .and_then(|(title, parent)| {
                     headers
                         .get(parent.get())
-                        .map(|_| (underline, transform, sizes.size_of(title)))
+                        .map(|_| (underline, sprite, transform, sizes.size_of(title)))
                 })
                 .ok()
         })
-        .for_each(|(underline, mut translation, size)| match size {
-            Ok(Some(size)) => {
-                translation.y = -size.y;
-                info!(
-                    ?underline,
-                    ?translation,
-                    "Repositioned place title underline."
-                );
-            }
-            Ok(None) => {
-                debug!(?underline, "Waiting on pending size.")
-            }
-            Err(error) => error!(?underline, %error, "Unexpected error."),
-        });
+        .for_each(
+            |(underline, mut sprite, mut translation, size)| match size {
+                Ok(Some(size)) => {
+                    if let Some(custom_size) = sprite.custom_size.as_mut() {
+                        custom_size.x = size.x * (1. + UNDERLINE_STRETCH);
+                    }
+
+                    translation.y = -size.y;
+                    info!(
+                        ?underline,
+                        ?translation,
+                        "Repositioned place title underline."
+                    );
+                }
+                Ok(None) => {
+                    debug!(?underline, "Waiting on pending size.")
+                }
+                Err(error) => error!(?underline, %error, "Unexpected error."),
+            },
+        );
 }
 
-fn run_position_underline(
+fn run_redraw_underline(
     underlines: Query<&Parent, With<Underline>>,
     titles: Query<&Parent, Changed<ComputedSize>>,
     headers: Query<(), With<PlaceHeader>>,
@@ -378,8 +386,7 @@ fn run_position_underline(
             .get(v.get())
             // And those titles should be part of the place `Header`.
             .map(|v| headers.contains(v.get()))
-            // Check if there's a match, and skip positioning the underline if
-            // there isn't.
+            // Check if there's a match, and skip if there isn't.
             .is_ok()
     })
 }
