@@ -58,6 +58,7 @@ fn apply_base_theme(tokens: Res<DesignTokens>, mut contexts: EguiContexts) {
                 },
                 fg_stroke: egui::Stroke {
                     color: c(tokens.colors.text),
+                    width: 3.0,
                     ..default()
                 },
                 ..old.widgets.noninteractive
@@ -71,6 +72,7 @@ fn apply_base_theme(tokens: Res<DesignTokens>, mut contexts: EguiContexts) {
                 },
                 fg_stroke: egui::Stroke {
                     color: c(tokens.colors.text),
+                    width: 3.0,
                     ..default()
                 },
                 ..old.widgets.inactive
@@ -84,6 +86,7 @@ fn apply_base_theme(tokens: Res<DesignTokens>, mut contexts: EguiContexts) {
                 },
                 fg_stroke: egui::Stroke {
                     color: c(tokens.colors.text),
+                    width: 3.0,
                     ..default()
                 },
                 ..old.widgets.inactive
@@ -97,6 +100,7 @@ fn apply_base_theme(tokens: Res<DesignTokens>, mut contexts: EguiContexts) {
                 },
                 fg_stroke: egui::Stroke {
                     color: c(tokens.colors.text),
+                    width: 3.0,
                     ..default()
                 },
                 ..old.widgets.inactive
@@ -110,6 +114,7 @@ fn apply_base_theme(tokens: Res<DesignTokens>, mut contexts: EguiContexts) {
                 },
                 fg_stroke: egui::Stroke {
                     color: c(tokens.colors.text),
+                    width: 3.0,
                     ..default()
                 },
                 ..old.widgets.inactive
