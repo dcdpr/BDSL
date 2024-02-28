@@ -19,8 +19,8 @@ use tracing::field;
 use crate::{plugins::computed_size::ComputedSizeUpdatedEvent, prelude::*};
 
 use super::{
-    breadboard::BreadboardCreatedEvent,
-    shared::{Body, BodyBundle, Description, Header, HeaderBundle, Title, TitleBundle},
+    breadboard::{BreadboardCreatedEvent, ShowNumbers},
+    shared::{Body, BodyBundle, Description, Header, HeaderBundle, Index, Title, TitleBundle},
     CanvasSet,
 };
 
@@ -42,6 +42,7 @@ impl Plugin for PlacePlugin {
                 )
                     .chain(),
                 position_place.map(err),
+                toggle_numbering.run_if(resource_changed::<ShowNumbers>),
             )
                 .in_set(CanvasSet::Place),
         );
@@ -114,6 +115,7 @@ fn create(
     {
         let mut rng = rng.get(breadboard);
 
+        let mut index = 0;
         for ast::Place {
             name,
             description,
@@ -127,6 +129,7 @@ fn create(
             let place = cmd
                 .spawn(PlaceBundle::default())
                 .set_parent(breadboard)
+                .insert(Index(index))
                 .id();
             span.record("place", format!("{place:?}"));
 
@@ -156,6 +159,7 @@ fn create(
 
             let header = create_header(
                 &mut cmd,
+                index,
                 name,
                 &asset_server,
                 &mut texture_atlases,
@@ -171,9 +175,14 @@ fn create(
                 entity: place,
                 affordances,
             });
+
+            index += 1;
         }
     }
 }
+
+#[derive(Component)]
+pub(crate) struct PlaceHeader;
 
 /// Constructs a header entity for a place, including a title and an underline.
 ///
@@ -184,6 +193,7 @@ fn create(
 #[instrument(skip_all)]
 fn create_header(
     cmd: &mut Commands,
+    index: usize,
     name: String,
     asset_server: &AssetServer,
     atlasses: &mut Assets<TextureAtlasLayout>,
@@ -195,13 +205,14 @@ fn create_header(
         .load("embedded://bnb_butter/plugins/../../assets/fonts/PermanentMarker-Regular.ttf");
     let image = asset_server.load("embedded://bnb_butter/plugins/../../assets/textures/lines.png");
 
-    let title = create_title(cmd, &name, font);
+    let title = create_title(cmd, index + 1, &name, font);
     let underline = create_underline(cmd, atlasses, image, rng);
     cmd.entity(title).add_child(underline);
 
     let header = cmd
         .spawn(HeaderBundle::default())
-        .insert(Padding::default().bottom(20.))
+        .insert(PlaceHeader)
+        .insert(Padding::default().bottom(10.))
         .add_child(title)
         .id();
     span.record("header", format!("{header:?}"));
@@ -215,16 +226,27 @@ fn create_header(
 /// ensure consistent visual appearance. The title is centered both horizontally and vertically,
 /// with specific bounds to accommodate the text size.
 #[instrument(skip_all)]
-fn create_title(cmd: &mut Commands, name: &str, font: Handle<Font>) -> Entity {
-    let style = TextStyle {
+fn create_title(cmd: &mut Commands, index: usize, name: &str, font: Handle<Font>) -> Entity {
+    let name_style = TextStyle {
         font_size: 20.,
         color: Color::BLACK,
+        font: font.clone(),
+    };
+
+    let number_style = TextStyle {
+        font_size: 15.,
+        color: Color::DARK_GRAY,
         font,
     };
 
     cmd.spawn(TitleBundle::new(name.to_owned()))
+        .insert(Padding::default().bottom(2.))
         .insert(Text2dBundle {
-            text: Text::from_section(name, style).with_justify(JustifyText::Center),
+            text: Text::from_sections([
+                TextSection::new(format!("{index}. "), number_style),
+                TextSection::new(name, name_style),
+            ])
+            .with_justify(JustifyText::Center),
             text_anchor: Anchor::TopCenter,
             text_2d_bounds: Text2dBounds {
                 size: Vec2::new(200., f32::INFINITY),
@@ -346,7 +368,7 @@ fn position_underline(
 fn run_position_underline(
     underlines: Query<&Parent, With<Underline>>,
     titles: Query<&Parent, Changed<ComputedSize>>,
-    headers: Query<(), With<Header>>,
+    headers: Query<(), With<PlaceHeader>>,
 ) -> bool {
     // Get all underlines.
     underlines.iter().any(|v| {
@@ -382,7 +404,7 @@ fn create_body(cmd: &mut Commands) -> Entity {
 /// associated header entities, based on the header's computed size.
 #[instrument(skip_all)]
 fn position_body(
-    headers: Query<(Entity, &Parent), (With<Header>, Changed<ComputedSize>)>,
+    headers: Query<(Entity, &Parent), (With<PlaceHeader>, Changed<ComputedSize>)>,
     sizes: ComputedSizeParam<Without<Body>>,
     mut transforms: Query<(Entity, &Parent, &mut Transform), With<Body>>,
 ) {
@@ -412,7 +434,7 @@ fn position_body(
 
 fn run_position_body(
     bodies: Query<&Parent, With<Body>>,
-    headers: Query<&Parent, (With<Header>, Changed<ComputedSize>)>,
+    headers: Query<&Parent, (With<PlaceHeader>, Changed<ComputedSize>)>,
 ) -> bool {
     bodies
         .iter()
@@ -443,4 +465,29 @@ fn position_place(
     }
 
     Ok(())
+}
+
+fn toggle_numbering(
+    show: Res<ShowNumbers>,
+    mut titles: Query<(&Parent, &mut Text), With<Title>>,
+    places: Query<Entity, With<Place>>,
+    headers: Query<&Parent, With<PlaceHeader>>,
+    indices: Query<&Index>,
+) {
+    let texts = titles.iter_mut().filter_map(|(parent, text)| {
+        headers
+            .get(parent.get())
+            .and_then(|parent| places.get(parent.get()))
+            .and_then(|place| indices.get(place))
+            .map(|index| (index, text))
+            .ok()
+    });
+
+    for (&Index(index), mut text) in texts {
+        if **show {
+            text.sections[0].value = format!("{}. ", index + 1);
+        } else {
+            text.sections[0].value.clear();
+        }
+    }
 }

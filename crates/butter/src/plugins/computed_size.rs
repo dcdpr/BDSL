@@ -113,8 +113,8 @@ pub(crate) struct Padding {
 }
 
 impl Padding {
-    pub fn bottom(mut self, left: f32) -> Self {
-        self.bottom = left;
+    pub fn bottom(mut self, bottom: f32) -> Self {
+        self.bottom = bottom;
         self
     }
 }

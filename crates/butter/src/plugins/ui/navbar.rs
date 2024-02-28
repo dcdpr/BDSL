@@ -1,7 +1,11 @@
 use bevy_ecs::system::{SystemParam, SystemState};
 use bevy_egui::egui::{self, Vec2};
 
-use crate::{plugins::file_watcher::LoadButton, prelude::*, widget::RootWidgetSystem};
+use crate::{
+    plugins::{canvas::ShowNumbersCheckbox, file_watcher::LoadButton},
+    prelude::*,
+    widget::RootWidgetSystem,
+};
 
 #[derive(SystemParam)]
 pub(in crate::plugins::ui) struct NavBar;
@@ -24,6 +28,7 @@ impl RootWidgetSystem for NavBar {
                     ui.set_height(40.);
                     ui.style_mut().spacing.button_padding = Vec2::splat(10.);
                     ui.add_system::<LoadButton>(world, "load_button");
+                    ui.add_system::<ShowNumbersCheckbox>(world, "show_numbers");
                 });
             });
     }

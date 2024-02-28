@@ -5,7 +5,7 @@ use crate::prelude::*;
 /// This component is used to denote the order or position of an entity relative to others of a
 /// similar kind, facilitating the organization and sorting of entities based on their defined
 /// sequence.
-#[derive(Component, Default, Ord, Eq, PartialEq, PartialOrd)]
+#[derive(Component, Default, Ord, Eq, PartialEq, PartialOrd, Deref, Copy, Clone)]
 pub(super) struct Index(pub(super) usize);
 
 /// Identifies entities as headers within the hierarchical structure.

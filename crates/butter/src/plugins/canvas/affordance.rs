@@ -11,6 +11,7 @@
 use crate::prelude::*;
 
 use super::{
+    breadboard::ShowNumbers,
     place::{Place, PlaceCreatedEvent},
     shared::{Body, Description, Header, Index, Title, TitleBundle},
     CanvasSet,
@@ -24,18 +25,13 @@ impl Plugin for AffordancePlugin {
         app.add_event::<AffordanceCreatedEvent>().add_systems(
             Update,
             (
-                position_affordance.map(err).run_if(
-                    |affordances: Query<Entity, With<Affordance>>,
-                     titles: Query<&Parent, (With<Title>, Changed<ComputedSize>)>| {
-                        titles.iter().any(|parent| affordances.contains(parent.get()))
-                    },
-                ),
-                create.run_if(on_event::<PlaceCreatedEvent>()),
-                create_title.run_if(on_event::<AffordanceCreatedEvent>()),
-                // position_affordances,
-
+                (
+                    position_affordance.map(err).run_if(run_position_affordance),
+                    create.run_if(on_event::<PlaceCreatedEvent>()),
+                )
+                    .chain(),
+                toggle_numbering.run_if(resource_changed::<ShowNumbers>),
             )
-                .chain()
                 .in_set(CanvasSet::Affordance),
         );
     }
@@ -101,8 +97,10 @@ struct NestingLevel(usize);
 fn create(
     mut cmd: Commands,
     mut places: EventReader<PlaceCreatedEvent>,
+    indices: Query<&Index>,
     bodies: Query<(Entity, &Parent), With<Body>>,
     mut created: EventWriter<AffordanceCreatedEvent>,
+    asset_server: Res<AssetServer>,
     tokens: Res<DesignTokens>,
 ) {
     for &PlaceCreatedEvent {
@@ -111,6 +109,8 @@ fn create(
         ..
     } in places.read()
     {
+        let place_index = **indices.get(place).expect("index exists");
+
         let Some(body) = bodies
             .iter()
             .find_map(|(entity, parent)| (parent.get() == place).then_some(entity))
@@ -130,7 +130,7 @@ fn create(
             let span =
                 info_span!("create_affordance", %name, ?place, affordance = field::Empty).entered();
 
-            let entity = cmd
+            let affordance = cmd
                 .spawn(AffordanceBundle::default())
                 .insert(NestingLevel(level))
                 .insert(Index(index))
@@ -138,16 +138,24 @@ fn create(
                 .set_parent(body)
                 .id();
 
-            span.record("affordance", format!("{entity:?}"));
+            span.record("affordance", format!("{affordance:?}"));
 
             // Insert description, if one is provided.
             if !description.is_empty() {
-                cmd.entity(entity)
+                cmd.entity(affordance)
                     .insert(Description::from(description.join("\n")));
             }
 
+            let font_family = &tokens.canvas.affordance.font.primary;
+            let font = asset_server.load(format!(
+                "embedded://bnb_butter/plugins/../../assets/fonts/{font_family}.ttf"
+            ));
+
+            let title = create_title(&mut cmd, place_index + 1, index + 1, &name, font);
+            cmd.entity(affordance).add_child(title);
+
             created.send(AffordanceCreatedEvent {
-                entity,
+                entity: affordance,
                 name,
                 connections,
             });
@@ -163,42 +171,47 @@ fn create(
 /// styling, including font size, color, and alignment.
 #[instrument(skip_all)]
 fn create_title(
-    mut cmd: Commands,
-    mut places: EventReader<AffordanceCreatedEvent>,
-    asset_server: Res<AssetServer>,
-    tokens: Res<DesignTokens>,
-) {
-    for &AffordanceCreatedEvent {
-        entity, ref name, ..
-    } in places.read()
-    {
-        let span = info_span!("create_affordance_title", %name, affordance = ?entity, title = field::Empty).entered();
+    cmd: &mut Commands,
+    place_index: usize,
+    index: usize,
+    name: &str,
+    font: Handle<Font>,
+) -> Entity {
+    let span = info_span!("spawn", %name, title = field::Empty).entered();
 
-        let font = &tokens.canvas.affordance.font.primary;
-        let style = TextStyle {
-            font_size: 16.,
-            color: Color::BLACK,
-            font: asset_server.load(format!(
-                "embedded://bnb_butter/plugins/../../assets/fonts/{font}.ttf"
-            )),
-        };
+    let name_style = TextStyle {
+        font_size: 16.,
+        color: Color::BLACK,
+        font: font.clone(),
+    };
 
-        let title = cmd
-            .spawn(TitleBundle::new(name.to_owned()))
-            .insert(Text2dBundle {
-                text: Text::from_section(name, style).with_justify(JustifyText::Center),
-                text_anchor: Anchor::TopCenter,
-                text_2d_bounds: Text2dBounds {
-                    size: Vec2::new(200., f32::INFINITY),
-                },
-                transform: Transform::from_xyz(0., 0., 2.),
-                ..default()
-            })
-            .set_parent(entity)
-            .id();
+    let number_style = TextStyle {
+        font_size: 13.,
+        color: Color::DARK_GRAY,
+        font,
+    };
 
-        span.record("title", format!("{title:?}"));
-    }
+    let title = cmd
+        .spawn(TitleBundle::new(name.to_owned()))
+        .insert(Text2dBundle {
+            text: Text::from_sections([
+                TextSection::new(format!("{place_index}.{index}. "), number_style),
+                TextSection::new(name, name_style),
+            ])
+            .with_justify(JustifyText::Center),
+
+            text_anchor: Anchor::TopCenter,
+            text_2d_bounds: Text2dBounds {
+                size: Vec2::new(200., f32::INFINITY),
+            },
+            transform: Transform::from_xyz(0., 0., 2.),
+            ..default()
+        })
+        .id();
+
+    span.record("title", format!("{title:?}"));
+
+    title
 }
 
 /// Positions affordances within their respective places based on their computed sizes.
@@ -272,4 +285,41 @@ fn position_affordance(
     }
 
     Ok(())
+}
+
+fn run_position_affordance(
+    affordances: Query<Entity, With<Affordance>>,
+    titles: Query<&Parent, (With<Title>, Changed<ComputedSize>)>,
+) -> bool {
+    titles
+        .iter()
+        .any(|parent| affordances.contains(parent.get()))
+}
+
+fn toggle_numbering(
+    show: Res<ShowNumbers>,
+    mut titles: Query<(&Parent, &mut Text), With<Title>>,
+    affordances: Query<Entity, With<Affordance>>,
+    places: Query<Entity, With<Place>>,
+    indices: Query<&Index>,
+    parents: Query<&Parent>,
+) {
+    let texts = titles.iter_mut().filter_map(|(parent, text)| {
+        affordances.get(parent.get()).ok().and_then(|affordance| {
+            indices.get(affordance).ok().and_then(|index| {
+                parents
+                    .iter_ancestors(affordance)
+                    .find_map(|v| places.get(v).and_then(|place| indices.get(place)).ok())
+                    .map(|place_index| (place_index, index, text))
+            })
+        })
+    });
+
+    for (&Index(place_index), &Index(index), mut text) in texts {
+        if **show {
+            text.sections[0].value = format!("{}.{}. ", place_index + 1, index + 1);
+        } else {
+            text.sections[0].value.clear();
+        }
+    }
 }

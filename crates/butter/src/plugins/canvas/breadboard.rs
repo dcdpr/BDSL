@@ -18,17 +18,19 @@ pub(super) struct BreadboardPlugin;
 
 impl Plugin for BreadboardPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<BreadboardCreatedEvent>().add_systems(
-            Update,
-            (
-                spawn.run_if(on_event::<FileLoadedEvent>()),
-                make_visible.run_if(|q: Query<&Visibility, With<Breadboard>>| {
-                    q.iter().any(|v| v == Visibility::Hidden)
-                }),
-            )
-                .chain()
-                .in_set(CanvasSet::Breadboard),
-        );
+        app.insert_resource(ShowNumbers(true))
+            .add_event::<BreadboardCreatedEvent>()
+            .add_systems(
+                Update,
+                (
+                    spawn.run_if(on_event::<FileLoadedEvent>()),
+                    make_visible.run_if(|q: Query<&Visibility, With<Breadboard>>| {
+                        q.iter().any(|v| v == Visibility::Hidden)
+                    }),
+                )
+                    .chain()
+                    .in_set(CanvasSet::Breadboard),
+            );
     }
 }
 
@@ -161,5 +163,38 @@ fn make_visible(
 
         info!(breadboard = ?entity, "Making breadboard visible.");
         *visibility = Visibility::Visible;
+    }
+}
+
+#[derive(Resource, Deref, DerefMut, Debug, Default)]
+pub(super) struct ShowNumbers(bool);
+
+#[derive(SystemParam)]
+pub(crate) struct ShowNumbersCheckbox<'w> {
+    show: ResMut<'w, ShowNumbers>,
+    redraw: ResMut<'w, ForceRedraw>,
+}
+
+impl WidgetSystem for ShowNumbersCheckbox<'_> {
+    type Args = ();
+    type Output = ();
+
+    fn system(
+        world: &mut World,
+        state: &mut SystemState<Self>,
+        ui: &mut egui::Ui,
+        _: Self::Args,
+    ) -> Self::Output {
+        let ShowNumbersCheckbox {
+            mut show,
+            mut redraw,
+        } = state.get_mut(world);
+
+        let mut curr = **show.as_ref();
+        if ui.checkbox(&mut curr, "Show Numbers").clicked() {
+            **show = curr;
+
+            redraw.set();
+        }
     }
 }
