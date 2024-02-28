@@ -151,7 +151,15 @@ fn create(
                 "embedded://bnb_butter/plugins/../../assets/fonts/{font_family}.ttf"
             ));
 
-            let title = create_title(&mut cmd, place_index + 1, index + 1, &name, font);
+            let title = create_title(
+                &mut cmd,
+                place_index + 1,
+                index + 1,
+                level,
+                &name,
+                font,
+                &tokens,
+            );
             cmd.entity(affordance).add_child(title);
 
             created.send(AffordanceCreatedEvent {
@@ -174,8 +182,10 @@ fn create_title(
     cmd: &mut Commands,
     place_index: usize,
     index: usize,
+    level: usize,
     name: &str,
     font: Handle<Font>,
+    tokens: &DesignTokens,
 ) -> Entity {
     let span = info_span!("spawn", %name, title = field::Empty).entered();
 
@@ -191,6 +201,8 @@ fn create_title(
         font,
     };
 
+    let x = tokens.canvas.affordance.level_padding.as_f32() * level as f32;
+
     let title = cmd
         .spawn(TitleBundle::new(name.to_owned()))
         .insert(Text2dBundle {
@@ -199,11 +211,11 @@ fn create_title(
                 TextSection::new(name, name_style),
             ]),
             // TODO: left-align text, based on the left edge of the place (title).
-            text_anchor: Anchor::TopCenter,
+            text_anchor: Anchor::TopLeft,
             text_2d_bounds: Text2dBounds {
                 size: Vec2::new(200., f32::INFINITY),
             },
-            transform: Transform::from_xyz(0., 0., 2.),
+            transform: Transform::from_xyz(-40. + x, 0., 2.),
             ..default()
         })
         .id();

@@ -148,6 +148,10 @@
       "padding_bottom": {
         "$type": "number",
         "$value": 4.0
+      },
+      "level_padding": {
+        "$type": "number",
+        "$value": 10.0
       }
     }
   },
