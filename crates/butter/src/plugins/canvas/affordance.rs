@@ -138,6 +138,8 @@ fn create(
             level,
         } in affordances.clone()
         {
+            indices.entry(level).or_default();
+
             let span =
                 info_span!("create_affordance", %name, ?place, affordance = field::Empty).entered();
 
