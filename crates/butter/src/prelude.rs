@@ -16,6 +16,7 @@ pub(crate) use bevy_egui::egui;
 pub(crate) use bevy_hierarchy::{
     BuildChildren as _, Children, DespawnRecursiveExt as _, HierarchyQueryExt as _, Parent,
 };
+pub(crate) use bevy_input::common_conditions::*;
 pub(crate) use bevy_input::prelude::*;
 pub(crate) use bevy_math::prelude::*;
 pub(crate) use bevy_mod_picking::prelude::*;
