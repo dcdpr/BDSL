@@ -3,7 +3,7 @@ use std::time::Duration;
 use bevy_pancam::{PanCam, PanCamPlugin};
 use bevy_tweening::{lens::TransformPositionLens, Animator, EaseFunction, Tween};
 
-use crate::prelude::*;
+use crate::{plugins::debug::DebugInfiniteZoom, prelude::*};
 
 #[derive(Resource, Default, Deref, DerefMut)]
 pub(crate) struct Target(pub Option<Entity>);
@@ -41,11 +41,15 @@ impl Plugin for CameraPlugin {
     }
 }
 
-fn setup(mut cmd: Commands, camera: Query<Entity, With<Camera>>) {
+fn setup(
+    mut cmd: Commands,
+    camera: Query<Entity, With<Camera>>,
+    debug: Option<Res<DebugInfiniteZoom>>,
+) {
     let entity = camera.single();
     cmd.entity(entity).insert(PanCam {
         grab_buttons: vec![MouseButton::Left],
-        min_scale: 1.,
+        min_scale: debug.map(|_| 0.1).unwrap_or(1.),
         max_scale: Some(10.),
         ..default()
     });

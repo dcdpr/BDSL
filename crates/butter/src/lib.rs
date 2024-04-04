@@ -20,14 +20,15 @@ pub fn run(config: Config) {
 
     App::new()
         .add_plugins((
+            AssetManagementPlugin,
+            BevyPlugin,
             // Loaded first to make sure we capture all following traces.
             DebugPlugin {
                 trace: debug,
                 ambiguity_detection: debug,
                 computed_size_changes: debug,
+                infinite_zoom: debug,
             },
-            AssetManagementPlugin,
-            BevyPlugin,
             UiPlugin,
             // Separate from `DebugPlugin` as it relies on running after `BevyPlugin`.
             InspectorPlugin { enable: debug },

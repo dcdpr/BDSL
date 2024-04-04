@@ -5,6 +5,9 @@ use crate::prelude::*;
 #[derive(Resource, Default)]
 pub(crate) struct DebugComputedSize;
 
+#[derive(Resource, Default)]
+pub(crate) struct DebugInfiniteZoom;
+
 /// Generic debugging utilities.
 pub(crate) struct DebugPlugin {
     /// Enable tracing.
@@ -15,6 +18,8 @@ pub(crate) struct DebugPlugin {
 
     /// Enable debugging of changes in canvas node computed sizes.
     pub computed_size_changes: bool,
+
+    pub infinite_zoom: bool,
 }
 impl DebugPlugin {
     #[cfg(feature = "trace")]
@@ -54,6 +59,7 @@ impl Default for DebugPlugin {
             trace: false,
             ambiguity_detection: false,
             computed_size_changes: false,
+            infinite_zoom: false,
         }
     }
 }
@@ -75,6 +81,10 @@ impl Plugin for DebugPlugin {
 
         if self.computed_size_changes {
             app.init_resource::<DebugComputedSize>();
+        }
+
+        if self.infinite_zoom {
+            app.init_resource::<DebugInfiniteZoom>();
         }
     }
 }
