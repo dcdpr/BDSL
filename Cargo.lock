@@ -579,6 +579,7 @@ dependencies = [
  "bevy_math",
  "bevy_reflect",
  "bevy_render",
+ "bevy_sprite",
  "bevy_transform",
  "bevy_utils",
 ]
@@ -1266,6 +1267,7 @@ dependencies = [
  "bevy_dylib",
  "bevy_ecs",
  "bevy_egui",
+ "bevy_gizmos",
  "bevy_hierarchy",
  "bevy_input",
  "bevy_internal",

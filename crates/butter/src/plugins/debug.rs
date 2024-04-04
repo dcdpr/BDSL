@@ -6,6 +6,9 @@ use crate::prelude::*;
 pub(crate) struct DebugComputedSize;
 
 #[derive(Resource, Default)]
+pub(crate) struct DrawGizmos;
+
+#[derive(Resource, Default)]
 pub(crate) struct DebugInfiniteZoom;
 
 /// Generic debugging utilities.
@@ -18,6 +21,9 @@ pub(crate) struct DebugPlugin {
 
     /// Enable debugging of changes in canvas node computed sizes.
     pub computed_size_changes: bool,
+
+    /// Draw debug gizmos on screen.
+    pub draw_gizmos: bool,
 
     pub infinite_zoom: bool,
 }
@@ -59,6 +65,7 @@ impl Default for DebugPlugin {
             trace: false,
             ambiguity_detection: false,
             computed_size_changes: false,
+            draw_gizmos: false,
             infinite_zoom: false,
         }
     }
@@ -81,6 +88,11 @@ impl Plugin for DebugPlugin {
 
         if self.computed_size_changes {
             app.init_resource::<DebugComputedSize>();
+        }
+
+        if self.draw_gizmos {
+            app.add_plugins(bevy_gizmos::GizmoPlugin)
+                .init_resource::<DrawGizmos>();
         }
 
         if self.infinite_zoom {
