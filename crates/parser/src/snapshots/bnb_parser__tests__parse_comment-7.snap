@@ -1,0 +1,43 @@
+---
+source: crates/parser/src/lib.rs
+expression: parse(case)
+---
+Ok(
+    Breadboard {
+        places: [
+            Place {
+                name: "MultiplePlaces",
+                description: [],
+                affordances: [
+                    Affordance {
+                        name: "Affordance",
+                        description: [],
+                        connections: [],
+                        level: 0,
+                    },
+                ],
+                component_references: [],
+                position: None,
+                sketch: None,
+            },
+            Place {
+                name: "Works",
+                description: [],
+                affordances: [
+                    Affordance {
+                        name: "Affordance",
+                        description: [
+                            "Unless three `/`'s are used!",
+                        ],
+                        connections: [],
+                        level: 0,
+                    },
+                ],
+                component_references: [],
+                position: None,
+                sketch: None,
+            },
+        ],
+        components: [],
+    },
+)

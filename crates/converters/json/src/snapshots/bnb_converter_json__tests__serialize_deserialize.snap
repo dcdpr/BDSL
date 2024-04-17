@@ -6,17 +6,23 @@ expression: deserialized_breadboard
   "places": [
     {
       "name": "Registration",
+      "description": [],
       "affordances": [
         {
           "name": "Username",
-          "connections": []
+          "description": [],
+          "connections": [],
+          "level": 0
         },
         {
           "name": "Password",
-          "connections": []
+          "description": [],
+          "connections": [],
+          "level": 0
         },
         {
           "name": "Sign Up",
+          "description": [],
           "connections": [
             {
               "target_place": "Home",
@@ -26,7 +32,8 @@ expression: deserialized_breadboard
               "target_place": "Support",
               "description": "failure"
             }
-          ]
+          ],
+          "level": 0
         }
       ],
       "component_references": [
@@ -57,19 +64,24 @@ expression: deserialized_breadboard
     },
     {
       "name": "Support",
+      "description": [],
       "affordances": [
         {
           "name": "Error Message",
-          "connections": []
+          "description": [],
+          "connections": [],
+          "level": 0
         },
         {
           "name": "Try Again",
+          "description": [],
           "connections": [
             {
               "target_place": "Registration",
               "description": null
             }
-          ]
+          ],
+          "level": 0
         }
       ],
       "component_references": [
@@ -93,10 +105,13 @@ expression: deserialized_breadboard
     },
     {
       "name": "Home",
+      "description": [],
       "affordances": [
         {
           "name": "Dashboard",
-          "connections": []
+          "description": [],
+          "connections": [],
+          "level": 0
         }
       ],
       "component_references": [
@@ -112,16 +127,24 @@ expression: deserialized_breadboard
   "components": [
     {
       "name": "Header",
+      "description": [],
       "affordances": [
         {
           "name": "Logo",
-          "connections": []
+          "description": [],
+          "connections": [],
+          "level": 0
         },
         {
           "name": "Contact",
-          "connections": []
+          "description": [],
+          "connections": [],
+          "level": 0
         }
-      ]
+      ],
+      "component_references": [],
+      "position": null,
+      "sketch": null
     }
   ]
 }

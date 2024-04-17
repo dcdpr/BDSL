@@ -109,15 +109,20 @@ fn parse_comment<'a>(chars: &mut Chars<'_>) -> Vec<String> {
     loop {
         skip_whitespace(chars);
 
-        if !chars.as_str().starts_with('#') {
+        if !chars.as_str().starts_with("//") {
             break;
         }
 
-        let line = &parse_line(chars)[1..];
+        let line = &parse_line(chars)[2..];
+
+        // This is not a description-style comment, so we'll ignore it.
+        if !line.starts_with('/') {
+            continue;
+        }
 
         // Remove exactly *one* leading space, if present.
-        let n = line.starts_with(' ').into();
-        comment.push(line[n..].to_owned());
+        let n: usize = line.starts_with("/ ").into();
+        comment.push(line[n + 1..].to_owned());
     }
 
     comment
@@ -488,11 +493,7 @@ fn parse_affordance_or_target_name<'a>(chars: &'a mut Chars<'_>) -> Result<&'a s
         return parse_quoted_string(chars);
     }
 
-    while chars
-        .clone()
-        .next()
-        .map_or(false, |c| c != '\n' && c != '(')
-    {
+    while chars.clone().next().map_or(false, |c| c != '\n') {
         if chars.as_str().starts_with("->") {
             break;
         }
@@ -767,53 +768,65 @@ mod tests {
     fn test_parse_comment() {
         let test_cases = vec![
             indoc! {"
-                # A comment as a description for the place.
+                /// A comment as a description for the place.
                 place PlaceComment
             "},
             indoc! {"
                 place AffordanceComment
                   Not Here
-                  # An affordance comment.
+                  /// An affordance comment.
                   But Here
                   And No Longer Here
             "},
             indoc! {"
-                # Both a place comment,
+                /// Both a place comment,
                 place MultipleComments
-                  # and
+                  /// and
                   One
-                  # affordance
+                  /// affordance
                   >> Two
-                  # comments!
+                  /// comments!
                   >>> Three
             "},
             indoc! {"
-                # Multi-level
-                # comments are supported.
+                /// Multi-level
+                /// comments are supported.
                 component MultiLineComment
-                  # For components,
-                  # and affordances.
+                  /// For components,
+                  /// and affordances.
                   Affordance
             "},
             indoc! {"
-                #Starting whitespace is
-                # optional.
-                #   and more than one whitespace
-                #  is preserved.
-                #   As is trailing whitespace  
+                ///Starting whitespace is
+                /// optional.
+                ///   and more than one whitespace
+                ///  is preserved.
+                ///   As is trailing whitespace  
                 place WhiteSpace
-                  #  > Here as well < 
+                  ///  > Here as well < 
                   Affordance
             "},
             indoc! {"
-                # Comments for multiple places.
+                /// Comments for multiple places.
                 place MultiplePlaces
-                  # And affordances.
+                  /// And affordances.
                   Affordance
 
-                # Also works!
+                /// Also works!
                 place Works
-                  # And affordances.
+                  /// And affordances.
+                  Affordance
+            "},
+            indoc! {"
+                // Non-description comments are also supported, but stripped.
+                place MultiplePlaces
+                  // Everywhere.
+                  Affordance
+                  // Always.
+
+                // Forever.
+                place Works
+                  /// Unless three `/`'s are used!
                   Affordance
             "},
         ];

@@ -87,10 +87,14 @@ mod tests {
                         Affordance {
                             name: "Username".to_owned(),
                             connections: vec![],
+                            description: vec![],
+                            level: 0,
                         },
                         Affordance {
                             name: "Password".to_owned(),
                             connections: vec![],
+                            description: vec![],
+                            level: 0,
                         },
                         Affordance {
                             name: "Sign Up".to_owned(),
@@ -104,6 +108,8 @@ mod tests {
                                     description: Some("failure".to_owned()),
                                 },
                             ],
+                            description: vec![],
+                            level: 0,
                         },
                     ],
                     component_references: vec!["Header".to_owned()],
@@ -124,6 +130,7 @@ mod tests {
                             affordance: "Sign Up".to_owned(),
                         }],
                     }),
+                    description: vec![],
                 },
                 Place {
                     name: "Support".to_owned(),
@@ -131,6 +138,8 @@ mod tests {
                         Affordance {
                             name: "Error Message".to_owned(),
                             connections: vec![],
+                            description: vec![],
+                            level: 0,
                         },
                         Affordance {
                             name: "Try Again".to_owned(),
@@ -138,6 +147,8 @@ mod tests {
                                 target_place: "Registration".to_owned(),
                                 description: None,
                             }],
+                            description: vec![],
+                            level: 0,
                         },
                     ],
                     component_references: vec!["Header".to_owned()],
@@ -151,12 +162,15 @@ mod tests {
                             affordance: "Try Again".to_owned(),
                         }],
                     }),
+                    description: vec![],
                 },
                 Place {
                     name: "Home".to_owned(),
                     affordances: vec![Affordance {
                         name: "Dashboard".to_owned(),
                         connections: vec![],
+                        description: vec![],
+                        level: 0,
                     }],
                     component_references: vec!["Header".to_owned()],
                     position: None,
@@ -164,21 +178,30 @@ mod tests {
                         path: PathBuf::from("sketches/home.png"),
                         areas: vec![],
                     }),
+                    description: vec![],
                 },
             ],
-            components: vec![Component {
+            components: vec![Component::new(Place {
                 name: "Header".to_owned(),
                 affordances: vec![
                     Affordance {
                         name: "Logo".to_owned(),
                         connections: vec![],
+                        description: vec![],
+                        level: 0,
                     },
                     Affordance {
                         name: "Contact".to_owned(),
                         connections: vec![],
+                        description: vec![],
+                        level: 0,
                     },
                 ],
-            }],
+                component_references: vec![],
+                position: None,
+                sketch: None,
+                description: vec![],
+            })],
         };
 
         // Serialize the Breadboard

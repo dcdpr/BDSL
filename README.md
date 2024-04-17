@@ -46,9 +46,19 @@ application, the affordances within them, and the relationships between them.
 Here's a basic example to illustrate the syntax and concepts:
 
 ```bnb
+// Breadboard documents can have regular comments (marked with `//`) to add
+// context for the reader of the DSL.
+//
+// These comments are stripped before generating the AST.
+
+/// However, certain items in the DSL support *descriptions*. These
+/// descriptions are denoted using `///`.
+///
+/// Descriptions can be added to places and affordances.
 place Registration
     include Header
 
+    /// This is a description for the `User Fields` affordance.
     User Fields
     > include CommonUserFields
     > Username
