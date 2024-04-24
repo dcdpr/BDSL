@@ -127,7 +127,7 @@ fn update_text_computed_size(
     for (entity, mut size, layout) in sizes.iter_mut() {
         // The logical size of a text node can be zero, which we interpret as "unknown".
         if layout.logical_size == Vec2::ZERO {
-            if size.as_ref() == &ComputedSize::Inherit {
+            if !matches!(size.as_ref(), &ComputedSize::Static(_)) {
                 continue;
             }
         }
@@ -150,14 +150,18 @@ fn update_transformed_computed_size(
     mut sizes: Query<(Entity, &mut ComputedSize, &Transform), Changed<Transform>>,
 ) {
     for (entity, mut size, transform) in sizes.iter_mut() {
+        let _span = trace_span!("Checking if entity needs computed size update", ?entity).entered();
+
         let old = *size.as_ref();
         if size.set_if_neq(old.transformed(*transform)) {
             let new = size.as_ref();
-            debug!(
-                ?entity,
+            trace!(?old, ?new, "Updated transformed ComputedSize component");
+        } else {
+            let new = size.as_ref();
+            trace!(
                 ?old,
                 ?new,
-                "Updated transformed ComputedSize component"
+                "ComputedSize matches new Transform, nothing to update"
             );
         }
     }

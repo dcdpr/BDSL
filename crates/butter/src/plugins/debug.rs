@@ -43,12 +43,14 @@ impl DebugPlugin {
             .add_directive("wgpu_hal=error".parse().unwrap())
             .add_directive("bevy_time::virt=error".parse().unwrap())
             .add_directive("bevy_mod_raycast=error".parse().unwrap())
+            .add_directive("bevy_egui=error".parse().unwrap())
             .add_directive("naga=error".parse().unwrap());
 
         tracing_subscriber::fmt()
             .with_env_filter(filter)
-            .with_span_events(FmtSpan::ENTER)
+            .with_span_events(FmtSpan::ENTER | FmtSpan::EXIT)
             .with_target(true)
+            .without_time()
             .with_line_number(true)
             .init();
     }

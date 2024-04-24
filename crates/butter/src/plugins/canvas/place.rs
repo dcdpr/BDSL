@@ -45,10 +45,10 @@ impl Plugin for PlacePlugin {
                     position_body.run_if(run_position_body),
                 )
                     .chain(),
-                position_place.map(err),
-                position_relative_place
+                // position_place.map(err),
+                position_place
                     .map(err)
-                    .run_if(any_with_component::<RequiresRelativePlacement>),
+                    .run_if(any_with_component::<RequiresPositioning>),
                 toggle_numbering.run_if(resource_changed::<ShowNumbers>),
                 focus_next.run_if(input_just_pressed(KeyCode::ArrowRight)),
                 focus_last.run_if(input_just_pressed(KeyCode::ArrowLeft)),
@@ -68,7 +68,7 @@ pub(super) struct Place;
 
 /// A place that requires placement relative to another place.
 #[derive(Component)]
-struct RequiresRelativePlacement {
+struct RequiresPositioning {
     x: Coordinate,
     y: Coordinate,
 }
@@ -160,10 +160,8 @@ fn create(
                 .map(|pos| (pos.x, pos.y))
                 .unwrap_or_else(|| (Coordinate::Absolute(0), Coordinate::Absolute(0)));
 
-            error!(?x, ?y, "Positions");
-
             cmd.entity(place)
-                .insert((RequiresRelativePlacement { x, y }, Visibility::Hidden));
+                .insert((RequiresPositioning { x, y }, Visibility::Hidden));
 
             let header = create_header(
                 &mut cmd,
@@ -378,13 +376,13 @@ fn redraw_underline(
                 .ok()
         })
         .for_each(
-            |(underline, mut sprite, mut translation, size)| match size {
-                Ok(Some(size)) => {
+            |(underline, mut sprite, mut translation, title_size)| match title_size {
+                Ok(Some(title_size)) => {
                     if let Some(custom_size) = sprite.custom_size.as_mut() {
-                        custom_size.x = size.x * (1. + UNDERLINE_STRETCH);
+                        custom_size.x = title_size.x * (1. + UNDERLINE_STRETCH);
                     }
 
-                    translation.y = -size.y;
+                    translation.y = -title_size.y;
                     info!(
                         ?underline,
                         ?translation,
@@ -392,7 +390,7 @@ fn redraw_underline(
                     );
                 }
                 Ok(None) => {
-                    debug!(?underline, "Waiting on pending size.")
+                    debug!(?underline, "Waiting on pending title size.")
                 }
                 Err(error) => error!(?underline, %error, "Unexpected error."),
             },
@@ -474,50 +472,50 @@ fn run_position_body(
         .any(|b| headers.iter().any(|h| h.get() == b.get()))
 }
 
-fn position_place(
-    mut events: EventReader<ComputedSizeUpdatedEvent>,
-    places: Query<Entity, With<Place>>,
-    sizes: ComputedSizeParam<()>,
-) -> Result<(), Error> {
-    // Find any place for which any of its children has an updated computed size.
-    let mut places: Vec<_> = events
-        .read()
-        .map(|event| places.iter().filter(|place| event.contains(*place)))
-        .flatten()
-        .collect();
-
-    places.sort();
-    places.dedup();
-
-    for place in places {
-        let Some(size) = sizes.size_of(place)? else {
-            continue;
-        };
-
-        error!(?size);
-    }
-
-    Ok(())
-}
+// fn position_place(
+//     mut events: EventReader<ComputedSizeUpdatedEvent>,
+//     places: Query<Entity, With<Place>>,
+//     sizes: ComputedSizeParam<()>,
+// ) -> Result<(), Error> {
+//     // Find any place for which any of its children has an updated computed size.
+//     let mut places: Vec<_> = events
+//         .read()
+//         .map(|event| places.iter().filter(|place| event.contains(*place)))
+//         .flatten()
+//         .collect();
+//
+//     places.sort();
+//     places.dedup();
+//
+//     for place in places {
+//         let Some(size) = sizes.size_of(place)? else {
+//             continue;
+//         };
+//
+//         error!(?size);
+//     }
+//
+//     Ok(())
+// }
 
 #[instrument(skip_all)]
-fn position_relative_place(
+fn position_place(
     mut cmd: Commands,
-    positioning: Query<(Entity, &RequiresRelativePlacement)>,
+    positioning: Query<(Entity, &RequiresPositioning)>,
     names: Query<(Entity, &Name)>,
     places: Query<
         Entity,
         (
             With<Place>,
             With<ComputedSize>,
-            Without<RequiresRelativePlacement>,
+            Without<RequiresPositioning>,
         ),
     >,
     sizes: ComputedSizeParam<()>,
     parent: Query<&Parent>,
 ) -> Result<(), Error> {
-    for (place, RequiresRelativePlacement { x, y }) in &positioning {
-        error!(?x, ?y);
+    for (place, RequiresPositioning { x, y }) in &positioning {
+        debug!(?place, ?x, ?y, "Positioning place.");
 
         let position = match (x, y) {
             (Coordinate::Absolute(x), Coordinate::Absolute(y)) => Vec2::new(*x as f32, *y as f32),
@@ -547,7 +545,6 @@ fn position_relative_place(
                     continue;
                 };
 
-                error!("Doing it y!");
                 pos.y = pos.y + *offset as f32 + 200.;
 
                 Vec2::new(*x as f32, pos.y)
@@ -578,7 +575,6 @@ fn position_relative_place(
                     continue;
                 };
 
-                error!("Doing it x!");
                 pos.x = pos.x + *offset as f32;
 
                 Vec2::new(pos.x, *y as f32)
@@ -626,23 +622,18 @@ fn position_relative_place(
 
                 let x = pos.x + offset_x + size.x;
                 let y = pos.y + *offset_y as f32;
-                error!(?x, ?y, "Doing it x/y!");
 
                 Vec2::new(x, y)
             }
         };
 
-        error!(?position, "Positioning?");
-
-        cmd.entity(place)
-            .remove::<RequiresRelativePlacement>()
-            .insert((
-                Transform {
-                    translation: position.extend(0.0),
-                    ..default()
-                },
-                Visibility::Visible,
-            ));
+        cmd.entity(place).remove::<RequiresPositioning>().insert((
+            Transform {
+                translation: position.extend(0.0),
+                ..default()
+            },
+            Visibility::Visible,
+        ));
     }
 
     Ok(())
