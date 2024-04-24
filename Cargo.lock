@@ -1312,6 +1312,7 @@ dependencies = [
  "indoc",
  "insta",
  "thiserror",
+ "tracing",
 ]
 
 [[package]]

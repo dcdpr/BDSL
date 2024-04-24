@@ -12,6 +12,9 @@ workspace = true
 [dependencies]
 bnb-ast = { path = "../ast" }
 thiserror = { version = "1", default-features = false }
+tracing = { version = "0.1", default-features = false, features = [
+  "attributes",
+] }
 
 [dev-dependencies]
 indoc = { version = "2", default-features = false }

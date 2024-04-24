@@ -66,6 +66,7 @@ use std::{
 use bnb_ast::{
     Affordance, Area, Breadboard, Component, Connection, Coordinate, Pivot, Place, Position, Sketch,
 };
+use tracing::instrument;
 
 /// Parses a string input to create a [`Breadboard`] structure.
 ///
@@ -82,6 +83,7 @@ use bnb_ast::{
 /// let breadboard = parse(input).unwrap();
 /// ```
 ///
+#[instrument(skip_all)]
 pub fn parse(input: &str) -> Result<Breadboard, Error> {
     let mut chars = input.trim().chars();
     let mut places = vec![];
@@ -101,6 +103,7 @@ pub fn parse(input: &str) -> Result<Breadboard, Error> {
     Ok(Breadboard { places, components })
 }
 
+#[instrument(skip_all)]
 fn parse_comment<'a>(chars: &mut Chars<'_>) -> Vec<String> {
     let mut comment = vec![];
 
@@ -128,12 +131,14 @@ fn parse_comment<'a>(chars: &mut Chars<'_>) -> Vec<String> {
     comment
 }
 
+#[instrument(skip_all)]
 fn parse_component(chars: &mut Chars<'_>, description: Vec<String>) -> Result<Component, Error> {
     let place = parse_place(chars, description)?;
 
     Ok(Component::new(place))
 }
 
+#[instrument(skip_all)]
 fn parse_place(chars: &mut Chars<'_>, description: Vec<String>) -> Result<Place, Error> {
     skip_whitespace(chars);
 
@@ -152,6 +157,7 @@ fn parse_place(chars: &mut Chars<'_>, description: Vec<String>) -> Result<Place,
     })
 }
 
+#[instrument(skip_all)]
 fn parse_component_references(chars: &mut Chars<'_>) -> Result<Vec<String>, Error> {
     let mut references = vec![];
 
@@ -178,6 +184,7 @@ fn parse_component_references(chars: &mut Chars<'_>) -> Result<Vec<String>, Erro
     Ok(references)
 }
 
+#[instrument(skip_all)]
 fn parse_position(chars: &mut Chars<'_>) -> Result<Option<Position>, Error> {
     skip_whitespace(chars);
 
@@ -230,6 +237,7 @@ fn parse_position(chars: &mut Chars<'_>) -> Result<Option<Position>, Error> {
     Ok(Some(Position { x, y }))
 }
 
+#[instrument(skip_all)]
 fn parse_coordinate(chars: &mut Chars<'_>) -> Result<Option<Coordinate>, Error> {
     parse_while(chars, |c| c.is_whitespace() && c != '\n');
 
@@ -304,6 +312,7 @@ fn parse_coordinate(chars: &mut Chars<'_>) -> Result<Option<Coordinate>, Error> 
     Ok(Some(position))
 }
 
+#[instrument(skip_all)]
 fn parse_sketch(chars: &mut Chars<'_>) -> Result<Option<Sketch>, Error> {
     skip_whitespace(chars);
 
@@ -334,6 +343,7 @@ fn parse_sketch(chars: &mut Chars<'_>) -> Result<Option<Sketch>, Error> {
     Ok(Some(Sketch { path, areas }))
 }
 
+#[instrument(skip_all)]
 fn parse_area(chars: &mut Chars<'_>) -> Result<Area, Error> {
     if chars.next() != Some('[') {
         return Err(Error::ExpectedSketchArea);
@@ -379,6 +389,7 @@ fn parse_area(chars: &mut Chars<'_>) -> Result<Area, Error> {
     })
 }
 
+#[instrument(skip_all)]
 fn parse_int<E: ToString, T: FromStr<Err = E>>(chars: &mut Chars<'_>) -> Result<T, Error> {
     let mut sign = '+';
     if let Some(c) = chars.clone().next() {
@@ -401,6 +412,7 @@ fn parse_int<E: ToString, T: FromStr<Err = E>>(chars: &mut Chars<'_>) -> Result<
         .map_err(|e| Error::InvalidInteger(e.to_string()))
 }
 
+#[instrument(skip_all)]
 fn parse_affordances(chars: &mut Chars<'_>) -> Result<Vec<Affordance>, Error> {
     skip_whitespace(chars);
 
@@ -446,6 +458,7 @@ fn parse_affordances(chars: &mut Chars<'_>) -> Result<Vec<Affordance>, Error> {
     Ok(affordances)
 }
 
+#[instrument(skip_all)]
 fn parse_connections(chars: &mut Chars<'_>) -> Result<Vec<Connection>, Error> {
     let mut connections = vec![];
     while chars.clone().next().is_some() {
@@ -474,6 +487,7 @@ fn parse_connections(chars: &mut Chars<'_>) -> Result<Vec<Connection>, Error> {
     Ok(connections)
 }
 
+#[instrument(skip_all)]
 fn parse_level<'a>(chars: &'a mut Chars<'_>) -> usize {
     // Don't do any implicit trimming, the first character should be a "level" character.
     if !chars.as_str().starts_with(">") {
@@ -486,6 +500,7 @@ fn parse_level<'a>(chars: &'a mut Chars<'_>) -> usize {
     str.matches('>').count()
 }
 
+#[instrument(skip_all)]
 fn parse_affordance_or_target_name<'a>(chars: &'a mut Chars<'_>) -> Result<&'a str, Error> {
     let str = chars.as_str();
 
@@ -504,6 +519,7 @@ fn parse_affordance_or_target_name<'a>(chars: &'a mut Chars<'_>) -> Result<&'a s
     Ok(str[..str.len() - chars.as_str().len()].trim())
 }
 
+#[instrument(skip_all)]
 fn parse_connection_description(chars: &mut Chars<'_>) -> Result<String, Error> {
     if chars.next() != Some('(') {
         return Err(Error::ExpectedConnectionDescription);
@@ -532,6 +548,7 @@ fn parse_connection_description(chars: &mut Chars<'_>) -> Result<String, Error> 
     Ok(desc)
 }
 
+#[instrument(skip_all)]
 fn parse_quoted_string<'a>(chars: &'a mut Chars<'_>) -> Result<&'a str, Error> {
     match chars.next() {
         Some('"') => (),
@@ -554,6 +571,7 @@ fn parse_quoted_string<'a>(chars: &'a mut Chars<'_>) -> Result<&'a str, Error> {
     Err(Error::UnterminatedQuotedString)
 }
 
+#[instrument(skip_all)]
 fn parse_while<'a>(chars: &'a mut Chars<'_>, fun: impl Fn(char) -> bool) -> &'a str {
     let str = chars.as_str();
 
@@ -564,6 +582,7 @@ fn parse_while<'a>(chars: &'a mut Chars<'_>, fun: impl Fn(char) -> bool) -> &'a 
     &str[..str.len() - chars.as_str().len()]
 }
 
+#[instrument(skip_all)]
 fn parse_until<'a>(chars: &'a mut Chars<'_>, until: &str) -> &'a str {
     let str = chars.as_str();
 
@@ -574,6 +593,7 @@ fn parse_until<'a>(chars: &'a mut Chars<'_>, until: &str) -> &'a str {
     &str[..str.len() - chars.as_str().len()]
 }
 
+#[instrument(skip_all)]
 fn parse_word<'a>(chars: &'a mut Chars<'_>) -> &'a str {
     let str = chars.as_str();
 
@@ -584,6 +604,7 @@ fn parse_word<'a>(chars: &'a mut Chars<'_>) -> &'a str {
     &str[..str.len() - chars.as_str().len()]
 }
 
+#[instrument(skip_all)]
 fn parse_line<'a>(chars: &'a mut Chars<'_>) -> &'a str {
     let str = chars.as_str();
 
@@ -594,6 +615,7 @@ fn parse_line<'a>(chars: &'a mut Chars<'_>) -> &'a str {
     &str[..str.len() - chars.as_str().len()]
 }
 
+#[instrument(skip_all)]
 fn skip_whitespace(chars: &mut Chars<'_>) {
     while chars.clone().next().map_or(false, char::is_whitespace) {
         chars.next();
