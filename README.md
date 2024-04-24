@@ -25,6 +25,13 @@ Whether you're a developer, a designer, or someone interested in software
 project planning, Bread'n'Butter is designed to be accessible, user-friendly,
 and a valuable addition to your toolkit.
 
+## Installing
+
+1. Install the latest [Rust compiler](https://rustup.rs).
+2. Clone this repository.
+3. Run `cargo build --release --no-default-features` to compile the app.
+4. Open the binary in `./target/release/bnb-butter`.
+
 ## Libraries
 
 - [`bnb-ast`](./crates/ast) — The public `Breadboard` AST.

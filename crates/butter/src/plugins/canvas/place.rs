@@ -13,7 +13,7 @@
 
 use ast::Coordinate;
 use bevy_asset::Assets;
-use bevy_internal::hierarchy::Parent;
+use bevy_hierarchy::Parent;
 use bevy_sprite::{Sprite, SpriteSheetBundle, TextureAtlas, TextureAtlasLayout};
 use tracing::field;
 
