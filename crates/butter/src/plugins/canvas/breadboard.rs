@@ -108,9 +108,13 @@ fn spawn(
     for FileLoadedEvent { name, contents } in loaded.read() {
         let span = info_span!("spawn", %name, breadboard = field::Empty).entered();
 
-        let Ok(ast::Breadboard { places, .. }) = parser::parse(contents) else {
-            // TODO: Trigger `alert` widget.
-            continue;
+        let places = match parser::parse(contents) {
+            Ok(ast::Breadboard { places, .. }) => places,
+            Err(error) => {
+                // TODO: Trigger `alert` widget.
+                error!(?error, "Unable to parse breadboard DSL.");
+                continue;
+            }
         };
 
         let name = Name::new(name.to_owned());

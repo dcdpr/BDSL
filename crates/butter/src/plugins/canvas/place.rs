@@ -11,6 +11,7 @@
 //! For detailed information on individual parts of this plugin, please refer to the respective
 //! documentation within this module.
 
+use ast::Coordinate;
 use bevy_asset::Assets;
 use bevy_internal::hierarchy::Parent;
 use bevy_sprite::{Sprite, SpriteSheetBundle, TextureAtlas, TextureAtlasLayout};
@@ -45,6 +46,9 @@ impl Plugin for PlacePlugin {
                 )
                     .chain(),
                 position_place.map(err),
+                position_relative_place
+                    .map(err)
+                    .run_if(any_with_component::<RequiresRelativePlacement>),
                 toggle_numbering.run_if(resource_changed::<ShowNumbers>),
                 focus_next.run_if(input_just_pressed(KeyCode::ArrowRight)),
                 focus_last.run_if(input_just_pressed(KeyCode::ArrowLeft)),
@@ -61,6 +65,13 @@ impl Plugin for PlacePlugin {
 /// ECS architecture, facilitating targeted queries and operations on places.
 #[derive(Component, Default)]
 pub(super) struct Place;
+
+/// A place that requires placement relative to another place.
+#[derive(Component)]
+struct RequiresRelativePlacement {
+    x: Coordinate,
+    y: Coordinate,
+}
 
 /// Bundle of required components for place entities.
 #[derive(Bundle)]
@@ -145,23 +156,14 @@ fn create(
                     .insert(Description::from(description.join("\n")));
             }
 
-            // Set static position for place, if provided.
-            if let Some(position) = position.and_then(|ast::Position { x, y }| {
-                let ast::Coordinate::Absolute(x) = x else {
-                    return None;
-                };
+            let (x, y) = position
+                .map(|pos| (pos.x, pos.y))
+                .unwrap_or_else(|| (Coordinate::Absolute(0), Coordinate::Absolute(0)));
 
-                let ast::Coordinate::Absolute(y) = y else {
-                    return None;
-                };
+            error!(?x, ?y, "Positions");
 
-                Some(Vec2::new(x as f32, y as f32))
-            }) {
-                cmd.entity(place).insert(Transform {
-                    translation: position.extend(0.0),
-                    ..default()
-                });
-            };
+            cmd.entity(place)
+                .insert((RequiresRelativePlacement { x, y }, Visibility::Hidden));
 
             let header = create_header(
                 &mut cmd,
@@ -493,6 +495,154 @@ fn position_place(
         };
 
         error!(?size);
+    }
+
+    Ok(())
+}
+
+#[instrument(skip_all)]
+fn position_relative_place(
+    mut cmd: Commands,
+    positioning: Query<(Entity, &RequiresRelativePlacement)>,
+    names: Query<(Entity, &Name)>,
+    places: Query<
+        Entity,
+        (
+            With<Place>,
+            With<ComputedSize>,
+            Without<RequiresRelativePlacement>,
+        ),
+    >,
+    sizes: ComputedSizeParam<()>,
+    parent: Query<&Parent>,
+) -> Result<(), Error> {
+    for (place, RequiresRelativePlacement { x, y }) in &positioning {
+        error!(?x, ?y);
+
+        let position = match (x, y) {
+            (Coordinate::Absolute(x), Coordinate::Absolute(y)) => Vec2::new(*x as f32, *y as f32),
+            (
+                Coordinate::Absolute(x),
+                Coordinate::Relative {
+                    place,
+                    offset,
+                    pivot: _todo,
+                },
+            ) => {
+                let Some(name) = names
+                    .iter()
+                    .find_map(|(entity, name)| (name.as_str() == place).then_some(entity))
+                else {
+                    continue;
+                };
+
+                let Some(entity) = parent
+                    .iter_ancestors(name)
+                    .find_map(|parent| places.get(parent).ok())
+                else {
+                    continue;
+                };
+
+                let Some(mut pos) = sizes.global_translation_of(entity)? else {
+                    continue;
+                };
+
+                error!("Doing it y!");
+                pos.y = pos.y + *offset as f32 + 200.;
+
+                Vec2::new(*x as f32, pos.y)
+            }
+            (
+                Coordinate::Relative {
+                    place,
+                    offset,
+                    pivot: _todo,
+                },
+                Coordinate::Absolute(y),
+            ) => {
+                let Some(name) = names
+                    .iter()
+                    .find_map(|(entity, name)| (name.as_str() == place).then_some(entity))
+                else {
+                    continue;
+                };
+
+                let Some(entity) = parent
+                    .iter_ancestors(name)
+                    .find_map(|parent| places.get(parent).ok())
+                else {
+                    continue;
+                };
+
+                let Some(mut pos) = sizes.global_translation_of(entity)? else {
+                    continue;
+                };
+
+                error!("Doing it x!");
+                pos.x = pos.x + *offset as f32;
+
+                Vec2::new(pos.x, *y as f32)
+            }
+            (
+                Coordinate::Relative {
+                    place,
+                    offset: offset_x,
+                    pivot: _pivot_x,
+                },
+                Coordinate::Relative {
+                    place: _,
+                    offset: offset_y,
+                    pivot: _pivot_y,
+                },
+            ) => {
+                // // TODO: The AST allows for x/y `place` to differ, which is not allowed in the DSL,
+                // // and should be properly mapped into the AST.
+                let Some(name) = names
+                    .iter()
+                    .find_map(|(entity, name)| (name.as_str() == place).then_some(entity))
+                else {
+                    continue;
+                };
+
+                let Some(entity) = parent
+                    .iter_ancestors(name)
+                    .find_map(|parent| places.get(parent).ok())
+                else {
+                    continue;
+                };
+
+                let Some(pos) = sizes.global_translation_of(entity)? else {
+                    continue;
+                };
+
+                let Some(size) = sizes.size_of(entity)? else {
+                    continue;
+                };
+
+                let offset_x = match offset_x {
+                    0 => 100.,
+                    v => *v as f32,
+                };
+
+                let x = pos.x + offset_x + size.x;
+                let y = pos.y + *offset_y as f32;
+                error!(?x, ?y, "Doing it x/y!");
+
+                Vec2::new(x, y)
+            }
+        };
+
+        error!(?position, "Positioning?");
+
+        cmd.entity(place)
+            .remove::<RequiresRelativePlacement>()
+            .insert((
+                Transform {
+                    translation: position.extend(0.0),
+                    ..default()
+                },
+                Visibility::Visible,
+            ));
     }
 
     Ok(())
