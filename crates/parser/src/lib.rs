@@ -64,7 +64,8 @@ use std::{
 };
 
 use bnb_ast::{
-    Affordance, Area, Breadboard, Component, Connection, Coordinate, Pivot, Place, Position, Sketch,
+    Affordance, Area, Breadboard, Component, Connection, Coordinate, Item, Pivot, Place, Position,
+    Reference, Sketch,
 };
 use tracing::instrument;
 
@@ -150,8 +151,7 @@ fn parse_place(chars: &mut Chars<'_>, description: Vec<String>) -> Result<Place,
     Ok(Place {
         name,
         description,
-        component_references: parse_component_references(chars)?,
-        affordances: parse_affordances(chars)?,
+        items: parse_items(chars)?,
         position: parse_position(chars)?,
         sketch: parse_sketch(chars)?,
     })
@@ -413,6 +413,25 @@ fn parse_int<E: ToString, T: FromStr<Err = E>>(chars: &mut Chars<'_>) -> Result<
 }
 
 #[instrument(level = "debug", skip_all)]
+fn parse_items(chars: &mut Chars<'_>) -> Result<Vec<Item>, Error> {
+    skip_whitespace(chars);
+
+    let mut items = vec![];
+
+    while chars.clone().next().is_some() {
+        if let Some(reference) = parse_reference(chars)? {
+            items.push(Item::Reference(reference));
+        } else if let Some(affordance) = parse_affordance(chars)? {
+            items.push(Item::Affordance(affordance));
+        } else {
+            return Ok(items);
+        }
+    }
+
+    Ok(items)
+}
+
+#[instrument(level = "debug", skip_all)]
 fn parse_affordances(chars: &mut Chars<'_>) -> Result<Vec<Affordance>, Error> {
     skip_whitespace(chars);
 
@@ -456,6 +475,69 @@ fn parse_affordances(chars: &mut Chars<'_>) -> Result<Vec<Affordance>, Error> {
     }
 
     Ok(affordances)
+}
+
+#[instrument(level = "debug", skip_all)]
+fn parse_reference(chars: &mut Chars<'_>) -> Result<Option<Reference>, Error> {
+    skip_whitespace(chars);
+
+    // Ensure we're dealing with a (potentially nested) reference.
+    let mut ch = chars.clone();
+    let _ = parse_level(&mut ch);
+    if !ch.as_str().starts_with("include") {
+        return Ok(None);
+    }
+
+    let level = parse_level(chars);
+
+    // include
+    let _ = parse_word(chars);
+    skip_whitespace(chars);
+
+    let name = parse_line(chars).to_owned();
+    if name.is_empty() {
+        return Err(Error::MissingComponentReference);
+    }
+
+    Ok(Some(Reference { name, level }))
+}
+
+#[instrument(level = "debug", skip_all)]
+fn parse_affordance(chars: &mut Chars<'_>) -> Result<Option<Affordance>, Error> {
+    skip_whitespace(chars);
+
+    let mut ch = chars.clone();
+    drop(parse_comment(&mut ch));
+    let str = ch.as_str();
+    if str.is_empty()
+        || str.starts_with("place")
+        || str.starts_with("component")
+        || str.starts_with("sketch")
+        || str.starts_with("position")
+    {
+        return Ok(None);
+    }
+
+    let description = parse_comment(chars);
+
+    let level = parse_level(chars);
+
+    let name = parse_affordance_or_target_name(chars)?.to_owned();
+
+    // If there is no name, it means we've reached the end of the board.
+    //
+    // We might still have captured a comment and one or more level characters, but we'll
+    // ignore them for now, instead of (more correctly) raising a syntax error.
+    if name.is_empty() {
+        return Ok(None);
+    }
+
+    Ok(Some(Affordance {
+        name,
+        description,
+        connections: parse_connections(chars)?,
+        level,
+    }))
 }
 
 #[instrument(level = "trace", skip_all)]

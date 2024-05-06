@@ -17,10 +17,7 @@ use bevy_hierarchy::Parent;
 use bevy_sprite::{Sprite, SpriteSheetBundle, TextureAtlas, TextureAtlasLayout};
 use tracing::field;
 
-use crate::{
-    plugins::{computed_size::ComputedSizeUpdatedEvent, input::Target},
-    prelude::*,
-};
+use crate::{plugins::input::Target, prelude::*};
 
 use super::{
     breadboard::{BreadboardCreatedEvent, ShowNumbers},
@@ -136,7 +133,7 @@ fn create(
         for ast::Place {
             name,
             description,
-            affordances,
+            items,
             position,
             ..
         } in places.clone()
@@ -177,6 +174,16 @@ fn create(
             let body = create_body(&mut cmd);
             cmd.entity(place).add_child(body);
 
+            let mut affordances = vec![];
+            for item in items {
+                match item {
+                    ast::Item::Affordance(affordance) => affordances.push(affordance),
+                    ast::Item::Reference(reference) => {
+                        reference_to_affordances(&reference.name, 0, places, &mut affordances);
+                    }
+                }
+            }
+
             // TODO: Should this trigger *after* title & underline are positioned?
             created.send(PlaceCreatedEvent {
                 entity: place,
@@ -184,6 +191,32 @@ fn create(
             });
 
             index += 1;
+        }
+    }
+}
+
+fn reference_to_affordances(
+    name: &str,
+    root_level: usize,
+    places: &[ast::Place],
+    affordances: &mut Vec<ast::Affordance>,
+) {
+    for place in places {
+        if place.name != name {
+            continue;
+        }
+
+        for item in &place.items {
+            match item {
+                ast::Item::Affordance(a) => {
+                    let mut affordance = a.clone();
+                    affordance.level += root_level;
+                    affordances.push(affordance)
+                }
+                ast::Item::Reference(r) => {
+                    reference_to_affordances(&r.name, root_level + r.level, places, affordances)
+                }
+            };
         }
     }
 }

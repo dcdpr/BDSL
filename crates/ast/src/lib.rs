@@ -69,11 +69,8 @@ pub struct Place {
     /// An optional description added to the place.
     pub description: Vec<String>,
 
-    /// A list of [`Affordance`] items, representing what can be done at this place.
-    pub affordances: Vec<Affordance>,
-
-    /// A list of references to [`Component`]s.
-    pub component_references: Vec<String>,
+    /// A list of [`Item]` elements contained in the place.
+    pub items: Vec<Item>,
 
     /// The desired position of the place, as x/y coordinates.
     ///
@@ -156,6 +153,13 @@ impl Deref for Component {
     }
 }
 
+/// Describes an item within a [`Place`].
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
+pub enum Item {
+    Affordance(Affordance),
+    Reference(Reference),
+}
+
 /// Describes an affordance, detailing an action or capability of a [`Place`].
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct Affordance {
@@ -170,6 +174,18 @@ pub struct Affordance {
     pub connections: Vec<Connection>,
 
     /// The nesting level of the affordance.
+    ///
+    /// By default this is set to 0.
+    pub level: usize,
+}
+
+/// Describes a reference to a [`Component`] embedded in a [`Place`].
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
+pub struct Reference {
+    /// A unique identifier for the referenced [`Component`].
+    pub name: String,
+
+    /// The nesting level of the reference.
     ///
     /// By default this is set to 0.
     pub level: usize,
