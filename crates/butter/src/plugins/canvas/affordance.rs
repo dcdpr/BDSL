@@ -332,22 +332,43 @@ fn toggle_numbering(
     affordances: Query<Entity, With<Affordance>>,
     places: Query<Entity, With<Place>>,
     indices: Query<&Index>,
+    levels: Query<&NestingLevel>,
     parents: Query<&Parent>,
 ) {
     let texts = titles.iter_mut().filter_map(|(parent, text)| {
         affordances.get(parent.get()).ok().and_then(|affordance| {
-            indices.get(affordance).ok().and_then(|index| {
+            levels.get(affordance).ok().and_then(|level| {
                 parents
                     .iter_ancestors(affordance)
                     .find_map(|v| places.get(v).and_then(|place| indices.get(place)).ok())
-                    .map(|place_index| (place_index, index, text))
+                    .map(|place_index| (place_index, level, text))
             })
         })
     });
 
-    for (&Index(place_index), &Index(index), mut text) in texts {
+    let mut place_indices: HashMap<usize, HashMap<usize, usize>> = HashMap::new();
+    for (&Index(place_index), &NestingLevel(level), mut text) in texts {
         if **show {
-            text.sections[0].value = format!("{}.{}. ", place_index + 1, index + 1);
+            let indices = place_indices.entry(place_index).or_default();
+            indices.entry(level).or_default();
+
+            let mut numbers = format!("{}.", place_index + 1);
+
+            for lvl in 0..=level {
+                let index: usize = indices.get(&lvl).copied().unwrap_or_default() + 1;
+                let index = if lvl == level {
+                    index
+                } else {
+                    index.saturating_sub(1)
+                };
+
+                numbers.push_str(&format!("{}.", index))
+            }
+            numbers.push(' ');
+
+            text.sections[0].value = numbers;
+
+            *indices.get_mut(&level).unwrap() += 1;
         } else {
             text.sections[0].value.clear();
         }
