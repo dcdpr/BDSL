@@ -158,33 +158,6 @@ fn parse_place(chars: &mut Chars<'_>, description: Vec<String>) -> Result<Place,
 }
 
 #[instrument(level = "debug", skip_all)]
-fn parse_component_references(chars: &mut Chars<'_>) -> Result<Vec<String>, Error> {
-    let mut references = vec![];
-
-    while chars.clone().next().is_some() {
-        skip_whitespace(chars);
-
-        let str = chars.as_str();
-        if !str.starts_with("include") {
-            return Ok(references);
-        }
-
-        // include
-        let _ = parse_word(chars);
-        skip_whitespace(chars);
-
-        let name = parse_line(chars).to_owned();
-        if name.is_empty() {
-            return Err(Error::MissingComponentReference);
-        }
-
-        references.push(name);
-    }
-
-    Ok(references)
-}
-
-#[instrument(level = "debug", skip_all)]
 fn parse_position(chars: &mut Chars<'_>) -> Result<Option<Position>, Error> {
     skip_whitespace(chars);
 
@@ -429,52 +402,6 @@ fn parse_items(chars: &mut Chars<'_>) -> Result<Vec<Item>, Error> {
     }
 
     Ok(items)
-}
-
-#[instrument(level = "debug", skip_all)]
-fn parse_affordances(chars: &mut Chars<'_>) -> Result<Vec<Affordance>, Error> {
-    skip_whitespace(chars);
-
-    let mut affordances = vec![];
-
-    while chars.clone().next().is_some() {
-        skip_whitespace(chars);
-
-        let mut ch = chars.clone();
-        drop(parse_comment(&mut ch));
-        let str = ch.as_str();
-        if str.is_empty()
-            || str.starts_with("place")
-            || str.starts_with("component")
-            || str.starts_with("sketch")
-            || str.starts_with("position")
-        {
-            return Ok(affordances);
-        }
-
-        let description = parse_comment(chars);
-
-        let level = parse_level(chars);
-
-        let name = parse_affordance_or_target_name(chars)?.to_owned();
-
-        // If there is no name, it means we've reached the end of the board.
-        //
-        // We might still have captured a comment and one or more level characters, but we'll
-        // ignore them for now, instead of (more correctly) raising a syntax error.
-        if name.is_empty() {
-            return Ok(affordances);
-        }
-
-        affordances.push(Affordance {
-            name,
-            description,
-            connections: parse_connections(chars)?,
-            level,
-        });
-    }
-
-    Ok(affordances)
 }
 
 #[instrument(level = "debug", skip_all)]
