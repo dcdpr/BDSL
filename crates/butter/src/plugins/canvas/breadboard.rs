@@ -9,6 +9,8 @@
 //! For detailed information on individual parts of this plugin, please refer to the respective
 //! documentation within this module.
 
+use std::ops::Deref as _;
+
 use crate::{plugins::file_watcher::FileLoadedEvent, prelude::*};
 
 use super::{Canvas, CanvasSet};
@@ -108,14 +110,18 @@ fn spawn(
     for FileLoadedEvent { name, contents } in loaded.read() {
         let span = info_span!("spawn", %name, breadboard = field::Empty).entered();
 
-        let places = match parser::parse(contents) {
-            Ok(ast::Breadboard { places, .. }) => places,
+        let (mut places, components) = match parser::parse(contents) {
+            Ok(ast::Breadboard { places, components }) => (places, components),
             Err(error) => {
                 // TODO: Trigger `alert` widget.
                 error!(?error, "Unable to parse breadboard DSL.");
                 continue;
             }
         };
+
+        for component in components {
+            places.push(component.deref().clone())
+        }
 
         let name = Name::new(name.to_owned());
 
