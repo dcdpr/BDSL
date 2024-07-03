@@ -37,7 +37,7 @@ impl FontFamily {
     }
     pub fn from_slice(value: &[JsonValue]) -> Option<Self> {
         value
-            .into_iter()
+            .iter()
             .map(|val| val.get::<String>().map(ToOwned::to_owned))
             .collect::<Option<Vec<_>>>()?
             .split_first()
@@ -45,6 +45,10 @@ impl FontFamily {
                 primary: primary.to_owned(),
                 fallbacks: fallbacks.to_vec(),
             })
+    }
+
+    pub fn as_str(&self) -> &str {
+        self.primary.as_str()
     }
 }
 

@@ -32,6 +32,9 @@ use proc_macro2::{Ident, Span, TokenStream};
 use quote::quote;
 #[cfg(feature = "build")]
 use types::alias::Alias;
+#[cfg(feature = "build")]
+use types::dimension::Dimension;
+#[cfg(feature = "build")]
 use types::font_family::FontFamily;
 
 #[cfg(feature = "build")]
@@ -56,7 +59,7 @@ pub fn build(path: impl AsRef<str>) -> Result<(), BuildError> {
 
     std::fs::write(&output, code.to_string())?;
 
-    #[cfg(all(feature = "rustfmt"))]
+    #[cfg(feature = "rustfmt")]
     rustfmt(&output)?;
 
     Ok(())
@@ -150,6 +153,7 @@ impl Generator {
         let gen = self.group_impl(item, group);
 
         quote! {
+            #[allow(clippy::module_inception)]
             pub mod #module {
                 #gen
             }
@@ -316,8 +320,13 @@ impl Generator {
                     fallbacks: vec![#( #fallbacks.to_owned(),)*],
                 } }
             }
+            Value::Dimension(v) => match v {
+                Dimension::Pixels(v) => {
+                    quote! { ::Pixels(#v) }
+                }
+                Dimension::Rems(_) => todo!(),
+            },
             v => todo!("{:?}", v),
-            // Value::Dimension(v) => quote! { #v },
             // Value::FontWeight(v) => quote! { #v },
             // Value::Duration(v) => quote! { #v },
             // Value::CubicBezier(v) => quote! { #v },
