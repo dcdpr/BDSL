@@ -31,6 +31,15 @@ pub struct Color {
 }
 
 impl Color {
+    pub fn to_rgba(self) -> [f32; 4] {
+        [
+            self.r as f32 / 255.,
+            self.g as f32 / 255.,
+            self.b as f32 / 255.,
+            self.a as f32 / 255.,
+        ]
+    }
+
     pub fn from_hex(hex: &str) -> Option<Self> {
         let hex = hex.trim_start_matches('#');
 

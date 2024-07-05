@@ -10,6 +10,7 @@ pub fn design_tokens() -> design_tokens::DesignTokens {
         },
     }
 }
+#[allow(clippy::module_inception)]
 pub mod design_tokens {
     /// Root-level Design Tokens type
     #[derive(Debug)]
@@ -19,6 +20,7 @@ pub mod design_tokens {
         ///
         pub group_name: group_name::GroupName,
     }
+    #[allow(clippy::module_inception)]
     pub mod group_name {
         ///
         #[derive(Debug)]
@@ -28,4 +30,3 @@ pub mod design_tokens {
         }
     }
 }
-

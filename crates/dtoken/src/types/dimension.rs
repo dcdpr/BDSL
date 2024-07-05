@@ -33,11 +33,33 @@
 //!
 //! See: <https://tr.designtokens.org/format/#dimension>.
 
+use std::ops::Deref;
+
 /// See module docs.
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub enum Dimension {
     Pixels(f64),
     Rems(f64),
+}
+
+impl Dimension {
+    pub fn as_f32(&self) -> f32 {
+        match self {
+            Self::Pixels(v) => *v as f32,
+            Self::Rems(v) => *v as f32,
+        }
+    }
+}
+
+impl Deref for Dimension {
+    type Target = f64;
+
+    fn deref(&self) -> &Self::Target {
+        match self {
+            Self::Pixels(v) => v,
+            Self::Rems(v) => v,
+        }
+    }
 }
 
 impl Dimension {

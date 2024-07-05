@@ -13,18 +13,19 @@ Ok(
                         "Multi-level",
                         "comments are supported.",
                     ],
-                    affordances: [
-                        Affordance {
-                            name: "Affordance",
-                            description: [
-                                "For components,",
-                                "and affordances.",
-                            ],
-                            connections: [],
-                            level: 0,
-                        },
+                    items: [
+                        Affordance(
+                            Affordance {
+                                name: "Affordance",
+                                description: [
+                                    "For components,",
+                                    "and affordances.",
+                                ],
+                                connections: [],
+                                level: 0,
+                            },
+                        ),
                     ],
-                    component_references: [],
                     position: None,
                     sketch: None,
                 },

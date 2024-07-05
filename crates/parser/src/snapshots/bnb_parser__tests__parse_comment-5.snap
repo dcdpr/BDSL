@@ -14,17 +14,18 @@ Ok(
                     " is preserved.",
                     "  As is trailing whitespace  ",
                 ],
-                affordances: [
-                    Affordance {
-                        name: "Affordance",
-                        description: [
-                            " > Here as well < ",
-                        ],
-                        connections: [],
-                        level: 0,
-                    },
+                items: [
+                    Affordance(
+                        Affordance {
+                            name: "Affordance",
+                            description: [
+                                " > Here as well < ",
+                            ],
+                            connections: [],
+                            level: 0,
+                        },
+                    ),
                 ],
-                component_references: [],
                 position: None,
                 sketch: None,
             },

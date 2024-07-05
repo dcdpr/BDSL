@@ -8,41 +8,50 @@ Ok(
             Place {
                 name: "Registration",
                 description: [],
-                affordances: [
-                    Affordance {
-                        name: "Username",
-                        description: [],
-                        connections: [],
-                        level: 0,
-                    },
-                    Affordance {
-                        name: "Password",
-                        description: [],
-                        connections: [],
-                        level: 0,
-                    },
-                    Affordance {
-                        name: "Sign Up",
-                        description: [],
-                        connections: [
-                            Connection {
-                                target_place: "Home",
-                                description: Some(
-                                    "success",
-                                ),
-                            },
-                            Connection {
-                                target_place: "Support",
-                                description: Some(
-                                    "failure",
-                                ),
-                            },
-                        ],
-                        level: 0,
-                    },
-                ],
-                component_references: [
-                    "Header",
+                items: [
+                    Reference(
+                        Reference {
+                            name: "Header",
+                            level: 0,
+                        },
+                    ),
+                    Affordance(
+                        Affordance {
+                            name: "Username",
+                            description: [],
+                            connections: [],
+                            level: 0,
+                        },
+                    ),
+                    Affordance(
+                        Affordance {
+                            name: "Password",
+                            description: [],
+                            connections: [],
+                            level: 0,
+                        },
+                    ),
+                    Affordance(
+                        Affordance {
+                            name: "Sign Up",
+                            description: [],
+                            connections: [
+                                Connection {
+                                    target_place: "Home",
+                                    description: Some(
+                                        "success",
+                                    ),
+                                },
+                                Connection {
+                                    target_place: "Support",
+                                    description: Some(
+                                        "failure",
+                                    ),
+                                },
+                            ],
+                            level: 0,
+                        },
+                    ),
                 ],
                 position: None,
                 sketch: Some(
@@ -65,27 +74,34 @@ Ok(
             Place {
                 name: "Support",
                 description: [],
-                affordances: [
-                    Affordance {
-                        name: "Error Message",
-                        description: [],
-                        connections: [],
-                        level: 0,
-                    },
-                    Affordance {
-                        name: "Try Again",
-                        description: [],
-                        connections: [
-                            Connection {
-                                target_place: "Registration",
-                                description: None,
-                            },
-                        ],
-                        level: 0,
-                    },
-                ],
-                component_references: [
-                    "Header",
+                items: [
+                    Reference(
+                        Reference {
+                            name: "Header",
+                            level: 0,
+                        },
+                    ),
+                    Affordance(
+                        Affordance {
+                            name: "Error Message",
+                            description: [],
+                            connections: [],
+                            level: 0,
+                        },
+                    ),
+                    Affordance(
+                        Affordance {
+                            name: "Try Again",
+                            description: [],
+                            connections: [
+                                Connection {
+                                    target_place: "Registration",
+                                    description: None,
+                                },
+                            ],
+                            level: 0,
+                        },
+                    ),
                 ],
                 position: Some(
                     Position {
@@ -121,16 +137,21 @@ Ok(
             Place {
                 name: "Home",
                 description: [],
-                affordances: [
-                    Affordance {
-                        name: "Dashboard",
-                        description: [],
-                        connections: [],
-                        level: 0,
-                    },
-                ],
-                component_references: [
-                    "Header",
+                items: [
+                    Reference(
+                        Reference {
+                            name: "Header",
+                            level: 0,
+                        },
+                    ),
+                    Affordance(
+                        Affordance {
+                            name: "Dashboard",
+                            description: [],
+                            connections: [],
+                            level: 0,
+                        },
+                    ),
                 ],
                 position: Some(
                     Position {
@@ -157,21 +178,24 @@ Ok(
                 Place {
                     name: "Header",
                     description: [],
-                    affordances: [
-                        Affordance {
-                            name: "Logo",
-                            description: [],
-                            connections: [],
-                            level: 0,
-                        },
-                        Affordance {
-                            name: "Contact",
-                            description: [],
-                            connections: [],
-                            level: 0,
-                        },
+                    items: [
+                        Affordance(
+                            Affordance {
+                                name: "Logo",
+                                description: [],
+                                connections: [],
+                                level: 0,
+                            },
+                        ),
+                        Affordance(
+                            Affordance {
+                                name: "Contact",
+                                description: [],
+                                connections: [],
+                                level: 0,
+                            },
+                        ),
                     ],
-                    component_references: [],
                     position: None,
                     sketch: None,
                 },

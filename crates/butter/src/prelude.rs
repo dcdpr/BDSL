@@ -29,5 +29,5 @@ pub(crate) use bevy_transform::prelude::*;
 pub(crate) use bevy_turborand::{DelegatedRng as _, RngComponent};
 pub(crate) use bevy_utils::prelude::*;
 pub(crate) use tracing::{
-    debug, debug_span, error, field, info, info_span, instrument, trace, trace_span, warn,
+    debug, error, field, info, info_span, instrument, trace, trace_span, warn,
 };

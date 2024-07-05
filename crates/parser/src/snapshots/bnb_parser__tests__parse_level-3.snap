@@ -8,27 +8,32 @@ Ok(
             Place {
                 name: "MultipleLevels",
                 description: [],
-                affordances: [
-                    Affordance {
-                        name: "One Level",
-                        description: [],
-                        connections: [],
-                        level: 1,
-                    },
-                    Affordance {
-                        name: "Two Level",
-                        description: [],
-                        connections: [],
-                        level: 1,
-                    },
-                    Affordance {
-                        name: "Three Level",
-                        description: [],
-                        connections: [],
-                        level: 1,
-                    },
+                items: [
+                    Affordance(
+                        Affordance {
+                            name: "One Level",
+                            description: [],
+                            connections: [],
+                            level: 1,
+                        },
+                    ),
+                    Affordance(
+                        Affordance {
+                            name: "Two Level",
+                            description: [],
+                            connections: [],
+                            level: 1,
+                        },
+                    ),
+                    Affordance(
+                        Affordance {
+                            name: "Three Level",
+                            description: [],
+                            connections: [],
+                            level: 1,
+                        },
+                    ),
                 ],
-                component_references: [],
                 position: None,
                 sketch: None,
             },

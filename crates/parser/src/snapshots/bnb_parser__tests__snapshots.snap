@@ -8,8 +8,7 @@ Ok(
             Place {
                 name: "Home",
                 description: [],
-                affordances: [],
-                component_references: [],
+                items: [],
                 position: None,
                 sketch: None,
             },

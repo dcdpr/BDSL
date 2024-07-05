@@ -78,6 +78,9 @@ tracing-subscriber = { version = "0.3", default-features = false, optional = tru
 ] }
 bevy_tweening = { version = "0.10", default-features = false }
 
+[target.'cfg(target_os = "linux")'.dependencies]
+bevy_winit = { version = "0.13", default-features = false, features = ["x11"] }
+
 [build-dependencies]
 dtoken = { path = "../dtoken", default-features = false, features = [
   "build",

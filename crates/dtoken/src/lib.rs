@@ -32,6 +32,9 @@ use proc_macro2::{Ident, Span, TokenStream};
 use quote::quote;
 #[cfg(feature = "build")]
 use types::alias::Alias;
+#[cfg(feature = "build")]
+use types::dimension::Dimension;
+#[cfg(feature = "build")]
 use types::font_family::FontFamily;
 
 #[cfg(feature = "build")]
@@ -56,7 +59,7 @@ pub fn build(path: impl AsRef<str>) -> Result<(), BuildError> {
 
     std::fs::write(&output, code.to_string())?;
 
-    #[cfg(all(feature = "rustfmt"))]
+    #[cfg(feature = "rustfmt")]
     rustfmt(&output)?;
 
     Ok(())
@@ -136,7 +139,7 @@ impl Generator {
         kind: &TokenOrGroup,
         parents: Vec<Ident>,
     ) -> (Ident, TokenStream) {
-        let key = Ident::new(&field.to_case(Case::Snake), Span::call_site());
+        let key = self.field_ident(field);
         let value = match kind {
             TokenOrGroup::Token(token) => self.token_value(&token.value),
             TokenOrGroup::Group(group) => self.group_instance(field, group, parents),
@@ -150,6 +153,7 @@ impl Generator {
         let gen = self.group_impl(item, group);
 
         quote! {
+            #[allow(clippy::module_inception)]
             pub mod #module {
                 #gen
             }
@@ -200,7 +204,7 @@ impl Generator {
     }
 
     fn struct_field(&self, field: &String, kind: &TokenOrGroup) -> (Ident, TokenStream) {
-        let key = Ident::new(&field.to_case(Case::Snake), Span::call_site());
+        let key = self.field_ident(field);
         let value = match kind {
             TokenOrGroup::Token(token) => self.token_kind(&token.value),
             TokenOrGroup::Group(_) => {
@@ -211,6 +215,15 @@ impl Generator {
         };
 
         (key, value)
+    }
+
+    fn field_ident(&self, field: &str) -> Ident {
+        let key = if field.starts_with('_') {
+            format!("_{}", field.to_case(Case::Snake))
+        } else {
+            field.to_case(Case::Snake)
+        };
+        Ident::new(&key, Span::call_site())
     }
 
     fn alias_type(&self, alias: &Alias) -> Result<TokenStream, String> {
@@ -316,8 +329,13 @@ impl Generator {
                     fallbacks: vec![#( #fallbacks.to_owned(),)*],
                 } }
             }
+            Value::Dimension(v) => match v {
+                Dimension::Pixels(v) => {
+                    quote! { ::Pixels(#v) }
+                }
+                Dimension::Rems(_) => todo!(),
+            },
             v => todo!("{:?}", v),
-            // Value::Dimension(v) => quote! { #v },
             // Value::FontWeight(v) => quote! { #v },
             // Value::Duration(v) => quote! { #v },
             // Value::CubicBezier(v) => quote! { #v },

@@ -10,39 +10,48 @@ Ok(
                 Place {
                     name: "MixedLevels",
                     description: [],
-                    affordances: [
-                        Affordance {
-                            name: "One Level",
-                            description: [],
-                            connections: [],
-                            level: 1,
-                        },
-                        Affordance {
-                            name: "Two Level",
-                            description: [],
-                            connections: [],
-                            level: 2,
-                        },
-                        Affordance {
-                            name: "Three Level",
-                            description: [],
-                            connections: [],
-                            level: 3,
-                        },
-                        Affordance {
-                            name: "Four Level",
-                            description: [],
-                            connections: [],
-                            level: 1,
-                        },
-                        Affordance {
-                            name: "Five Level",
-                            description: [],
-                            connections: [],
-                            level: 0,
-                        },
+                    items: [
+                        Affordance(
+                            Affordance {
+                                name: "One Level",
+                                description: [],
+                                connections: [],
+                                level: 1,
+                            },
+                        ),
+                        Affordance(
+                            Affordance {
+                                name: "Two Level",
+                                description: [],
+                                connections: [],
+                                level: 2,
+                            },
+                        ),
+                        Affordance(
+                            Affordance {
+                                name: "Three Level",
+                                description: [],
+                                connections: [],
+                                level: 3,
+                            },
+                        ),
+                        Affordance(
+                            Affordance {
+                                name: "Four Level",
+                                description: [],
+                                connections: [],
+                                level: 1,
+                            },
+                        ),
+                        Affordance(
+                            Affordance {
+                                name: "Five Level",
+                                description: [],
+                                connections: [],
+                                level: 0,
+                            },
+                        ),
                     ],
-                    component_references: [],
                     position: None,
                     sketch: None,
                 },

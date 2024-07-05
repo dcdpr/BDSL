@@ -8,68 +8,71 @@ Ok(
             Place {
                 name: "invoice",
                 description: [],
-                affordances: [
-                    Affordance {
-                        name: "Turn on autopay",
-                        description: [],
-                        connections: [
-                            Connection {
-                                target_place: "Set up autopay",
-                                description: None,
-                            },
-                            Connection {
-                                target_place: "Foo bar",
-                                description: None,
-                            },
-                            Connection {
-                                target_place: "test 2",
-                                description: Some(
-                                    "test",
-                                ),
-                            },
-                        ],
-                        level: 0,
-                    },
+                items: [
+                    Affordance(
+                        Affordance {
+                            name: "Turn on autopay",
+                            description: [],
+                            connections: [
+                                Connection {
+                                    target_place: "Set up autopay",
+                                    description: None,
+                                },
+                                Connection {
+                                    target_place: "Foo bar",
+                                    description: None,
+                                },
+                                Connection {
+                                    target_place: "test 2",
+                                    description: Some(
+                                        "test",
+                                    ),
+                                },
+                            ],
+                            level: 0,
+                        },
+                    ),
                 ],
-                component_references: [],
                 position: None,
                 sketch: None,
             },
             Place {
                 name: "two",
                 description: [],
-                affordances: [],
-                component_references: [],
+                items: [],
                 position: None,
                 sketch: None,
             },
             Place {
                 name: "three and more!",
                 description: [],
-                affordances: [
-                    Affordance {
-                        name: "free -> form!",
-                        description: [],
-                        connections: [
-                            Connection {
-                                target_place: "Not",
-                                description: None,
-                            },
-                            Connection {
-                                target_place: "(test)",
-                                description: None,
-                            },
-                        ],
-                        level: 0,
-                    },
-                    Affordance {
-                        name: "another one!",
-                        description: [],
-                        connections: [],
-                        level: 0,
-                    },
+                items: [
+                    Affordance(
+                        Affordance {
+                            name: "free -> form!",
+                            description: [],
+                            connections: [
+                                Connection {
+                                    target_place: "Not",
+                                    description: None,
+                                },
+                                Connection {
+                                    target_place: "(test)",
+                                    description: None,
+                                },
+                            ],
+                            level: 0,
+                        },
+                    ),
+                    Affordance(
+                        Affordance {
+                            name: "another one!",
+                            description: [],
+                            connections: [],
+                            level: 0,
+                        },
+                    ),
                 ],
-                component_references: [],
                 position: None,
                 sketch: Some(
                     Sketch {
@@ -100,8 +103,7 @@ Ok(
             Place {
                 name: "four!",
                 description: [],
-                affordances: [],
-                component_references: [],
+                items: [],
                 position: None,
                 sketch: None,
             },

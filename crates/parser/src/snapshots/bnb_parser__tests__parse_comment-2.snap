@@ -8,29 +8,34 @@ Ok(
             Place {
                 name: "AffordanceComment",
                 description: [],
-                affordances: [
-                    Affordance {
-                        name: "Not Here",
-                        description: [],
-                        connections: [],
-                        level: 0,
-                    },
-                    Affordance {
-                        name: "But Here",
-                        description: [
-                            "An affordance comment.",
-                        ],
-                        connections: [],
-                        level: 0,
-                    },
-                    Affordance {
-                        name: "And No Longer Here",
-                        description: [],
-                        connections: [],
-                        level: 0,
-                    },
+                items: [
+                    Affordance(
+                        Affordance {
+                            name: "Not Here",
+                            description: [],
+                            connections: [],
+                            level: 0,
+                        },
+                    ),
+                    Affordance(
+                        Affordance {
+                            name: "But Here",
+                            description: [
+                                "An affordance comment.",
+                            ],
+                            connections: [],
+                            level: 0,
+                        },
+                    ),
+                    Affordance(
+                        Affordance {
+                            name: "And No Longer Here",
+                            description: [],
+                            connections: [],
+                            level: 0,
+                        },
+                    ),
                 ],
-                component_references: [],
                 position: None,
                 sketch: None,
             },

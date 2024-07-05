@@ -10,33 +10,38 @@ Ok(
                 description: [
                     "Both a place comment,",
                 ],
-                affordances: [
-                    Affordance {
-                        name: "One",
-                        description: [
-                            "and",
-                        ],
-                        connections: [],
-                        level: 0,
-                    },
-                    Affordance {
-                        name: "Two",
-                        description: [
-                            "affordance",
-                        ],
-                        connections: [],
-                        level: 2,
-                    },
-                    Affordance {
-                        name: "Three",
-                        description: [
-                            "comments!",
-                        ],
-                        connections: [],
-                        level: 3,
-                    },
+                items: [
+                    Affordance(
+                        Affordance {
+                            name: "One",
+                            description: [
+                                "and",
+                            ],
+                            connections: [],
+                            level: 0,
+                        },
+                    ),
+                    Affordance(
+                        Affordance {
+                            name: "Two",
+                            description: [
+                                "affordance",
+                            ],
+                            connections: [],
+                            level: 2,
+                        },
+                    ),
+                    Affordance(
+                        Affordance {
+                            name: "Three",
+                            description: [
+                                "comments!",
+                            ],
+                            connections: [],
+                            level: 3,
+                        },
+                    ),
                 ],
-                component_references: [],
                 position: None,
                 sketch: None,
             },

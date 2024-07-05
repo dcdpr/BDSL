@@ -8,33 +8,40 @@ Ok(
             Place {
                 name: "NestedLevels",
                 description: [],
-                affordances: [
-                    Affordance {
-                        name: "One Level",
-                        description: [],
-                        connections: [],
-                        level: 1,
-                    },
-                    Affordance {
-                        name: "Two Level",
-                        description: [],
-                        connections: [],
-                        level: 2,
-                    },
-                    Affordance {
-                        name: "Three Level",
-                        description: [],
-                        connections: [],
-                        level: 2,
-                    },
-                    Affordance {
-                        name: "Four Level",
-                        description: [],
-                        connections: [],
-                        level: 3,
-                    },
+                items: [
+                    Affordance(
+                        Affordance {
+                            name: "One Level",
+                            description: [],
+                            connections: [],
+                            level: 1,
+                        },
+                    ),
+                    Affordance(
+                        Affordance {
+                            name: "Two Level",
+                            description: [],
+                            connections: [],
+                            level: 2,
+                        },
+                    ),
+                    Affordance(
+                        Affordance {
+                            name: "Three Level",
+                            description: [],
+                            connections: [],
+                            level: 2,
+                        },
+                    ),
+                    Affordance(
+                        Affordance {
+                            name: "Four Level",
+                            description: [],
+                            connections: [],
+                            level: 3,
+                        },
+                    ),
                 ],
-                component_references: [],
                 position: None,
                 sketch: None,
             },

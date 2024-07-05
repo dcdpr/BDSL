@@ -8,32 +8,34 @@ Ok(
             Place {
                 name: "MultiplePlaces",
                 description: [],
-                affordances: [
-                    Affordance {
-                        name: "Affordance",
-                        description: [],
-                        connections: [],
-                        level: 0,
-                    },
+                items: [
+                    Affordance(
+                        Affordance {
+                            name: "Affordance",
+                            description: [],
+                            connections: [],
+                            level: 0,
+                        },
+                    ),
                 ],
-                component_references: [],
                 position: None,
                 sketch: None,
             },
             Place {
                 name: "Works",
                 description: [],
-                affordances: [
-                    Affordance {
-                        name: "Affordance",
-                        description: [
-                            "Unless three `/`'s are used!",
-                        ],
-                        connections: [],
-                        level: 0,
-                    },
+                items: [
+                    Affordance(
+                        Affordance {
+                            name: "Affordance",
+                            description: [
+                                "Unless three `/`'s are used!",
+                            ],
+                            connections: [],
+                            level: 0,
+                        },
+                    ),
                 ],
-                component_references: [],
                 position: None,
                 sketch: None,
             },

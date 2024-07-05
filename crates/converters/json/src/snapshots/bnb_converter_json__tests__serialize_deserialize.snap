@@ -7,37 +7,46 @@ expression: deserialized_breadboard
     {
       "name": "Registration",
       "description": [],
-      "affordances": [
+      "items": [
         {
-          "name": "Username",
-          "description": [],
-          "connections": [],
-          "level": 0
+          "affordance": {
+            "name": "Username",
+            "description": [],
+            "connections": [],
+            "level": 0
+          }
         },
         {
-          "name": "Password",
-          "description": [],
-          "connections": [],
-          "level": 0
+          "affordance": {
+            "name": "Password",
+            "description": [],
+            "connections": [],
+            "level": 0
+          }
         },
         {
-          "name": "Sign Up",
-          "description": [],
-          "connections": [
-            {
-              "target_place": "Home",
-              "description": "success"
-            },
-            {
-              "target_place": "Support",
-              "description": "failure"
-            }
-          ],
-          "level": 0
+          "affordance": {
+            "name": "Sign Up",
+            "description": [],
+            "connections": [
+              {
+                "target_place": "Home",
+                "description": "success"
+              },
+              {
+                "target_place": "Support",
+                "description": "failure"
+              }
+            ],
+            "level": 0
+          }
+        },
+        {
+          "reference": {
+            "name": "Header",
+            "level": 0
+          }
         }
-      ],
-      "component_references": [
-        "Header"
       ],
       "position": {
         "x": -10,
@@ -65,27 +74,34 @@ expression: deserialized_breadboard
     {
       "name": "Support",
       "description": [],
-      "affordances": [
+      "items": [
         {
-          "name": "Error Message",
-          "description": [],
-          "connections": [],
-          "level": 0
+          "affordance": {
+            "name": "Error Message",
+            "description": [],
+            "connections": [],
+            "level": 0
+          }
         },
         {
-          "name": "Try Again",
-          "description": [],
-          "connections": [
-            {
-              "target_place": "Registration",
-              "description": null
-            }
-          ],
-          "level": 0
+          "affordance": {
+            "name": "Try Again",
+            "description": [],
+            "connections": [
+              {
+                "target_place": "Registration",
+                "description": null
+              }
+            ],
+            "level": 0
+          }
+        },
+        {
+          "reference": {
+            "name": "Header",
+            "level": 0
+          }
         }
-      ],
-      "component_references": [
-        "Header"
       ],
       "position": null,
       "sketch": {
@@ -106,16 +122,21 @@ expression: deserialized_breadboard
     {
       "name": "Home",
       "description": [],
-      "affordances": [
+      "items": [
         {
-          "name": "Dashboard",
-          "description": [],
-          "connections": [],
-          "level": 0
+          "affordance": {
+            "name": "Dashboard",
+            "description": [],
+            "connections": [],
+            "level": 0
+          }
+        },
+        {
+          "reference": {
+            "name": "Header",
+            "level": 0
+          }
         }
-      ],
-      "component_references": [
-        "Header"
       ],
       "position": null,
       "sketch": {
@@ -128,21 +149,24 @@ expression: deserialized_breadboard
     {
       "name": "Header",
       "description": [],
-      "affordances": [
+      "items": [
         {
-          "name": "Logo",
-          "description": [],
-          "connections": [],
-          "level": 0
+          "affordance": {
+            "name": "Logo",
+            "description": [],
+            "connections": [],
+            "level": 0
+          }
         },
         {
-          "name": "Contact",
-          "description": [],
-          "connections": [],
-          "level": 0
+          "affordance": {
+            "name": "Contact",
+            "description": [],
+            "connections": [],
+            "level": 0
+          }
         }
       ],
-      "component_references": [],
       "position": null,
       "sketch": null
     }
