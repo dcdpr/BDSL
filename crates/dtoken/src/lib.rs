@@ -139,7 +139,7 @@ impl Generator {
         kind: &TokenOrGroup,
         parents: Vec<Ident>,
     ) -> (Ident, TokenStream) {
-        let key = Ident::new(&field.to_case(Case::Snake), Span::call_site());
+        let key = self.field_ident(field);
         let value = match kind {
             TokenOrGroup::Token(token) => self.token_value(&token.value),
             TokenOrGroup::Group(group) => self.group_instance(field, group, parents),
@@ -204,7 +204,7 @@ impl Generator {
     }
 
     fn struct_field(&self, field: &String, kind: &TokenOrGroup) -> (Ident, TokenStream) {
-        let key = Ident::new(&field.to_case(Case::Snake), Span::call_site());
+        let key = self.field_ident(field);
         let value = match kind {
             TokenOrGroup::Token(token) => self.token_kind(&token.value),
             TokenOrGroup::Group(_) => {
@@ -215,6 +215,15 @@ impl Generator {
         };
 
         (key, value)
+    }
+
+    fn field_ident(&self, field: &str) -> Ident {
+        let key = if field.starts_with('_') {
+            format!("_{}", field.to_case(Case::Snake))
+        } else {
+            field.to_case(Case::Snake)
+        };
+        Ident::new(&key, Span::call_site())
     }
 
     fn alias_type(&self, alias: &Alias) -> Result<TokenStream, String> {
