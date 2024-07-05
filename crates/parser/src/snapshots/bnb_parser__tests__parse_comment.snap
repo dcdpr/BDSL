@@ -10,8 +10,7 @@ Ok(
                 description: [
                     "A comment as a description for the place.",
                 ],
-                affordances: [],
-                component_references: [],
+                items: [],
                 position: None,
                 sketch: None,
             },

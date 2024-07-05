@@ -10,17 +10,18 @@ Ok(
                 description: [
                     "Comments for multiple places.",
                 ],
-                affordances: [
-                    Affordance {
-                        name: "Affordance",
-                        description: [
-                            "And affordances.",
-                        ],
-                        connections: [],
-                        level: 0,
-                    },
+                items: [
+                    Affordance(
+                        Affordance {
+                            name: "Affordance",
+                            description: [
+                                "And affordances.",
+                            ],
+                            connections: [],
+                            level: 0,
+                        },
+                    ),
                 ],
-                component_references: [],
                 position: None,
                 sketch: None,
             },
@@ -29,17 +30,18 @@ Ok(
                 description: [
                     "Also works!",
                 ],
-                affordances: [
-                    Affordance {
-                        name: "Affordance",
-                        description: [
-                            "And affordances.",
-                        ],
-                        connections: [],
-                        level: 0,
-                    },
+                items: [
+                    Affordance(
+                        Affordance {
+                            name: "Affordance",
+                            description: [
+                                "And affordances.",
+                            ],
+                            connections: [],
+                            level: 0,
+                        },
+                    ),
                 ],
-                component_references: [],
                 position: None,
                 sketch: None,
             },

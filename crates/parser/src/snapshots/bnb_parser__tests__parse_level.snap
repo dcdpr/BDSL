@@ -8,15 +8,16 @@ Ok(
             Place {
                 name: "NoLevel",
                 description: [],
-                affordances: [
-                    Affordance {
-                        name: "No Level",
-                        description: [],
-                        connections: [],
-                        level: 0,
-                    },
+                items: [
+                    Affordance(
+                        Affordance {
+                            name: "No Level",
+                            description: [],
+                            connections: [],
+                            level: 0,
+                        },
+                    ),
                 ],
-                component_references: [],
                 position: None,
                 sketch: None,
             },

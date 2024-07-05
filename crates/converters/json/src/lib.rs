@@ -71,7 +71,8 @@ mod tests {
     use std::path::PathBuf;
 
     use bnb_ast::{
-        Affordance, Area, Component, Connection, Coordinate, Pivot, Place, Position, Sketch,
+        Affordance, Area, Component, Connection, Coordinate, Item, Pivot, Place, Position,
+        Reference, Sketch,
     };
 
     use super::*;
@@ -83,20 +84,20 @@ mod tests {
             places: vec![
                 Place {
                     name: "Registration".to_owned(),
-                    affordances: vec![
-                        Affordance {
+                    items: vec![
+                        Item::Affordance(Affordance {
                             name: "Username".to_owned(),
                             connections: vec![],
                             description: vec![],
                             level: 0,
-                        },
-                        Affordance {
+                        }),
+                        Item::Affordance(Affordance {
                             name: "Password".to_owned(),
                             connections: vec![],
                             description: vec![],
                             level: 0,
-                        },
-                        Affordance {
+                        }),
+                        Item::Affordance(Affordance {
                             name: "Sign Up".to_owned(),
                             connections: vec![
                                 Connection {
@@ -110,9 +111,12 @@ mod tests {
                             ],
                             description: vec![],
                             level: 0,
-                        },
+                        }),
+                        Item::Reference(Reference {
+                            name: "Header".to_owned(),
+                            level: 0,
+                        }),
                     ],
-                    component_references: vec!["Header".to_owned()],
                     position: Some(Position {
                         x: Coordinate::Absolute(-10),
                         y: Coordinate::Relative {
@@ -134,14 +138,14 @@ mod tests {
                 },
                 Place {
                     name: "Support".to_owned(),
-                    affordances: vec![
-                        Affordance {
+                    items: vec![
+                        Item::Affordance(Affordance {
                             name: "Error Message".to_owned(),
                             connections: vec![],
                             description: vec![],
                             level: 0,
-                        },
-                        Affordance {
+                        }),
+                        Item::Affordance(Affordance {
                             name: "Try Again".to_owned(),
                             connections: vec![Connection {
                                 target_place: "Registration".to_owned(),
@@ -149,9 +153,12 @@ mod tests {
                             }],
                             description: vec![],
                             level: 0,
-                        },
+                        }),
+                        Item::Reference(Reference {
+                            name: "Header".to_owned(),
+                            level: 0,
+                        }),
                     ],
-                    component_references: vec!["Header".to_owned()],
                     position: None,
                     sketch: Some(Sketch {
                         path: PathBuf::from("sketches/support.png"),
@@ -166,13 +173,18 @@ mod tests {
                 },
                 Place {
                     name: "Home".to_owned(),
-                    affordances: vec![Affordance {
-                        name: "Dashboard".to_owned(),
-                        connections: vec![],
-                        description: vec![],
-                        level: 0,
-                    }],
-                    component_references: vec!["Header".to_owned()],
+                    items: vec![
+                        Item::Affordance(Affordance {
+                            name: "Dashboard".to_owned(),
+                            connections: vec![],
+                            description: vec![],
+                            level: 0,
+                        }),
+                        Item::Reference(Reference {
+                            name: "Header".to_owned(),
+                            level: 0,
+                        }),
+                    ],
                     position: None,
                     sketch: Some(Sketch {
                         path: PathBuf::from("sketches/home.png"),
@@ -183,21 +195,20 @@ mod tests {
             ],
             components: vec![Component::new(Place {
                 name: "Header".to_owned(),
-                affordances: vec![
-                    Affordance {
+                items: vec![
+                    Item::Affordance(Affordance {
                         name: "Logo".to_owned(),
                         connections: vec![],
                         description: vec![],
                         level: 0,
-                    },
-                    Affordance {
+                    }),
+                    Item::Affordance(Affordance {
                         name: "Contact".to_owned(),
                         connections: vec![],
                         description: vec![],
                         level: 0,
-                    },
+                    }),
                 ],
-                component_references: vec![],
                 position: None,
                 sketch: None,
                 description: vec![],

@@ -155,6 +155,7 @@ impl Deref for Component {
 
 /// Describes an item within a [`Place`].
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
 pub enum Item {
     Affordance(Affordance),
     Reference(Reference),
