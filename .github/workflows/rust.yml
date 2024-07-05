@@ -16,7 +16,7 @@ jobs:
 
     steps:
     - name: Install Dependencies
-      run: apt-get install librust-atk-dev
+      run: sudo apt-get install librust-atk-dev
     - uses: actions/checkout@v3
     - name: Build
       run: cargo build --verbose
