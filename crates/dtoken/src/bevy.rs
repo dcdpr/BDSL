@@ -11,8 +11,10 @@ impl From<Dimension> for Val {
     }
 }
 
-impl From<Color> for bevy_render::color::Color {
+impl From<Color> for bevy_color::Color {
     fn from(value: Color) -> Self {
-        Self::rgba_from_array(value.to_rgba())
+        use bevy_color::ColorToComponents;
+
+        bevy_color::Srgba::from_f32_array(value.to_rgba()).into()
     }
 }
