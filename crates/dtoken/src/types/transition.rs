@@ -24,9 +24,11 @@
 //!
 //! See: <https://tr.designtokens.org/format/#transition>.
 
-use std::collections::HashMap;
+use std::{collections::HashMap, str::FromStr};
 
 use tinyjson::JsonValue;
+
+use crate::error::Error;
 
 use super::{cubic_bezier::CubicBezier, duration::Duration};
 
@@ -38,17 +40,66 @@ pub struct Transition {
     pub timing_function: CubicBezier,
 }
 
-impl Transition {
-    pub fn from_map(map: &HashMap<String, JsonValue>) -> Option<Self> {
-        let duration = map.get("duration")?.get::<String>()?;
-        let delay = map.get("delay")?.get::<String>()?;
-        let timing_function = map.get("timingFunction")?.get::<Vec<_>>()?;
+impl TryFrom<&JsonValue> for Transition {
+    type Error = Error;
 
-        Some(Transition {
-            duration: Duration::from_str(duration)?,
-            delay: Duration::from_str(delay)?,
-            timing_function: CubicBezier::from_slice(timing_function)?,
+    fn try_from(value: &JsonValue) -> Result<Self, Self::Error> {
+        value
+            .get::<HashMap<_, _>>()
+            .ok_or(Error::ExpectedObject)
+            .and_then(Self::try_from)
+    }
+}
+
+impl TryFrom<&HashMap<String, JsonValue>> for Transition {
+    type Error = Error;
+
+    fn try_from(value: &HashMap<String, JsonValue>) -> Result<Self, Self::Error> {
+        let duration = value
+            .get("duration")
+            .ok_or(Error::MustExist)
+            .and_then(|v| v.get::<String>().ok_or(Error::ExpectedString))
+            .and_then(|v| Duration::from_str(v))
+            .map_err(|err| Error::prop("duration", err))?;
+
+        let delay = value
+            .get("delay")
+            .ok_or(Error::MustExist)
+            .and_then(|v| v.get::<String>().ok_or(Error::ExpectedString))
+            .and_then(|v| Duration::from_str(v))
+            .map_err(|err| Error::prop("delay", err))?;
+
+        let timing_function = value
+            .get("timingFunction")
+            .ok_or(Error::MustExist)
+            .and_then(|v| v.get::<Vec<_>>().ok_or(Error::ExpectedArray))
+            .and_then(|v| CubicBezier::try_from(v.as_slice()))
+            .map_err(|err| Error::prop("timingFunction", err))?;
+
+        Ok(Transition {
+            duration,
+            delay,
+            timing_function,
         })
+    }
+}
+
+#[cfg(feature = "build")]
+impl quote::ToTokens for Transition {
+    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
+        let Self {
+            duration,
+            delay,
+            timing_function,
+        } = self;
+
+        let new = quote::quote! { dtoken::types::transition::Transition {
+            duration: #duration,
+            delay: #delay,
+            timing_function: #timing_function,
+        }};
+
+        tokens.extend(new);
     }
 }
 
@@ -74,7 +125,7 @@ mod tests {
                         ]),
                     ),
                 ]),
-                Some(Transition {
+                Ok(Transition {
                     duration: Duration {
                         milliseconds: 500.0,
                     },
@@ -91,8 +142,8 @@ mod tests {
             ),
             (
                 HashMap::from([
-                    ("duration".to_owned(), JsonValue::String("1s".to_owned())),
-                    ("delay".to_owned(), JsonValue::String("0s".to_owned())),
+                    ("duration".to_owned(), JsonValue::String("1ms".to_owned())),
+                    ("delay".to_owned(), JsonValue::String("10s".to_owned())),
                     (
                         "timingFunction".to_owned(),
                         JsonValue::Array(vec![
@@ -103,31 +154,32 @@ mod tests {
                         ]),
                     ),
                 ]),
-                None, // Invalid duration units
+                Err(Error::prop("delay", Error::InvalidUnit(&["ms"]))),
             ),
             (
                 HashMap::from([
                     ("duration".to_owned(), JsonValue::String("500ms".to_owned())),
                     ("delay".to_owned(), JsonValue::String("200ms".to_owned())),
                 ]),
-                None, // Missing timingFunction key
+                Err(Error::prop("timingFunction", Error::MustExist)),
             ),
             (
                 HashMap::from([
                     ("duration".to_owned(), JsonValue::String("500ms".to_owned())),
+                    ("delay".to_owned(), JsonValue::String("500ms".to_owned())),
                     (
                         "timingFunction".to_owned(),
                         JsonValue::String("invalid".to_owned()),
-                    ), // Invalid timingFunction value
+                    ),
                 ]),
-                None, // Invalid timingFunction value
+                Err(Error::prop("timingFunction", Error::ExpectedArray)),
             ),
             (
                 HashMap::from([
                     (
                         "duration".to_owned(),
                         JsonValue::String("invalid".to_owned()),
-                    ), // Invalid duration value
+                    ),
                     ("delay".to_owned(), JsonValue::String("200ms".to_owned())),
                     (
                         "timingFunction".to_owned(),
@@ -139,12 +191,12 @@ mod tests {
                         ]),
                     ),
                 ]),
-                None, // Invalid duration value
+                Err(Error::prop("duration", Error::InvalidUnit(&["ms"]))),
             ),
         ];
 
         for (input, expected) in test_cases {
-            let result = Transition::from_map(&input);
+            let result = Transition::try_from(&input);
             assert_eq!(result, expected);
         }
     }

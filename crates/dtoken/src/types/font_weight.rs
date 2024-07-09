@@ -21,6 +21,12 @@
 //! Number values outside of the [1, 1000] range and any other string values, including ones that
 //! differ only in case, are invalid and MUST be rejected by tools.
 
+use std::str::FromStr;
+
+use tinyjson::JsonValue;
+
+use crate::error::Error;
+
 /// See module level documentation.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum FontWeight {
@@ -45,38 +51,90 @@ pub enum FontWeight {
     UltraBlack,
 }
 
-impl FontWeight {
-    pub fn from_str(s: &str) -> Option<Self> {
-        match s.to_lowercase().as_str() {
-            "thin" | "hairline" => Some(Self::Thin),
-            "extra-light" | "ultra-light" => Some(Self::ExtraLight),
-            "light" => Some(Self::Light),
-            "normal" | "regular" | "book" => Some(Self::Normal),
-            "medium" => Some(Self::Medium),
-            "semi-bold" | "demi-bold" => Some(Self::SemiBold),
-            "bold" => Some(Self::Bold),
-            "extra-bold" | "ultra-bold" => Some(Self::ExtraBold),
-            "black" | "heavy" => Some(Self::Black),
-            "extra-black" | "ultra-black" => Some(Self::ExtraBlack),
-            _ => None,
+impl TryFrom<&JsonValue> for FontWeight {
+    type Error = Error;
+
+    fn try_from(value: &JsonValue) -> Result<Self, Self::Error> {
+        match value {
+            #[allow(clippy::cast_sign_loss, clippy::float_cmp)]
+            &JsonValue::Number(v) if v == (v as u16) as f64 => Self::try_from(v as u16),
+            JsonValue::String(v) => Self::from_str(v),
+            _ => Err(Error::UnexpectedType),
         }
     }
+}
 
-    pub fn from_numeric(n: u16) -> Option<Self> {
-        match n {
-            100 => Some(Self::Thin),
-            200 => Some(Self::ExtraLight),
-            300 => Some(Self::Light),
-            400 => Some(Self::Normal),
-            500 => Some(Self::Medium),
-            600 => Some(Self::SemiBold),
-            700 => Some(Self::Bold),
-            800 => Some(Self::ExtraBold),
-            900 => Some(Self::Black),
-            950 => Some(Self::ExtraBlack),
-            1..=1000 => Some(Self::Numeric(n)),
-            _ => None,
+impl TryFrom<u16> for FontWeight {
+    type Error = Error;
+
+    fn try_from(value: u16) -> Result<Self, Self::Error> {
+        match value {
+            100 => Ok(Self::Thin),
+            200 => Ok(Self::ExtraLight),
+            300 => Ok(Self::Light),
+            400 => Ok(Self::Normal),
+            500 => Ok(Self::Medium),
+            600 => Ok(Self::SemiBold),
+            700 => Ok(Self::Bold),
+            800 => Ok(Self::ExtraBold),
+            900 => Ok(Self::Black),
+            950 => Ok(Self::ExtraBlack),
+            1..=1000 => Ok(Self::Numeric(value)),
+            _ => Err(Error::NumberWithin(1, 1000)),
         }
+    }
+}
+
+impl FromStr for FontWeight {
+    type Err = Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s.to_lowercase().as_str() {
+            "thin" | "hairline" => Ok(Self::Thin),
+            "extra-light" | "ultra-light" => Ok(Self::ExtraLight),
+            "light" => Ok(Self::Light),
+            "normal" | "regular" | "book" => Ok(Self::Normal),
+            "medium" => Ok(Self::Medium),
+            "semi-bold" | "demi-bold" => Ok(Self::SemiBold),
+            "bold" => Ok(Self::Bold),
+            "extra-bold" | "ultra-bold" => Ok(Self::ExtraBold),
+            "black" | "heavy" => Ok(Self::Black),
+            "extra-black" | "ultra-black" => Ok(Self::ExtraBlack),
+            _ => Err(Error::InvalidFormat("unknown weight value")),
+        }
+    }
+}
+
+#[cfg(feature = "build")]
+impl quote::ToTokens for FontWeight {
+    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
+        use quote::quote;
+
+        tokens.extend(quote!(dtoken::types::font_weight::));
+
+        let new = match self {
+            Self::Numeric(v) => quote! { FontWeight::Numeric(#v) },
+            Self::Thin => quote! { FontWeight::Thin },
+            Self::Hairline => quote! { FontWeight::Hairline },
+            Self::ExtraLight => quote! { FontWeight::ExtraLight },
+            Self::UltraLight => quote! { FontWeight::UltraLight },
+            Self::Light => quote! { FontWeight::Light },
+            Self::Normal => quote! { FontWeight::Normal },
+            Self::Regular => quote! { FontWeight::Regular },
+            Self::Book => quote! { FontWeight::Book },
+            Self::Medium => quote! { FontWeight::Medium },
+            Self::SemiBold => quote! { FontWeight::SemiBold },
+            Self::DemiBold => quote! { FontWeight::DemiBold },
+            Self::Bold => quote! { FontWeight::Bold },
+            Self::ExtraBold => quote! { FontWeight::ExtraBold },
+            Self::UltraBold => quote! { FontWeight::UltraBold },
+            Self::Black => quote! { FontWeight::Black },
+            Self::Heavy => quote! { FontWeight::Heavy },
+            Self::ExtraBlack => quote! { FontWeight::ExtraBlack },
+            Self::UltraBlack => quote! { FontWeight::UltraBlack },
+        };
+
+        tokens.extend(new);
     }
 }
 
@@ -87,16 +145,16 @@ mod tests {
     #[test]
     fn test_from_str() {
         let test_cases = vec![
-            ("thin", Some(FontWeight::Thin)),
-            ("extra-light", Some(FontWeight::ExtraLight)),
-            ("normal", Some(FontWeight::Normal)),
-            ("medium", Some(FontWeight::Medium)),
-            ("semi-bold", Some(FontWeight::SemiBold)),
-            ("bold", Some(FontWeight::Bold)),
-            ("extra-bold", Some(FontWeight::ExtraBold)),
-            ("black", Some(FontWeight::Black)),
-            ("extra-black", Some(FontWeight::ExtraBlack)),
-            ("invalid", None), // Invalid input
+            ("thin", Ok(FontWeight::Thin)),
+            ("extra-light", Ok(FontWeight::ExtraLight)),
+            ("normal", Ok(FontWeight::Normal)),
+            ("medium", Ok(FontWeight::Medium)),
+            ("semi-bold", Ok(FontWeight::SemiBold)),
+            ("bold", Ok(FontWeight::Bold)),
+            ("extra-bold", Ok(FontWeight::ExtraBold)),
+            ("black", Ok(FontWeight::Black)),
+            ("extra-black", Ok(FontWeight::ExtraBlack)),
+            ("invalid", Err(Error::InvalidFormat("unknown weight value"))),
         ];
 
         for (input, expected) in test_cases {
@@ -108,23 +166,21 @@ mod tests {
     #[test]
     fn test_from_numeric() {
         let test_cases = vec![
-            (100, Some(FontWeight::Thin)),
-            (300, Some(FontWeight::Light)),
-            (400, Some(FontWeight::Normal)),
-            (600, Some(FontWeight::SemiBold)),
-            (700, Some(FontWeight::Bold)),
-            (800, Some(FontWeight::ExtraBold)),
-            (900, Some(FontWeight::Black)),
-            (950, Some(FontWeight::ExtraBlack)),
-            (123, Some(FontWeight::Numeric(123))),
-            (0, None),     // Invalid numeric value
-            (1001, None),  // Invalid numeric value
-            (10000, None), // Invalid numeric value
-            (12345, None), // Invalid numeric value
+            (100, Ok(FontWeight::Thin)),
+            (300, Ok(FontWeight::Light)),
+            (400, Ok(FontWeight::Normal)),
+            (600, Ok(FontWeight::SemiBold)),
+            (700, Ok(FontWeight::Bold)),
+            (800, Ok(FontWeight::ExtraBold)),
+            (900, Ok(FontWeight::Black)),
+            (950, Ok(FontWeight::ExtraBlack)),
+            (123, Ok(FontWeight::Numeric(123))),
+            (0, Err(Error::NumberWithin(1, 1000))),
+            (1001, Err(Error::NumberWithin(1, 1000))),
         ];
 
         for (input, expected) in test_cases {
-            let result = FontWeight::from_numeric(input);
+            let result = FontWeight::try_from(input);
             assert_eq!(result, expected);
         }
     }

@@ -1,37 +1,35 @@
 use std::{collections::HashMap, path::Path};
 
-use crate::error::BuildError;
+use crate::error::{BuildError, Error};
 use crate::parser::{
     group::Group,
     token::Value,
     types::{DesignTokens, TokenOrGroup},
 };
-use crate::types::{
-    alias::Alias, color::Color, dimension::Dimension, font_family::FontFamily, number::Number,
-};
+use crate::types::alias::Alias;
 use convert_case::{Case, Casing};
 use proc_macro2::{Ident, Span, TokenStream};
-use quote::quote;
+use quote::{quote, ToTokens};
 
 pub fn build(path: impl AsRef<str>) -> Result<(), BuildError> {
     use tinyjson::JsonValue;
 
-    let content = std::fs::read_to_string(path.as_ref())?;
+    let content = std::fs::read_to_string(path.as_ref()).map_err(BuildError::Read)?;
     let json: JsonValue = content.parse()?;
-    let map = json.get().ok_or(BuildError::Parse)?;
+    let map = json.get().ok_or(Error::ExpectedObject)?;
 
-    let tokens = DesignTokens::from_map(map).ok_or(BuildError::Parse)?;
-    let code = generate(tokens);
+    let tokens = DesignTokens::from_map(map)?;
+    let code = generate(&tokens);
 
     let output = Path::new(&std::env::var("OUT_DIR")?).join("design_tokens.rs");
 
-    std::fs::write(&output, code.to_string())?;
+    std::fs::write(&output, code.to_string()).map_err(BuildError::Write)?;
     rustfmt(&output)?;
 
     Ok(())
 }
 
-fn generate(tokens: DesignTokens) -> TokenStream {
+fn generate(tokens: &DesignTokens) -> TokenStream {
     Generator::new(tokens).generate()
 }
 
@@ -40,7 +38,7 @@ struct Generator {
 }
 
 impl Generator {
-    fn new(tokens: DesignTokens) -> Self {
+    fn new(tokens: &DesignTokens) -> Self {
         let root = Group {
             items: tokens.items.clone(),
             description: Some("Root-level Design Tokens type".to_owned()),
@@ -90,7 +88,7 @@ impl Generator {
 
     fn field_instance(
         &self,
-        field: &String,
+        field: &str,
         kind: &TokenOrGroup,
         parents: Vec<Ident>,
     ) -> (Ident, TokenStream) {
@@ -156,12 +154,12 @@ impl Generator {
 
     fn token_or_group_impl(&self, item: &str, token_or_group: &TokenOrGroup) -> TokenStream {
         match token_or_group {
-            TokenOrGroup::Token(_) => return quote! {},
+            TokenOrGroup::Token(_) => quote! {},
             TokenOrGroup::Group(group) => self.module_impl(item, group),
         }
     }
 
-    fn struct_field(&self, field: &String, kind: &TokenOrGroup) -> (Ident, TokenStream) {
+    fn struct_field(&self, field: &str, kind: &TokenOrGroup) -> (Ident, TokenStream) {
         let key = self.field_ident(field);
         let value = match kind {
             TokenOrGroup::Token(token) => self.token_kind(&token.value),
@@ -175,6 +173,7 @@ impl Generator {
         (key, value)
     }
 
+    #[allow(clippy::unused_self)]
     fn field_ident(&self, field: &str) -> Ident {
         let key = if field.starts_with('_') {
             format!("_{}", field.to_case(Case::Snake))
@@ -191,8 +190,7 @@ impl Generator {
             reference = match reference {
                 TokenOrGroup::Token(_) => {
                     return Err(format!(
-                        "alias path segment {} points to value, but group was expected.",
-                        key
+                        "alias path segment {key} points to value, but group was expected."
                     ));
                 }
                 TokenOrGroup::Group(group) => match group.items.get(key) {
@@ -249,8 +247,7 @@ impl Generator {
             reference = match reference {
                 TokenOrGroup::Token(_) => {
                     return Err(format!(
-                        "alias path segment {} points to value, but group was expected.",
-                        key
+                        "alias path segment {key} points to value, but group was expected."
                     ));
                 }
                 TokenOrGroup::Group(group) => match group.items.get(key) {
@@ -275,37 +272,21 @@ impl Generator {
     }
 
     fn token_value(&self, value: &Value) -> TokenStream {
-        let kind = self.token_kind(value);
-        let value = match value {
-            Value::Color(Color { r, g, b, a }) => quote! { { r: #r, g: #g, b: #b, a: #a } },
-            Value::Number(Number(v)) => quote! { (#v) },
-            Value::Alias(alias) => return self.alias_value(alias).unwrap(),
-            Value::FontFamily(FontFamily { primary, fallbacks }) => {
-                quote! { {
-                    primary: #primary.to_owned(),
-                    fallbacks: vec![#( #fallbacks.to_owned(),)*],
-                } }
-            }
-            Value::Dimension(v) => match v {
-                Dimension::Pixels(v) => {
-                    quote! { ::Pixels(#v) }
-                }
-                Dimension::Rems(_) => todo!(),
-            },
-            v => todo!("{:?}", v),
-            // Value::FontWeight(v) => quote! { #v },
-            // Value::Duration(v) => quote! { #v },
-            // Value::CubicBezier(v) => quote! { #v },
-            // Value::StrokeStyle(v) => quote! { #v },
-            // Value::Border(v) => quote! { #v },
-            // Value::Transition(v) => quote! { #v },
-            // Value::Shadow(v) => quote! { #v },
-            // Value::Gradient(v) => quote! { #v },
-            // Value::Typography(v) => quote! { #v },
-        };
-
-        quote! {
-            #kind #value
+        match value {
+            Value::Alias(alias) => self.alias_value(alias).unwrap(),
+            Value::Border(v) => v.to_token_stream(),
+            Value::Color(v) => v.to_token_stream(),
+            Value::CubicBezier(v) => v.to_token_stream(),
+            Value::Dimension(v) => v.to_token_stream(),
+            Value::Duration(v) => v.to_token_stream(),
+            Value::FontFamily(v) => v.to_token_stream(),
+            Value::FontWeight(v) => v.to_token_stream(),
+            Value::Gradient(v) => v.to_token_stream(),
+            Value::Number(v) => v.to_token_stream(),
+            Value::Shadow(v) => v.to_token_stream(),
+            Value::StrokeStyle(v) => v.to_token_stream(),
+            Value::Transition(v) => v.to_token_stream(),
+            Value::Typography(v) => v.to_token_stream(),
         }
     }
 }
@@ -316,7 +297,7 @@ fn rustfmt(path: &Path) -> Result<(), BuildError> {
     use std::process::Command;
 
     Command::new(std::env::var("RUSTFMT").unwrap_or_else(|_| "rustfmt".to_string()))
-        .args(&["--emit", "files"])
+        .args(["--emit", "files"])
         .arg(path)
         .output()
         .map_err(BuildError::Fmt)?;
@@ -357,9 +338,9 @@ mod tests {
             let value: JsonValue = case.parse().unwrap();
             let tokens = DesignTokens::from_map(value.get().unwrap()).unwrap();
 
-            let tokens = generate(tokens);
+            let tokens = generate(&tokens);
             let abstract_file: File =
-                syn::parse2(tokens.clone()).unwrap_or_else(|err| panic!("{err}:\n\n{}", tokens));
+                syn::parse2(tokens.clone()).unwrap_or_else(|err| panic!("{err}:\n\n{tokens}"));
             let code = prettyplease::unparse(&abstract_file);
 
             insta::assert_snapshot!(code.to_string());

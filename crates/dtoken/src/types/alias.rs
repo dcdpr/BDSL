@@ -40,38 +40,53 @@
 //! find a token with an explicit value. Circular references are not allowed. If a design token
 //! file contains circular references, then the value of all tokens in that chain is unknown and an
 //! appropriate error or warning message SHOULD be displayed to the user.
+
+use std::str::FromStr;
+
+use crate::error::Error;
+
 #[derive(Debug, Clone, PartialEq)]
 pub struct Alias {
-    pub path_segments: Vec<String>,
+    pub(crate) path_segments: Vec<String>,
 }
 
-impl Alias {
-    pub fn from_str(s: &str) -> Option<Self> {
-        if s.starts_with('{') && s.ends_with('}') {
-            let path = &s[1..s.len() - 1]; // Remove the curly braces
-            let path_segments = path.split('.').map(String::from).collect();
-            Some(Self { path_segments })
-        } else {
-            None
+impl FromStr for Alias {
+    type Err = Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        if !s.starts_with('{') {
+            return Err(Error::MissingToken('{'));
         }
+        if !s.ends_with('}') {
+            return Err(Error::MissingToken('}'));
+        }
+        if s.len() < 3 {
+            return Err(Error::InvalidFormat("empty alias"));
+        }
+
+        let path = &s[1..s.len() - 1]; // Remove the curly braces
+        let path_segments = path.split('.').map(String::from).collect();
+        Ok(Self { path_segments })
     }
 }
 
 #[cfg(test)]
 mod tests {
+    use std::str::FromStr;
+
     use super::*;
 
     #[test]
     fn test_alias_from_str() {
         #[rustfmt::skip]
         let test_cases = vec![
-            ("{foo.bar}", Some(Alias { path_segments: vec!["foo".to_string(), "bar".to_string()] })),
-            ("{abc.xyz}", Some(Alias { path_segments: vec!["abc".to_string(), "xyz".to_string()] })),
-            ("{token}", Some(Alias { path_segments: vec!["token".to_string()] })),
-            ("not_an_alias", None),
-            ("{}valid{}", Some(Alias { path_segments: vec!["}valid{".to_string()] })),
-            ("{foo.bar", None),
-            ("foo.bar}", None),
+            ("{foo.bar}", Ok(Alias { path_segments: vec!["foo".to_string(), "bar".to_string()] })),
+            ("{abc.xyz}", Ok(Alias { path_segments: vec!["abc".to_string(), "xyz".to_string()] })),
+            ("{token}", Ok(Alias { path_segments: vec!["token".to_string()] })),
+            ("not_an_alias", Err(Error::MissingToken('{'))),
+            ("{}valid{}", Ok(Alias { path_segments: vec!["}valid{".to_string()] })),
+            ("{foo.bar", Err(Error::MissingToken('}'))),
+            ("foo.bar}", Err(Error::MissingToken('{'))),
         ];
 
         for (input, expected) in test_cases {
