@@ -20,6 +20,13 @@ unused = { level = "warn", priority = -1 } # See: <https://github.com/rust-lang/
 [lints.clippy]
 all = { level = "warn", priority = -1 }
 pedantic = { level = "warn", priority = -1 }
+similar_names = "allow"
+module_name_repetitions = "allow"
+missing_errors_doc = "allow"                 # TODO
+cast_lossless = "allow"
+cast_possible_truncation = "allow"
+doc_markdown = "allow"
+too_many_lines = "allow"                     # TODO
 
 [dependencies]
 convert_case = { version = "0.6", default-features = false, optional = true }
