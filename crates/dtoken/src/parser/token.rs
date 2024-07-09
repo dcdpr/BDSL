@@ -1,12 +1,15 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, str::FromStr};
 
 use tinyjson::JsonValue;
 
-use crate::types::{
-    alias::Alias, border::Border, color::Color, cubic_bezier::CubicBezier, dimension::Dimension,
-    duration::Duration, font_family::FontFamily, font_weight::FontWeight, gradient::Gradient,
-    number::Number, shadow::Shadow, stroke_style::StrokeStyle, transition::Transition,
-    typography::Typography,
+use crate::{
+    error::Error,
+    types::{
+        alias::Alias, border::Border, color::Color, cubic_bezier::CubicBezier,
+        dimension::Dimension, duration::Duration, font_family::FontFamily, font_weight::FontWeight,
+        gradient::Gradient, number::Number, shadow::Shadow, stroke_style::StrokeStyle,
+        transition::Transition, typography::Typography,
+    },
 };
 
 #[derive(Debug, Clone, PartialEq)]
@@ -19,61 +22,51 @@ impl Token {
     pub fn from_map(
         map: &HashMap<String, JsonValue>,
         default_type: Option<String>,
-    ) -> Option<Self> {
-        let token_type = map
-            .get("$type")
-            .and_then(|v| v.get::<String>().cloned())
-            .or(default_type);
+    ) -> Result<Self, Error> {
+        let value = map
+            .get("$value")
+            .ok_or(Error::prop("$value", Error::MustExist))?;
 
         let description = map
             .get("$description")
             .and_then(|v| v.get::<String>())
             .cloned();
 
-        let value = map.get("$value")?;
-
-        // Check if $value is an alias
+        // If $value is an alias, it doesn't require a `$type` field.
         if let Some(alias_str) = value.get::<String>() {
-            if let Some(alias) = Alias::from_str(&alias_str) {
-                return Some(Self {
+            if let Ok(alias) = Alias::from_str(alias_str) {
+                return Ok(Self {
                     value: Value::Alias(alias),
                     description,
                 });
             }
         }
 
-        let value: Value = match token_type?.as_str() {
-            "color" => Color::from_hex(value.get::<String>()?)?.into(),
-            "dimension" => Dimension::from_str(value.get::<String>()?)?.into(),
-            "fontFamily" => match value {
-                JsonValue::String(v) => FontFamily::from_str(v).into(),
-                JsonValue::Array(v) => FontFamily::from_slice(v)?.into(),
-                _ => return None,
-            },
-            "fontWeight" => match value {
-                &JsonValue::Number(v) if v == (v as u16) as f64 => {
-                    FontWeight::from_numeric(v as u16)?.into()
-                }
-                JsonValue::String(v) => FontWeight::from_str(v)?.into(),
-                _ => return None,
-            },
-            "duration" => Duration::from_str(value.get::<String>()?)?.into(),
-            "cubicBezier" => CubicBezier::from_slice(value.get::<Vec<_>>()?)?.into(),
-            "number" => Number(*value.get::<f64>()?).into(),
-            "strokeStyle" => match value {
-                JsonValue::String(v) => StrokeStyle::from_str(v)?.into(),
-                JsonValue::Object(v) => StrokeStyle::from_map(v)?.into(),
-                _ => return None,
-            },
-            "border" => Border::from_map(value.get()?)?.into(),
-            "transition" => Transition::from_map(value.get()?)?.into(),
-            "shadow" => Shadow::from_map(value.get()?)?.into(),
-            "gradient" => Gradient::from_slice(value.get::<Vec<_>>()?)?.into(),
-            "typography" => Typography::from_map(value.get()?)?.into(),
-            _ => return None,
-        };
+        let token_type = map
+            .get("$type")
+            .and_then(|v| v.get::<String>().cloned())
+            .or(default_type)
+            .ok_or(Error::prop("$type", Error::MustExist))?;
 
-        Some(Self { value, description })
+        let value: Value = match token_type.as_str() {
+            "color" => Color::try_from(value).map(Into::into),
+            "dimension" => Dimension::try_from(value).map(Into::into),
+            "fontFamily" => FontFamily::try_from(value).map(Into::into),
+            "fontWeight" => FontWeight::try_from(value).map(Into::into),
+            "duration" => Duration::try_from(value).map(Into::into),
+            "cubicBezier" => CubicBezier::try_from(value).map(Into::into),
+            "number" => Number::try_from(value).map(Into::into),
+            "strokeStyle" => StrokeStyle::try_from(value).map(Into::into),
+            "border" => Border::try_from(value).map(Into::into),
+            "transition" => Transition::try_from(value).map(Into::into),
+            "shadow" => Shadow::try_from(value).map(Into::into),
+            "gradient" => Gradient::try_from(value).map(Into::into),
+            "typography" => Typography::try_from(value).map(Into::into),
+            _ => Err(Error::UnexpectedType),
+        }
+        .map_err(|err| Error::kind(token_type, err))?;
+
+        Ok(Self { value, description })
     }
 }
 
@@ -190,7 +183,7 @@ mod tests {
                     ("$description".to_string(), String("Red color".to_owned())),
                 ]),
                 None,
-                Some(Token {
+                Ok(Token {
                     value: Value::Color(Color {
                         r: 255,
                         g: 87,
@@ -206,7 +199,7 @@ mod tests {
                     ("$value".to_string(), String("16px".to_owned())),
                 ]),
                 None,
-                Some(Token {
+                Ok(Token {
                     value: Value::Dimension(Dimension::Pixels(16.0)),
                     description: None,
                 }),
@@ -217,7 +210,7 @@ mod tests {
                     ("$value".to_string(), String("Arial, sans-serif".to_owned())),
                 ]),
                 None,
-                Some(Token {
+                Ok(Token {
                     value: Value::FontFamily(FontFamily {
                         primary: "Arial, sans-serif".to_owned(),
                         fallbacks: vec![],
@@ -231,7 +224,7 @@ mod tests {
                     ("$value".to_string(), String("bold".to_owned())),
                 ]),
                 None,
-                Some(Token {
+                Ok(Token {
                     value: Value::FontWeight(FontWeight::from_str("bold").unwrap()),
                     description: None,
                 }),
@@ -242,7 +235,7 @@ mod tests {
                     ("$value".to_string(), String("500ms".to_owned())),
                 ]),
                 None,
-                Some(Token {
+                Ok(Token {
                     value: Value::Duration(Duration {
                         milliseconds: 500.0,
                     }),
@@ -258,7 +251,7 @@ mod tests {
                     ),
                 ]),
                 None,
-                Some(Token {
+                Ok(Token {
                     value: Value::CubicBezier(CubicBezier {
                         p1x: 0.0,
                         p1y: 0.5,
@@ -274,7 +267,7 @@ mod tests {
                     ("$value".to_string(), Number(42.0)),
                 ]),
                 None,
-                Some(Token {
+                Ok(Token {
                     value: Value::Number(super::Number(42.0)),
                     description: None,
                 }),
@@ -285,7 +278,7 @@ mod tests {
                     ("$value".to_string(), String("dotted".to_owned())),
                 ]),
                 None,
-                Some(Token {
+                Ok(Token {
                     value: Value::StrokeStyle(StrokeStyle::from_str("dotted").unwrap()),
                     description: None,
                 }),
@@ -303,7 +296,7 @@ mod tests {
                     ),
                 ]),
                 None,
-                Some(Token {
+                Ok(Token {
                     value: Value::Border(Border {
                         color: Color::from_hex("#000000").unwrap(),
                         width: Dimension::from_str("2px").unwrap(),
@@ -333,7 +326,7 @@ mod tests {
                     ),
                 ]),
                 None,
-                Some(Token {
+                Ok(Token {
                     value: Value::Transition(Transition {
                         duration: Duration {
                             milliseconds: 500.0,
@@ -366,7 +359,7 @@ mod tests {
                     ),
                 ]),
                 None,
-                Some(Token {
+                Ok(Token {
                     value: Value::Shadow(Shadow {
                         color: Color::from_hex("#000000").unwrap(),
                         offset_x: Dimension::from_str("2px").unwrap(),
@@ -395,7 +388,7 @@ mod tests {
                     ),
                 ]),
                 None,
-                Some(Token {
+                Ok(Token {
                     value: Value::Gradient(Gradient {
                         stops: vec![
                             GradientStop {
@@ -439,7 +432,7 @@ mod tests {
                     ),
                 ]),
                 None,
-                Some(Token {
+                Ok(Token {
                     value: Value::Typography(Typography {
                         font_family: FontFamily {
                             primary: "Arial, sans-serif".to_owned(),
@@ -460,7 +453,7 @@ mod tests {
                     ("$description".to_string(), String("Red color".to_owned())),
                 ]),
                 Some("color".to_owned()),
-                Some(Token {
+                Ok(Token {
                     value: Value::Color(Color {
                         r: 255,
                         g: 87,
@@ -473,10 +466,18 @@ mod tests {
             (
                 HashMap::from([("$value".to_string(), String("16px".to_owned()))]),
                 Some("dimension".to_owned()),
-                Some(Token {
+                Ok(Token {
                     value: Value::Dimension(Dimension::Pixels(16.0)),
                     description: None,
                 }),
+            ),
+            (
+                HashMap::from([("$value".to_string(), String("16".to_owned()))]),
+                Some("dimension".to_owned()),
+                Err(Error::kind(
+                    "dimension".to_owned(),
+                    Error::InvalidUnit(&["px", "rem"]),
+                )),
             ),
         ];
 
