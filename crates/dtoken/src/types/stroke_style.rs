@@ -146,57 +146,6 @@ impl quote::ToTokens for LineCap {
     }
 }
 
-// /// Error type returned when a parsing error occurs.
-// #[derive(Debug, Clone, PartialEq, Eq)]
-// pub enum Error {
-//     /// Invalid style variant.
-//     StyleInvalid(String),
-//
-//     /// Missing `dashArray` property.
-//     DashArrayMissing,
-//
-//     /// `dashArray` is not of type array.
-//     DashArrayMustBeArray,
-//
-//     /// `dashArray` element must be of type string.
-//     DashArrayItemMustBeString,
-//
-//     /// `dashArray` item invalid.
-//     DashArrayItemInvalid(dimension::Error),
-//
-//     /// Missing `lineCap` property.
-//     LineCapMissing,
-//
-//     /// `lineCap` is not of type array.
-//     LineCapMustBeString,
-//
-//     /// Invalid `lineCap` variant.
-//     LineCapInvalid(String),
-// }
-//
-// impl std::error::Error for Error {}
-//
-// impl fmt::Display for Error {
-//     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-//         match self {
-//             Self::StyleInvalid(style) => write!(f, "style variant unknown: {style}"),
-//             Self::DashArrayMissing => write!(f, "dashArray property must be present"),
-//             Self::DashArrayMustBeArray => write!(f, "dashArray property must be an array"),
-//             Self::DashArrayItemMustBeString => write!(f, "dashArray array item must be a string"),
-//             Self::DashArrayItemInvalid(err) => write!(f, "dashArray array item invalid: {err}"),
-//             Self::LineCapMissing => write!(f, "lineCap property must be present"),
-//             Self::LineCapMustBeString => write!(f, "lineCap property must be an array"),
-//             Self::LineCapInvalid(style) => write!(f, "lineCap variant unknown: {style}"),
-//         }
-//     }
-// }
-//
-// impl From<dimension::Error> for Error {
-//     fn from(err: dimension::Error) -> Self {
-//         Self::DashArrayItemInvalid(err)
-//     }
-// }
-
 #[cfg(test)]
 mod tests {
     use super::*;
