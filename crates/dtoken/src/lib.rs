@@ -21,3 +21,6 @@ mod build;
 
 #[cfg(feature = "build")]
 pub use build::build;
+
+#[cfg(feature = "bevy")]
+pub mod bevy;
