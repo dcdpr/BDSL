@@ -22,6 +22,8 @@
 
 use tinyjson::JsonValue;
 
+use crate::error::Error;
+
 /// See module docs.
 #[derive(Debug, Clone, PartialEq)]
 pub struct FontFamily {
@@ -29,26 +31,64 @@ pub struct FontFamily {
     pub fallbacks: Vec<String>,
 }
 impl FontFamily {
-    pub fn from_str(s: &str) -> Self {
+    #[must_use]
+    pub fn primary(s: &str) -> Self {
         Self {
             primary: s.to_owned(),
             fallbacks: vec![],
         }
     }
-    pub fn from_slice(value: &[JsonValue]) -> Option<Self> {
+
+    #[must_use]
+    pub fn as_str(&self) -> &str {
+        self.primary.as_str()
+    }
+}
+
+impl TryFrom<&JsonValue> for FontFamily {
+    type Error = Error;
+
+    fn try_from(value: &JsonValue) -> Result<Self, Self::Error> {
+        match value {
+            JsonValue::String(v) => Ok(Self::primary(v)),
+            JsonValue::Array(v) => Self::try_from(v.as_slice()),
+            _ => Err(Error::UnexpectedType),
+        }
+    }
+}
+
+impl TryFrom<&[JsonValue]> for FontFamily {
+    type Error = Error;
+
+    fn try_from(value: &[JsonValue]) -> Result<Self, Self::Error> {
         value
             .iter()
-            .map(|val| val.get::<String>().map(ToOwned::to_owned))
-            .collect::<Option<Vec<_>>>()?
+            .map(|val| {
+                val.get::<String>()
+                    .ok_or(Error::ExpectedItemString)
+                    .map(ToOwned::to_owned)
+            })
+            .collect::<Result<Vec<_>, Error>>()?
             .split_first()
             .map(|(primary, fallbacks)| FontFamily {
                 primary: primary.to_owned(),
                 fallbacks: fallbacks.to_vec(),
             })
+            .ok_or(Error::ExpectedArray)
     }
+}
 
-    pub fn as_str(&self) -> &str {
-        self.primary.as_str()
+#[cfg(feature = "build")]
+impl quote::ToTokens for FontFamily {
+    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
+        let FontFamily { primary, fallbacks } = self;
+
+        let new = quote::quote! { dtoken::types::font_family::FontFamily {
+            primary: #primary.to_owned(),
+            fallbacks: vec![#( #fallbacks.to_owned(),)*],
+        } };
+
+        tokens.extend(new);
     }
 }
 
@@ -83,7 +123,7 @@ mod tests {
         ];
 
         for (input, expected) in test_cases {
-            let result = FontFamily::from_str(input);
+            let result = FontFamily::primary(input);
             assert_eq!(result, expected);
         }
     }
@@ -95,7 +135,7 @@ mod tests {
         let test_cases = vec![
             (
                 vec![String("Arial".to_owned())],
-                Some(FontFamily {
+                Ok(FontFamily {
                     primary: "Arial".to_owned(),
                     fallbacks: vec![],
                 }),
@@ -106,7 +146,7 @@ mod tests {
                     String("Arial".to_owned()),
                     String("sans-serif".to_owned()),
                 ],
-                Some(FontFamily {
+                Ok(FontFamily {
                     primary: "Helvetica".to_owned(),
                     fallbacks: vec!["Arial".to_owned(), "sans-serif".to_owned()],
                 }),
@@ -117,19 +157,16 @@ mod tests {
                     String("'Noto Sans'".to_owned()),
                     String("sans-serif".to_owned()),
                 ],
-                Some(FontFamily {
+                Ok(FontFamily {
                     primary: "Roboto".to_owned(),
                     fallbacks: vec!["'Noto Sans'".to_owned(), "sans-serif".to_owned()],
                 }),
             ),
-            (
-                vec![Number(12.)],
-                None, // Invalid JSON value
-            ),
+            (vec![Number(12.)], Err(Error::ExpectedItemString)),
         ];
 
         for (input, expected) in test_cases {
-            let result = FontFamily::from_slice(&input);
+            let result = FontFamily::try_from(input.as_slice());
             assert_eq!(result, expected);
         }
     }

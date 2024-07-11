@@ -2,6 +2,8 @@ use std::collections::HashMap;
 
 use tinyjson::JsonValue;
 
+use crate::error::Error;
+
 use super::types::TokenOrGroup;
 
 #[derive(Debug, Clone, PartialEq)]
@@ -16,14 +18,14 @@ impl Group {
     pub fn from_value(
         map: &HashMap<String, JsonValue>,
         mut default_type: Option<String>,
-    ) -> Option<Self> {
+    ) -> Result<Self, Error> {
         let mut items = HashMap::new();
         let mut description = None;
         let mut extensions = HashMap::new();
 
         if let Some(kind) = map.get("$type").and_then(|v| v.get::<String>()) {
-            if !Self::is_valid_type(&kind) {
-                return None; // Invalid type value
+            if !Self::is_valid_type(kind) {
+                return Err(Error::UnexpectedType);
             }
 
             default_type = Some(kind.clone());
@@ -42,11 +44,11 @@ impl Group {
                     let item = TokenOrGroup::from_map(map, default_type.clone())?;
                     items.insert(key.clone(), item);
                 }
-                _ => return None,
+                _ => return Err(Error::UnexpectedType),
             }
         }
 
-        Some(Group {
+        Ok(Group {
             items,
             description,
             default_type,
@@ -131,7 +133,7 @@ mod tests {
                     Object(HashMap::from([("key1".to_string(), Number(42.0))])),
                 ),
             ]),
-            Some(Group {
+            Ok(Group {
                 items: vec![
                     (
                         "group1".to_owned(),

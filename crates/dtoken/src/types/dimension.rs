@@ -33,7 +33,11 @@
 //!
 //! See: <https://tr.designtokens.org/format/#dimension>.
 
-use std::ops::Deref;
+use std::str::FromStr;
+
+use tinyjson::JsonValue;
+
+use crate::error::Error;
 
 /// See module docs.
 #[derive(Debug, Copy, Clone, PartialEq)]
@@ -43,38 +47,65 @@ pub enum Dimension {
 }
 
 impl Dimension {
-    pub fn as_f32(&self) -> f32 {
+    #[must_use]
+    pub fn as_px(&self) -> Option<f64> {
         match self {
-            Self::Pixels(v) => *v as f32,
-            Self::Rems(v) => *v as f32,
+            Self::Pixels(v) => Some(*v),
+            Self::Rems(_) => None,
+        }
+    }
+
+    #[must_use]
+    pub fn as_rem(&self) -> Option<f64> {
+        match self {
+            Self::Pixels(_) => None,
+            Self::Rems(v) => Some(*v),
         }
     }
 }
 
-impl Deref for Dimension {
-    type Target = f64;
+impl TryFrom<&JsonValue> for Dimension {
+    type Error = Error;
 
-    fn deref(&self) -> &Self::Target {
-        match self {
-            Self::Pixels(v) => v,
-            Self::Rems(v) => v,
-        }
+    fn try_from(value: &JsonValue) -> Result<Self, Self::Error> {
+        value
+            .get::<String>()
+            .ok_or(Error::ExpectedString)
+            .and_then(|v| Self::from_str(v))
     }
 }
 
-impl Dimension {
-    pub fn from_str(s: &str) -> Option<Self> {
+impl FromStr for Dimension {
+    type Err = Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
         if s.starts_with('-') {
-            return None; // Reject negative values
+            return Err(Error::NumberMustBePositive);
         }
 
         if let Some(s) = s.strip_suffix("px") {
-            s.parse::<f64>().ok().map(Dimension::Pixels)
+            s.parse::<f64>().map_err(Error::from).map(Dimension::Pixels)
         } else if let Some(s) = s.strip_suffix("rem") {
-            s.parse::<f64>().ok().map(Dimension::Rems)
+            s.parse::<f64>().map_err(Error::from).map(Dimension::Rems)
         } else {
-            None
+            Err(Error::InvalidUnit(&["px", "rem"]))
         }
+    }
+}
+
+#[cfg(feature = "build")]
+impl quote::ToTokens for Dimension {
+    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
+        let new = match self {
+            Dimension::Pixels(v) => {
+                quote::quote! { dtoken::types::dimension::Dimension::Pixels(#v) }
+            }
+            Dimension::Rems(v) => {
+                quote::quote! { dtoken::types::dimension::Dimension::Rems(#v) }
+            }
+        };
+
+        tokens.extend(new);
     }
 }
 
@@ -86,15 +117,15 @@ mod tests {
     fn test_from_str() {
         #[rustfmt::skip]
         let test_cases = vec![
-            ("10px",   Some(Dimension::Pixels(10.0))),
-            ("2.5px",  Some(Dimension::Pixels(2.5))),
-            ("3.0rem", Some(Dimension::Rems(3.0))),
-            ("0.5rem", Some(Dimension::Rems(0.5))),
-            ("1.2em",  None), // Invalid unit
-            ("abcpx",  None), // Invalid number
-            ("",       None), // Empty input
-            ("5",      None), // Missing unit
-            ("-2px",   None), // Negative value not supported
+            ("10px",   Ok(Dimension::Pixels(10.0))),
+            ("2.5px",  Ok(Dimension::Pixels(2.5))),
+            ("3.0rem", Ok(Dimension::Rems(3.0))),
+            ("0.5rem", Ok(Dimension::Rems(0.5))),
+            ("1.2em",  Err(Error::InvalidUnit(&["px", "rem"]))),
+            ("abcpx",  Err(Error::InvalidNumber("invalid float literal".to_owned()))),
+            ("",       Err(Error::InvalidUnit(&["px", "rem"]))),
+            ("5",      Err(Error::InvalidUnit(&["px", "rem"]))),
+            ("-2px",   Err(Error::NumberMustBePositive)),
         ];
 
         for (input, expected) in test_cases {

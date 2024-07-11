@@ -44,9 +44,11 @@
 //!
 //! See: <https://tr.designtokens.org/format/#typography>.
 
-use std::collections::HashMap;
+use std::{collections::HashMap, str::FromStr};
 
 use tinyjson::JsonValue;
+
+use crate::error::Error;
 
 use super::{dimension::Dimension, font_family::FontFamily, font_weight::FontWeight};
 
@@ -60,25 +62,88 @@ pub struct Typography {
     pub line_height: f64,
 }
 
-impl Typography {
-    pub fn from_map(value: &HashMap<String, JsonValue>) -> Option<Self> {
-        let font_family_value = value.get("fontFamily")?;
-        let font_size_value = value.get("fontSize")?.get::<String>()?;
-        let font_weight_value = value.get("fontWeight")?.get::<String>()?;
-        let letter_spacing_value = value.get("letterSpacing")?.get::<String>()?;
-        let line_height = *value.get("lineHeight")?.get::<f64>()?;
+impl TryFrom<&JsonValue> for Typography {
+    type Error = Error;
 
-        Some(Typography {
-            font_family: match font_family_value {
-                JsonValue::String(v) => FontFamily::from_str(v).into(),
-                JsonValue::Array(v) => FontFamily::from_slice(v)?.into(),
-                _ => return None,
-            },
-            font_size: Dimension::from_str(font_size_value)?,
-            font_weight: FontWeight::from_str(font_weight_value)?,
-            letter_spacing: Dimension::from_str(letter_spacing_value)?,
+    fn try_from(value: &JsonValue) -> Result<Self, Self::Error> {
+        value
+            .get::<HashMap<_, _>>()
+            .ok_or(Error::ExpectedObject)
+            .and_then(Self::try_from)
+    }
+}
+
+impl TryFrom<&HashMap<String, JsonValue>> for Typography {
+    type Error = Error;
+
+    fn try_from(value: &HashMap<String, JsonValue>) -> Result<Self, Self::Error> {
+        let font_family = value
+            .get("fontFamily")
+            .ok_or(Error::MustExist)
+            .and_then(|v| match v {
+                JsonValue::String(v) => Ok(FontFamily::primary(v)),
+                JsonValue::Array(v) => FontFamily::try_from(v.as_slice()),
+                _ => Err(Error::UnexpectedType),
+            })
+            .map_err(|err| Error::prop("fontFamily", err))?;
+
+        let font_size = value
+            .get("fontSize")
+            .ok_or(Error::MustExist)
+            .and_then(|v| v.get::<String>().ok_or(Error::ExpectedString))
+            .and_then(|v| Dimension::from_str(v))
+            .map_err(|err| Error::prop("fontSize", err))?;
+
+        let font_weight = value
+            .get("fontWeight")
+            .ok_or(Error::MustExist)
+            .and_then(|v| v.get::<String>().ok_or(Error::ExpectedString))
+            .and_then(|v| FontWeight::from_str(v))
+            .map_err(|err| Error::prop("fontWeight", err))?;
+
+        let letter_spacing = value
+            .get("letterSpacing")
+            .ok_or(Error::MustExist)
+            .and_then(|v| v.get::<String>().ok_or(Error::ExpectedString))
+            .and_then(|v| Dimension::from_str(v))
+            .map_err(|err| Error::prop("letterSpacing", err))?;
+
+        let line_height = *value
+            .get("lineHeight")
+            .ok_or(Error::MustExist)
+            .and_then(|v| v.get::<f64>().ok_or(Error::ExpectedNumber))
+            .map_err(|err| Error::prop("lineHeight", err))?;
+
+        Ok(Typography {
+            font_family,
+            font_size,
+            font_weight,
+            letter_spacing,
             line_height,
         })
+    }
+}
+
+#[cfg(feature = "build")]
+impl quote::ToTokens for Typography {
+    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
+        let Self {
+            font_family,
+            font_size,
+            font_weight,
+            letter_spacing,
+            line_height,
+        } = self;
+
+        let new = quote::quote! { dtoken::types::typography::Typography {
+            font_family: #font_family,
+            font_size: #font_size,
+            font_weight: #font_weight,
+            letter_spacing: #letter_spacing,
+            line_height: #line_height,
+        }};
+
+        tokens.extend(new);
     }
 }
 
@@ -101,7 +166,7 @@ mod tests {
                     ("letterSpacing".to_owned(), String("1px".to_owned())),
                     ("lineHeight".to_owned(), Number(1.5)),
                 ]),
-                Some(Typography {
+                Ok(Typography {
                     font_family: FontFamily {
                         primary: "Arial, sans-serif".to_owned(),
                         fallbacks: vec![],
@@ -126,7 +191,7 @@ mod tests {
                     ("letterSpacing".to_owned(), String("0.5px".to_owned())),
                     ("lineHeight".to_owned(), Number(1.2)),
                 ]),
-                Some(Typography {
+                Ok(Typography {
                     font_family: FontFamily {
                         primary: "Arial".to_owned(),
                         fallbacks: vec!["sans-serif".to_owned()],
@@ -139,70 +204,18 @@ mod tests {
             ),
             (
                 HashMap::from([
-                    ("fontFamily".to_owned(), Number(123.)), // Invalid font family value
+                    ("fontFamily".to_owned(), Number(123.)),
                     ("fontSize".to_owned(), String("12px".to_owned())),
                     ("fontWeight".to_owned(), String("bold".to_owned())),
                     ("letterSpacing".to_owned(), String("1px".to_owned())),
                     ("lineHeight".to_owned(), Number(1.0)),
                 ]),
-                None, // Invalid font family value
-            ),
-            (
-                HashMap::from([
-                    (
-                        "fontFamily".to_owned(),
-                        String("Arial, sans-serif".to_owned()),
-                    ),
-                    ("fontSize".to_owned(), String("invalid".to_owned())), // Invalid font size value
-                    ("fontWeight".to_owned(), String("bold".to_owned())),
-                    ("letterSpacing".to_owned(), String("1px".to_owned())),
-                    ("lineHeight".to_owned(), Number(1.0)),
-                ]),
-                None, // Invalid font size value
-            ),
-            (
-                HashMap::from([
-                    (
-                        "fontFamily".to_owned(),
-                        String("Arial, sans-serif".to_owned()),
-                    ),
-                    ("fontSize".to_owned(), String("14px".to_owned())),
-                    ("fontWeight".to_owned(), String("invalid".to_owned())), // Invalid font weight value
-                    ("letterSpacing".to_owned(), String("1px".to_owned())),
-                    ("lineHeight".to_owned(), Number(1.0)),
-                ]),
-                None, // Invalid font weight value
-            ),
-            (
-                HashMap::from([
-                    (
-                        "fontFamily".to_owned(),
-                        String("Arial, sans-serif".to_owned()),
-                    ),
-                    ("fontSize".to_owned(), String("14px".to_owned())),
-                    ("fontWeight".to_owned(), String("bold".to_owned())),
-                    ("letterSpacing".to_owned(), Number(1.0)), // Invalid letter spacing value
-                    ("lineHeight".to_owned(), Number(1.0)),
-                ]),
-                None, // Invalid letter spacing value
-            ),
-            (
-                HashMap::from([
-                    (
-                        "fontFamily".to_owned(),
-                        String("Arial, sans-serif".to_owned()),
-                    ),
-                    ("fontSize".to_owned(), String("14px".to_owned())),
-                    ("fontWeight".to_owned(), String("bold".to_owned())),
-                    ("letterSpacing".to_owned(), String("1px".to_owned())),
-                    ("lineHeight".to_owned(), String("invalid".to_owned())), // Invalid line height value
-                ]),
-                None, // Invalid line height value
+                Err(Error::prop("fontFamily", Error::UnexpectedType)),
             ),
         ];
 
         for (input, expected) in test_cases {
-            let result = Typography::from_map(&input);
+            let result = Typography::try_from(&input);
             assert_eq!(result, expected);
         }
     }

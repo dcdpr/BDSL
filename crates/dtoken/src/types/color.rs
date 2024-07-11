@@ -21,6 +21,10 @@
 //!
 //! See: <https://tr.designtokens.org/format/#color>.
 
+use tinyjson::JsonValue;
+
+use crate::error::Error;
+
 /// See module documentation.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Color {
@@ -31,6 +35,7 @@ pub struct Color {
 }
 
 impl Color {
+    #[must_use]
     pub fn to_rgba(self) -> [f32; 4] {
         [
             self.r as f32 / 255.,
@@ -40,25 +45,45 @@ impl Color {
         ]
     }
 
-    pub fn from_hex(hex: &str) -> Option<Self> {
+    pub fn from_hex(hex: &str) -> Result<Self, Error> {
         let hex = hex.trim_start_matches('#');
 
         match hex.len() {
             6 => {
-                let r = u8::from_str_radix(&hex[0..2], 16).ok()?;
-                let g = u8::from_str_radix(&hex[2..4], 16).ok()?;
-                let b = u8::from_str_radix(&hex[4..6], 16).ok()?;
-                Some(Color { r, g, b, a: 255 })
+                let r = u8::from_str_radix(&hex[0..2], 16).map_err(Error::from)?;
+                let g = u8::from_str_radix(&hex[2..4], 16).map_err(Error::from)?;
+                let b = u8::from_str_radix(&hex[4..6], 16).map_err(Error::from)?;
+                Ok(Color { r, g, b, a: 255 })
             }
             8 => {
-                let r = u8::from_str_radix(&hex[0..2], 16).ok()?;
-                let g = u8::from_str_radix(&hex[2..4], 16).ok()?;
-                let b = u8::from_str_radix(&hex[4..6], 16).ok()?;
-                let a = u8::from_str_radix(&hex[6..8], 16).ok()?;
-                Some(Color { r, g, b, a })
+                let r = u8::from_str_radix(&hex[0..2], 16).map_err(Error::from)?;
+                let g = u8::from_str_radix(&hex[2..4], 16).map_err(Error::from)?;
+                let b = u8::from_str_radix(&hex[4..6], 16).map_err(Error::from)?;
+                let a = u8::from_str_radix(&hex[6..8], 16).map_err(Error::from)?;
+                Ok(Color { r, g, b, a })
             }
-            _ => None,
+            _ => Err(Error::InvalidFormat("must be 6 or 8 characters long")),
         }
+    }
+}
+
+impl TryFrom<&JsonValue> for Color {
+    type Error = Error;
+
+    fn try_from(value: &JsonValue) -> Result<Self, Self::Error> {
+        value
+            .get::<String>()
+            .ok_or(Error::ExpectedString)
+            .and_then(|v| Self::from_hex(v))
+    }
+}
+
+#[cfg(feature = "build")]
+impl quote::ToTokens for Color {
+    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
+        let Self { r, g, b, a } = self;
+
+        tokens.extend(quote::quote! { dtoken::types::color::Color { r: #r, g: #g, b: #b, a: #a } });
     }
 }
 
@@ -70,15 +95,15 @@ mod tests {
     fn test_from_hex() {
         #[rustfmt::skip]
         let test_cases = vec![
-            ("#FF0000",    Some(Color { r: 255, g: 0, b: 0, a: 255 })),
-            ("#00FF00",    Some(Color { r: 0, g: 255, b: 0, a: 255 })),
-            ("#0000FF",    Some(Color { r: 0, g: 0, b: 255, a: 255 })),
-            ("#123456",    Some(Color { r: 18, g: 52, b: 86, a: 255 })),
-            ("#AABBCCDD",  Some(Color { r: 170, g: 187, b: 204, a: 221 })),
-            ("#GHIJKL",    None), // Invalid hex characters
-            ("#12345",     None), // Invalid hex length
-            ("#123456789", None), // Invalid hex length
-            ("",           None), // Empty input
+            ("#FF0000",    Ok(Color { r: 255, g: 0, b: 0, a: 255 })),
+            ("#00FF00",    Ok(Color { r: 0, g: 255, b: 0, a: 255 })),
+            ("#0000FF",    Ok(Color { r: 0, g: 0, b: 255, a: 255 })),
+            ("#123456",    Ok(Color { r: 18, g: 52, b: 86, a: 255 })),
+            ("#AABBCCDD",  Ok(Color { r: 170, g: 187, b: 204, a: 221 })),
+            ("#GHIJKL",    Err(Error::InvalidNumber("invalid digit found in string".to_owned()))),
+            ("#12345",     Err(Error::InvalidFormat("must be 6 or 8 characters long"))),
+            ("#123456789", Err(Error::InvalidFormat("must be 6 or 8 characters long"))),
+            ("",           Err(Error::InvalidFormat("must be 6 or 8 characters long"))),
         ];
 
         for (input, expected) in test_cases {

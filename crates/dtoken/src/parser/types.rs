@@ -2,6 +2,8 @@ use std::collections::HashMap;
 
 use tinyjson::JsonValue;
 
+use crate::error::Error;
+
 use super::{group::Group, token::Token};
 
 #[derive(Debug, Clone, PartialEq)]
@@ -10,13 +12,18 @@ pub struct DesignTokens {
 }
 
 impl DesignTokens {
-    pub fn from_map(map: &HashMap<String, JsonValue>) -> Option<Self> {
+    pub fn from_map(map: &HashMap<String, JsonValue>) -> Result<Self, Error> {
         let items = map
             .iter()
-            .filter_map(|(k, v)| Some((k.to_owned(), TokenOrGroup::from_map(v.get()?, None)?)))
-            .collect();
+            .map(|(k, v)| {
+                Ok((
+                    k.to_owned(),
+                    TokenOrGroup::from_map(v.get().ok_or(Error::ExpectedObject)?, None)?,
+                ))
+            })
+            .collect::<Result<_, Error>>()?;
 
-        Some(Self { items })
+        Ok(Self { items })
     }
 }
 
@@ -29,7 +36,7 @@ impl TokenOrGroup {
     pub fn from_map(
         map: &HashMap<String, JsonValue>,
         default_type: Option<String>,
-    ) -> Option<Self> {
+    ) -> Result<Self, Error> {
         if map.contains_key("$value") {
             Token::from_map(map, default_type).map(TokenOrGroup::Token)
         } else {
@@ -37,6 +44,7 @@ impl TokenOrGroup {
         }
     }
 
+    #[must_use]
     pub fn description(&self) -> Option<&str> {
         match self {
             TokenOrGroup::Token(v) => v.description.as_deref(),
@@ -76,7 +84,7 @@ mod tests {
                         ])),
                     ),
                 ]),
-                Some(DesignTokens {
+                Ok(DesignTokens {
                     items: vec![
                         (
                             "color".to_owned(),
@@ -116,7 +124,7 @@ mod tests {
                         ("$type".to_string(), String("dimension".to_owned())),
                     ])),
                 )]),
-                Some(DesignTokens {
+                Ok(DesignTokens {
                     items: vec![(
                         "group".to_owned(),
                         TokenOrGroup::Group(Group {
@@ -161,7 +169,7 @@ mod tests {
                     ("$value".to_string(), String("#FF5733".to_owned())),
                 ]),
                 None,
-                Some(TokenOrGroup::Token(Token {
+                Ok(TokenOrGroup::Token(Token {
                     value: Value::Color(Color {
                         r: 255,
                         g: 87,
@@ -177,7 +185,7 @@ mod tests {
                     ("$value".to_string(), String("16px".to_owned())),
                 ]),
                 None,
-                Some(TokenOrGroup::Token(Token {
+                Ok(TokenOrGroup::Token(Token {
                     value: Value::Dimension(Dimension::Pixels(16.0)),
                     description: None,
                 })),
@@ -196,7 +204,7 @@ mod tests {
                 ("$type".to_string(), String("dimension".to_owned())),
             ]),
             None,
-            Some(TokenOrGroup::Group(Group {
+            Ok(TokenOrGroup::Group(Group {
                 items: HashMap::from([(
                     "group".to_string(),
                     TokenOrGroup::Group(Group {

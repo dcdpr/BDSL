@@ -34,9 +34,11 @@
 //!
 //! See: <https://tr.designtokens.org/format/#border>.
 
-use std::collections::HashMap;
+use std::{collections::HashMap, str::FromStr};
 
 use tinyjson::JsonValue;
+
+use crate::error::Error;
 
 use super::{color::Color, dimension::Dimension, stroke_style::StrokeStyle};
 
@@ -48,21 +50,69 @@ pub struct Border {
     pub style: StrokeStyle,
 }
 
-impl Border {
-    pub fn from_map(map: &HashMap<String, JsonValue>) -> Option<Self> {
-        let color_value = map.get("color")?.get::<String>()?;
-        let width_value = map.get("width")?.get::<String>()?;
-        let style_value = map.get("style")?;
+impl TryFrom<&JsonValue> for Border {
+    type Error = Error;
 
-        Some(Border {
-            color: Color::from_hex(color_value)?,
-            width: Dimension::from_str(width_value)?,
-            style: match style_value {
-                JsonValue::String(v) => StrokeStyle::from_str(v)?.into(),
-                JsonValue::Object(v) => StrokeStyle::from_map(v)?.into(),
-                _ => return None,
-            },
+    fn try_from(value: &JsonValue) -> Result<Self, Self::Error> {
+        value
+            .get::<HashMap<_, _>>()
+            .ok_or(Error::ExpectedObject)
+            .and_then(Self::try_from)
+    }
+}
+
+impl TryFrom<&HashMap<String, JsonValue>> for Border {
+    type Error = Error;
+
+    fn try_from(map: &HashMap<String, JsonValue>) -> Result<Self, Self::Error> {
+        let color = map
+            .get("color")
+            .ok_or(Error::MustExist)
+            .and_then(|v| v.get::<String>().ok_or(Error::ExpectedString))
+            .and_then(|v| Color::from_hex(v))
+            .map_err(|err| Error::prop("color", err))?;
+
+        let width = map
+            .get("width")
+            .ok_or(Error::MustExist)
+            .and_then(|v| v.get::<String>().ok_or(Error::ExpectedString))
+            .and_then(|v| Dimension::from_str(v))
+            .map_err(|err| Error::prop("width", err))?;
+
+        let style = map
+            .get("style")
+            .ok_or(Error::MustExist)
+            .and_then(|v| match v {
+                JsonValue::String(v) => StrokeStyle::from_str(v),
+                JsonValue::Object(v) => StrokeStyle::try_from(v),
+                _ => Err(Error::ExpectedString),
+            })
+            .map_err(|err| Error::prop("style", err))?;
+
+        Ok(Border {
+            color,
+            width,
+            style,
         })
+    }
+}
+
+#[cfg(feature = "build")]
+impl quote::ToTokens for Border {
+    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
+        let Self {
+            color,
+            width,
+            style,
+        } = self;
+
+        let new = quote::quote! { dtoken::types::border::Border {
+            color: #color,
+            width: #width,
+            style: #style,
+        }};
+
+        tokens.extend(new);
     }
 }
 
@@ -80,7 +130,7 @@ mod tests {
                     ("width".to_owned(), String("2px".to_owned())),
                     ("style".to_owned(), String("dotted".to_owned())),
                 ]),
-                Some(Border {
+                Ok(Border {
                     color: Color {
                         r: 255,
                         g: 87,
@@ -97,7 +147,7 @@ mod tests {
                     ("width".to_owned(), String("1rem".to_owned())),
                     ("style".to_owned(), String("solid".to_owned())),
                 ]),
-                Some(Border {
+                Ok(Border {
                     color: Color {
                         r: 0,
                         g: 255,
@@ -110,39 +160,42 @@ mod tests {
             ),
             (
                 HashMap::from([
-                    ("color".to_owned(), String("#12345".to_owned())), // Invalid hex value
+                    ("color".to_owned(), String("#12345".to_owned())),
                     ("width".to_owned(), String("2px".to_owned())),
                     ("style".to_owned(), String("dashed".to_owned())),
                 ]),
-                None, // Invalid color value
+                Err(Error::prop(
+                    "color",
+                    Error::InvalidFormat("must be 6 or 8 characters long"),
+                )),
             ),
             (
                 HashMap::from([
                     ("color".to_owned(), String("#FF5733".to_owned())),
-                    ("width".to_owned(), String("invalid".to_owned())), // Invalid width value
+                    ("width".to_owned(), String("invalid".to_owned())),
                     ("style".to_owned(), String("dotted".to_owned())),
                 ]),
-                None, // Invalid width value
+                Err(Error::prop("width", Error::InvalidUnit(&["px", "rem"]))),
             ),
             (
                 HashMap::from([
                     ("color".to_owned(), String("#FF5733".to_owned())),
                     ("width".to_owned(), String("2px".to_owned())),
                 ]),
-                None, // Missing style key
+                Err(Error::prop("style", Error::MustExist)),
             ),
             (
                 HashMap::from([
                     ("color".to_owned(), String("#FF5733".to_owned())),
                     ("width".to_owned(), String("2px".to_owned())),
-                    ("style".to_owned(), Number(42.0)), // Invalid style value
+                    ("style".to_owned(), Number(42.0)),
                 ]),
-                None, // Invalid style value
+                Err(Error::prop("style", Error::ExpectedString)),
             ),
         ];
 
         for (input, expected) in test_cases {
-            let result = Border::from_map(&input);
+            let result = Border::try_from(&input);
             assert_eq!(result, expected);
         }
     }

@@ -1,97 +1,56 @@
 //! Errors returned when generating code.
 
 use std::{
-    error::Error,
     fmt::{self, Display},
-    path::PathBuf,
+    num::{ParseFloatError, ParseIntError},
 };
 
 use tinyjson::JsonParseError;
 
-/// Error type returned when the configuration passed to [`GroupBuilder`] is invalid.
-///
-/// [`GroupBuilder`]: crate::GroupBuilder
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub enum ConfigError {
-    /// Invalid language identifier
-    InvalidGroup(String),
-    /// No source provided
-    MissingSource,
-}
-
-impl Error for ConfigError {}
-
-impl Display for ConfigError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            ConfigError::InvalidGroup(value) => {
-                write!(f, "`{}` is not a valid group identifier", value)
-            }
-            ConfigError::MissingSource => {
-                write!(f, "at least one translations source file is required")
-            }
-        }
-    }
-}
-
 /// Error type returned when the code generation failed for some reason.
 #[derive(Debug)]
 pub enum BuildError {
-    Config(ConfigError),
-    FileRead {
-        file: PathBuf,
-        source: std::io::Error,
-    },
-    FileWrite(std::io::Error),
-    JsonParse {
-        source: tinyjson::JsonParseError,
-    },
-    Parse,
-    Var(std::env::VarError),
+    Parse(Error),
     Fmt(std::io::Error),
+    Read(std::io::Error),
+    Write(std::io::Error),
+    Var(std::env::VarError),
+    JsonParse(tinyjson::JsonParseError),
 }
 
-impl Error for BuildError {}
+impl std::error::Error for BuildError {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        match self {
+            BuildError::Parse(v) => Some(v),
+            BuildError::Var(v) => Some(v),
+            BuildError::JsonParse(v) => Some(v),
+            BuildError::Fmt(v) | BuildError::Read(v) | BuildError::Write(v) => Some(v),
+        }
+    }
+}
 
 impl Display for BuildError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            BuildError::Config(error) => write!(f, "invalid configuration: {}", error),
-            BuildError::FileRead { file, source } => {
-                write!(f, "failed to read `{:?}`: {}", file, source)
-            }
-            BuildError::FileWrite(error) => write!(f, "failed to write output: {}", error),
-            BuildError::JsonParse { source } => {
-                write!(f, "failed to load file: {}", source)
-            }
-            BuildError::Parse => write!(f, "failed to parse file"),
-            BuildError::Var(error) => write!(f, "failed to read environment variable: {}", error),
-            BuildError::Fmt(error) => write!(f, "failed to run rustfmt: {}", error),
+            BuildError::Parse(error) => write!(f, "failed to parse file: {error}"),
+            BuildError::Fmt(error) => write!(f, "failed to run rustfmt: {error}"),
+            BuildError::Read(error) => write!(f, "failed to read file: {error}"),
+            BuildError::Write(error) => write!(f, "failed to write file: {error}"),
+            BuildError::Var(error) => write!(f, "failed to read environment variable: {error}"),
+            BuildError::JsonParse(error) => write!(f, "failed to parse json file: {error}"),
         }
     }
 }
 
-impl From<ConfigError> for BuildError {
-    fn from(error: ConfigError) -> Self {
-        Self::Config(error)
+impl From<Error> for BuildError {
+    fn from(value: Error) -> Self {
+        Self::Parse(value)
     }
 }
 
 impl From<JsonParseError> for BuildError {
     fn from(source: JsonParseError) -> Self {
-        Self::JsonParse { source }
-    }
-}
-
-// impl From<ParseError> for BuildError {
-//     fn from(error: ParseError) -> Self {
-//         Self::Parse(error)
-//     }
-// }
-
-impl From<std::io::Error> for BuildError {
-    fn from(error: std::io::Error) -> Self {
-        Self::FileWrite(error)
+        Self::JsonParse(source)
     }
 }
 
@@ -103,49 +62,106 @@ impl From<std::env::VarError> for BuildError {
 
 /// Error type returned when a parsing error occurs.
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub enum ParseError {
-    /// File root is not a JSON object
-    InvalidRoot,
-    /// Invalid key type (raw parsing)
-    InvalidValue { key: String },
-    /// Invalid key type (doesn't match previous parsed keys)
-    InvalidType { key: String, expected: &'static str },
-    /// Invalid parameters supplied to interpolated key (missing and/or unknown parameters)
-    InvalidParameters {
-        key: String,
-        missing: Vec<String>,
-        unknown: Vec<String>,
-    },
-    /// Invalid language identifier (not ISO 693-1 compliant)
-    InvalidLanguageId { value: String },
+pub enum Error {
+    Property(&'static str, Box<Error>),
+    Kind(String, Box<Error>),
+
+    MustExist,
+
+    ExpectedString,
+    ExpectedNumber,
+    ExpectedArray,
+    ExpectedObject,
+    UnexpectedType,
+
+    CollectionEmpty,
+    CollectionLength(usize),
+    ExpectedItemString,
+    ExpectedItemNumber,
+    ExpectedItemObject,
+
+    NumberMustBePositive,
+    NumberWithin(isize, isize),
+
+    InvalidNumber(String),
+    InvalidUnit(&'static [&'static str]),
+    InvalidFormat(&'static str),
+    MissingToken(char),
 }
 
-impl Error for ParseError {}
+impl Error {
+    #[must_use]
+    pub fn prop(property: &'static str, error: Self) -> Self {
+        Self::Property(property, Box::new(error))
+    }
 
-impl Display for ParseError {
+    #[must_use]
+    pub fn kind(kind: String, err: Self) -> Self {
+        Self::Kind(kind, Box::new(err))
+    }
+}
+
+impl From<ParseFloatError> for Error {
+    fn from(err: ParseFloatError) -> Self {
+        Self::InvalidNumber(err.to_string())
+    }
+}
+
+impl From<ParseIntError> for Error {
+    fn from(err: ParseIntError) -> Self {
+        Self::InvalidNumber(err.to_string())
+    }
+}
+
+impl std::error::Error for Error {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        match self {
+            Error::Property(_, source) => Some(source.as_ref()),
+            _ => None,
+        }
+    }
+}
+
+impl Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            ParseError::InvalidRoot => write!(f, "file root must be a json object"),
-            ParseError::InvalidValue { key } => write!(f, "`{}` has an invalid type", key),
-            ParseError::InvalidType { key, expected } => write!(
-                f,
-                "`{}` doesn't match previous parsed key (expected {})",
-                key, expected
-            ),
-            ParseError::InvalidParameters {
-                key,
-                missing,
-                unknown,
-            } => write!(
-                f,
-                "invalid parameters supplied to `{}` (missing: {:?}, unknown: {:?})",
-                key, missing, unknown
-            ),
-            ParseError::InvalidLanguageId { value } => write!(
-                f,
-                "`{}` is not a valid ISO 693-1 language identifier",
-                value
-            ),
+            Self::Property(prop, err) => write!(f, "property '{prop}' error: {err}"),
+            Self::Kind(kind, err) => write!(f, "value error for $type '{kind}': {err}"),
+            Self::MustExist => write!(f, "must exist"),
+            Self::ExpectedString
+            | Self::ExpectedNumber
+            | Self::ExpectedArray
+            | Self::ExpectedObject => {
+                let ty = match self {
+                    Self::ExpectedString => "string",
+                    Self::ExpectedNumber => "number",
+                    Self::ExpectedArray => "array",
+                    _ => unreachable!(),
+                };
+
+                write!(f, "must be of type {ty}")
+            }
+            Self::ExpectedItemString | Self::ExpectedItemNumber | Self::ExpectedItemObject => {
+                let ty = match self {
+                    Self::ExpectedItemString => "string",
+                    Self::ExpectedItemNumber => "number",
+                    Self::ExpectedItemObject => "object",
+                    _ => unreachable!(),
+                };
+
+                write!(f, "collection items must be of type {ty}")
+            }
+            Self::MissingToken(char) => write!(f, "missing token: {char}"),
+            Self::NumberWithin(start, end) => write!(f, "number must be >= {start} <= {end}"),
+            Self::UnexpectedType => write!(f, "unexpected type"),
+            Self::NumberMustBePositive => write!(f, "must be a positive number"),
+            Self::InvalidNumber(err) => write!(f, "invalid number format: {err}"),
+            Self::InvalidUnit(units) => {
+                write!(f, "invalid unit, must be one of {}", units.join(", "))
+            }
+            Self::InvalidFormat(str) => write!(f, "invalid format: {str}"),
+            Self::CollectionEmpty => write!(f, "collection must not be empty"),
+            Self::CollectionLength(len) => write!(f, "collection must contain {len} elements"),
         }
     }
 }

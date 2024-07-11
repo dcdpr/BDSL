@@ -24,9 +24,11 @@
 //! }
 //! ```
 
-use std::collections::HashMap;
+use std::{collections::HashMap, str::FromStr};
 
 use tinyjson::JsonValue;
+
+use crate::error::Error;
 
 use super::{color::Color, dimension::Dimension};
 
@@ -40,21 +42,86 @@ pub struct Shadow {
     pub spread: Dimension,
 }
 
-impl Shadow {
-    pub fn from_map(value: &HashMap<String, JsonValue>) -> Option<Self> {
-        let color_value = value.get("color")?.get::<String>()?;
-        let offset_x_value = value.get("offsetX")?.get::<String>()?;
-        let offset_y_value = value.get("offsetY")?.get::<String>()?;
-        let blur_value = value.get("blur")?.get::<String>()?;
-        let spread_value = value.get("spread")?.get::<String>()?;
+impl TryFrom<&JsonValue> for Shadow {
+    type Error = Error;
 
-        Some(Shadow {
-            color: Color::from_hex(color_value)?,
-            offset_x: Dimension::from_str(offset_x_value)?,
-            offset_y: Dimension::from_str(offset_y_value)?,
-            blur: Dimension::from_str(blur_value)?,
-            spread: Dimension::from_str(spread_value)?,
+    fn try_from(value: &JsonValue) -> Result<Self, Self::Error> {
+        value
+            .get::<HashMap<_, _>>()
+            .ok_or(Error::ExpectedObject)
+            .and_then(Self::try_from)
+    }
+}
+
+impl TryFrom<&HashMap<String, JsonValue>> for Shadow {
+    type Error = Error;
+
+    fn try_from(value: &HashMap<String, JsonValue>) -> Result<Self, Self::Error> {
+        let color = value
+            .get("color")
+            .ok_or(Error::MustExist)
+            .and_then(|v| v.get::<String>().ok_or(Error::ExpectedString))
+            .and_then(|v| Color::from_hex(v))
+            .map_err(|err| Error::prop("color", err))?;
+
+        let offset_x = value
+            .get("offsetX")
+            .ok_or(Error::MustExist)
+            .and_then(|v| v.get::<String>().ok_or(Error::ExpectedString))
+            .and_then(|v| Dimension::from_str(v))
+            .map_err(|err| Error::prop("offsetX", err))?;
+
+        let offset_y = value
+            .get("offsetY")
+            .ok_or(Error::MustExist)
+            .and_then(|v| v.get::<String>().ok_or(Error::ExpectedString))
+            .and_then(|v| Dimension::from_str(v))
+            .map_err(|err| Error::prop("offsetY", err))?;
+
+        let blur = value
+            .get("blur")
+            .ok_or(Error::MustExist)
+            .and_then(|v| v.get::<String>().ok_or(Error::ExpectedString))
+            .and_then(|v| Dimension::from_str(v))
+            .map_err(|err| Error::prop("blur", err))?;
+
+        let spread = value
+            .get("spread")
+            .ok_or(Error::MustExist)
+            .and_then(|v| v.get::<String>().ok_or(Error::ExpectedString))
+            .and_then(|v| Dimension::from_str(v))
+            .map_err(|err| Error::prop("spread", err))?;
+
+        Ok(Shadow {
+            color,
+            offset_x,
+            offset_y,
+            blur,
+            spread,
         })
+    }
+}
+
+#[cfg(feature = "build")]
+impl quote::ToTokens for Shadow {
+    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
+        let Self {
+            color,
+            offset_x,
+            offset_y,
+            blur,
+            spread,
+        } = self;
+
+        let new = quote::quote! { dtoken::types::shadow::Shadow {
+            color: #color,
+            offset_x: #offset_x,
+            offset_y: #offset_y,
+            blur: #blur,
+            spread: #spread,
+        }};
+
+        tokens.extend(new);
     }
 }
 
@@ -76,7 +143,7 @@ mod tests {
                     ("blur".to_owned(), String("4px".to_owned())),
                     ("spread".to_owned(), String("5px".to_owned())),
                 ]),
-                Some(Shadow {
+                Ok(Shadow {
                     color: Color {
                         r: 255,
                         g: 87,
@@ -97,7 +164,7 @@ mod tests {
                     ("blur".to_owned(), String("0rem".to_owned())),
                     ("spread".to_owned(), String("0rem".to_owned())),
                 ]),
-                Some(Shadow {
+                Ok(Shadow {
                     color: Color {
                         r: 0,
                         g: 255,
@@ -118,7 +185,10 @@ mod tests {
                     ("blur".to_owned(), String("4px".to_owned())),
                     ("spread".to_owned(), String("5px".to_owned())),
                 ]),
-                None, // Invalid color value
+                Err(Error::prop(
+                    "color",
+                    Error::InvalidFormat("must be 6 or 8 characters long"),
+                )),
             ),
             (
                 HashMap::from([
@@ -128,7 +198,7 @@ mod tests {
                     ("blur".to_owned(), String("4px".to_owned())),
                     ("spread".to_owned(), String("5px".to_owned())),
                 ]),
-                None, // Invalid offsetX value
+                Err(Error::prop("offsetX", Error::InvalidUnit(&["px", "rem"]))),
             ),
             (
                 HashMap::from([
@@ -138,7 +208,7 @@ mod tests {
                     ("blur".to_owned(), String("invalid".to_owned())), // Invalid blur value
                     ("spread".to_owned(), String("5px".to_owned())),
                 ]),
-                None, // Invalid blur value
+                Err(Error::prop("blur", Error::InvalidUnit(&["px", "rem"]))),
             ),
             (
                 HashMap::from([
@@ -147,7 +217,7 @@ mod tests {
                     ("offsetY".to_owned(), String("3px".to_owned())),
                     ("blur".to_owned(), String("4px".to_owned())),
                 ]),
-                None, // Missing spread key
+                Err(Error::prop("spread", Error::MustExist)),
             ),
             (
                 HashMap::from([
@@ -157,12 +227,12 @@ mod tests {
                     ("blur".to_owned(), String("4px".to_owned())),
                     ("spread".to_owned(), Number(42.0)), // Invalid spread value
                 ]),
-                None, // Invalid spread value
+                Err(Error::prop("spread", Error::ExpectedString)),
             ),
         ];
 
         for (input, expected) in test_cases {
-            let result = Shadow::from_map(&input);
+            let result = Shadow::try_from(&input);
             assert_eq!(result, expected);
         }
     }

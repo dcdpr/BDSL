@@ -21,26 +21,52 @@
 //!
 //! See: <https://tr.designtokens.org/format/#duration>.
 
+use std::str::FromStr;
+
+use tinyjson::JsonValue;
+
+use crate::error::Error;
+
 /// See module-level documentation.
 #[derive(Debug, Clone, PartialEq)]
 pub struct Duration {
     pub milliseconds: f64,
 }
 
-impl Duration {
-    pub fn from_str(s: &str) -> Option<Self> {
+impl TryFrom<&JsonValue> for Duration {
+    type Error = Error;
+
+    fn try_from(value: &JsonValue) -> Result<Self, Self::Error> {
+        value
+            .get::<String>()
+            .ok_or(Error::ExpectedString)
+            .and_then(|v| Self::from_str(v))
+    }
+}
+
+impl FromStr for Duration {
+    type Err = Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
         if s.starts_with('-') {
-            return None; // Reject negative values
+            return Err(Error::NumberMustBePositive);
         }
 
-        if s.ends_with("ms") {
-            s[..s.len() - 2]
-                .parse::<f64>()
-                .ok()
-                .map(|milliseconds| Duration { milliseconds })
-        } else {
-            None
-        }
+        s.strip_suffix("ms")
+            .ok_or(Error::InvalidUnit(&["ms"]))
+            .and_then(|v| v.parse::<f64>().map_err(Error::from))
+            .map(|milliseconds| Duration { milliseconds })
+    }
+}
+
+#[cfg(feature = "build")]
+impl quote::ToTokens for Duration {
+    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
+        let Self { milliseconds } = self;
+
+        tokens.extend(quote::quote! { dtoken::types::duration::Duration {
+            milliseconds: #milliseconds,
+        }});
     }
 }
 
@@ -51,16 +77,27 @@ mod tests {
     #[test]
     fn test_from_str() {
         let test_cases = vec![
-            ("10ms", Some(Duration { milliseconds: 10.0 })),
-            ("2.5ms", Some(Duration { milliseconds: 2.5 })),
-            ("0.1ms", Some(Duration { milliseconds: 0.1 })),
-            ("ms", None),        // Missing numeric value
-            ("abcms", None),     // Invalid numeric value
-            ("200s", None),      // Invalid unit
-            ("", None),          // Empty input
-            ("1000", None),      // Missing unit
-            ("-5ms", None),      // Negative value not supported
-            ("1.23.45ms", None), // Multiple periods not supported
+            ("10ms", Ok(Duration { milliseconds: 10.0 })),
+            ("2.5ms", Ok(Duration { milliseconds: 2.5 })),
+            ("0.1ms", Ok(Duration { milliseconds: 0.1 })),
+            (
+                "ms",
+                Err(Error::InvalidNumber(
+                    "cannot parse float from empty string".to_owned(),
+                )),
+            ),
+            (
+                "abcms",
+                Err(Error::InvalidNumber("invalid float literal".to_owned())),
+            ),
+            ("200s", Err(Error::InvalidUnit(&["ms"]))),
+            ("", Err(Error::InvalidUnit(&["ms"]))),
+            ("1000", Err(Error::InvalidUnit(&["ms"]))),
+            ("-5ms", Err(Error::NumberMustBePositive)), // Negative value not supported
+            (
+                "1.23.45ms",
+                Err(Error::InvalidNumber("invalid float literal".to_owned())),
+            ),
         ];
 
         for (input, expected) in test_cases {
