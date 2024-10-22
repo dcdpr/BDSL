@@ -54,6 +54,7 @@ impl Generator {
         let instance = self.group_instance("DesignTokens", &self.root, vec![]);
 
         quote! {
+            #[allow(clippy::too_many_lines)]
             pub fn design_tokens() -> design_tokens::DesignTokens {
                 #instance
             }
@@ -135,15 +136,25 @@ impl Generator {
 
             fields.push(field);
             types.push(kind);
-            descs.push(desc);
+            descs.push(if desc.is_empty() {
+                quote! {}
+            } else {
+                quote! { #[doc = #desc] }
+            });
         }
 
+        let desc = if description.is_empty() {
+            quote! {}
+        } else {
+            quote! { #[doc = #description] }
+        };
+
         quote! {
-            #[doc = #description]
+            #desc
             #[derive(Debug)]
             pub struct #group_name {
                 #(
-                #[doc = #descs]
+                #descs
                 pub #fields: #types,
                 )*
             }
