@@ -19,8 +19,6 @@ use crate::error::Error;
 /// ```
 ///
 /// See: <https://tr.designtokens.org/format/#number>.
-
-/// See module docs.
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct Number(pub f64);
 
