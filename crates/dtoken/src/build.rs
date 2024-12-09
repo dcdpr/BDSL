@@ -309,6 +309,8 @@ fn rustfmt(path: &Path) -> Result<(), BuildError> {
 
     Command::new(std::env::var("RUSTFMT").unwrap_or_else(|_| "rustfmt".to_string()))
         .args(["--emit", "files"])
+        // .args(["--config", "format_strings=true,edition=2024,struct_lit_width=0,struct_lit_single_line=false,struct_variant_width=false"])
+        .args(["--config", "format_strings=true"])
         .arg(path)
         .output()
         .map_err(BuildError::Fmt)?;
