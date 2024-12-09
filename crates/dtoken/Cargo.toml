@@ -38,7 +38,7 @@ bevy_ui = { version = "0.15", default-features = false, optional = true }
 bevy_color = { version = "0.15", default-features = false, optional = true }
 
 [features]
-default = ["build", "rustfmt"]
+default = ["build", "rustfmt", "bevy"]
 bevy = ["dep:bevy_ui", "dep:bevy_color"]
 build = ["dep:convert_case", "dep:proc-macro2", "dep:quote"]
 rustfmt = []
