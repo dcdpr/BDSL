@@ -54,7 +54,7 @@ impl Generator {
         let instance = self.group_instance("DesignTokens", &self.root, vec![]);
 
         quote! {
-            #[allow(clippy::too_many_lines)]
+            #[allow(clippy::allow_attributes, clippy::too_many_lines)]
             pub fn design_tokens() -> design_tokens::DesignTokens {
                 #instance
             }
@@ -107,7 +107,7 @@ impl Generator {
         let group = self.group_impl(item, group);
 
         quote! {
-            #[allow(clippy::module_inception)]
+            #[allow(clippy::allow_attributes, clippy::module_inception)]
             pub mod #module {
                 #group
             }
