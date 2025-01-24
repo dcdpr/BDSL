@@ -26,6 +26,7 @@ use crate::error::Error;
 
 /// See module docs.
 #[derive(Debug, Clone, PartialEq)]
+#[cfg_attr(feature = "reflect", derive(bevy_reflect::Reflect))]
 pub struct FontFamily {
     pub primary: String,
     pub fallbacks: Vec<String>,

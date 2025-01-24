@@ -20,6 +20,7 @@ use crate::error::Error;
 ///
 /// See: <https://tr.designtokens.org/format/#number>.
 #[derive(Debug, Copy, Clone, PartialEq)]
+#[cfg_attr(feature = "reflect", derive(bevy_reflect::Reflect))]
 pub struct Number(pub f64);
 
 impl Number {

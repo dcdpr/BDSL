@@ -44,6 +44,7 @@ use super::{color::Color, dimension::Dimension, stroke_style::StrokeStyle};
 
 /// See module-level documentation.
 #[derive(Debug, Clone, PartialEq)]
+#[cfg_attr(feature = "reflect", derive(bevy_reflect::Reflect))]
 pub struct Border {
     pub color: Color,
     pub width: Dimension,

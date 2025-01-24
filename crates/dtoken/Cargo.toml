@@ -36,10 +36,13 @@ tinyjson = "2"
 
 bevy_ui = { version = "0.15", default-features = false, optional = true }
 bevy_color = { version = "0.15", default-features = false, optional = true }
+bevy_reflect = { version = "0.15", default-features = false, optional = true }
+toml-span = { version = "0.4.1", default-features = false }
 
 [features]
-default = ["build", "rustfmt", "bevy"]
+default = ["build", "rustfmt", "bevy", "reflect"]
 bevy = ["dep:bevy_ui", "dep:bevy_color"]
+reflect = ["dep:bevy_reflect"]
 build = ["dep:convert_case", "dep:proc-macro2", "dep:quote"]
 rustfmt = []
 

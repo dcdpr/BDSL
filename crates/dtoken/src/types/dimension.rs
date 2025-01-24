@@ -41,6 +41,7 @@ use crate::error::Error;
 
 /// See module docs.
 #[derive(Debug, Copy, Clone, PartialEq)]
+#[cfg_attr(feature = "reflect", derive(bevy_reflect::Reflect))]
 pub enum Dimension {
     Pixels(f64),
     Rems(f64),

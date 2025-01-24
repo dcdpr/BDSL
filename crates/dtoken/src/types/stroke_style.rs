@@ -6,6 +6,9 @@
 //!
 //! See: <https://tr.designtokens.org/format/#stroke-style>.
 
+// NOTE: Something the `Reflect` derive generates triggers this warning.
+#![cfg_attr(feature = "reflect", allow(clippy::used_underscore_binding))]
+
 use std::{collections::HashMap, str::FromStr};
 
 use tinyjson::JsonValue;
@@ -16,6 +19,7 @@ use super::dimension::Dimension;
 
 /// See module docs.
 #[derive(Debug, Clone, PartialEq)]
+#[cfg_attr(feature = "reflect", derive(bevy_reflect::Reflect))]
 pub enum StrokeStyle {
     Solid,
     Dashed,
@@ -32,6 +36,7 @@ pub enum StrokeStyle {
 }
 
 #[derive(Debug, Copy, Clone, PartialEq)]
+#[cfg_attr(feature = "reflect", derive(bevy_reflect::Reflect))]
 pub enum LineCap {
     Round,
     Butt,

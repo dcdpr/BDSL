@@ -149,8 +149,15 @@ impl Generator {
             quote! { #[doc = #description] }
         };
 
+        let bevy_reflect = if cfg!(feature = "bevy") {
+            quote! { #[derive(bevy_reflect::Reflect)] }
+        } else {
+            quote! {}
+        };
+
         quote! {
             #desc
+            #bevy_reflect
             #[derive(Debug)]
             pub struct #group_name {
                 #(

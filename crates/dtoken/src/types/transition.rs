@@ -34,6 +34,7 @@ use super::{cubic_bezier::CubicBezier, duration::Duration};
 
 /// See module-level documentation.
 #[derive(Debug, Clone, PartialEq)]
+#[cfg_attr(feature = "reflect", derive(bevy_reflect::Reflect))]
 pub struct Transition {
     pub duration: Duration,
     pub delay: Duration,
