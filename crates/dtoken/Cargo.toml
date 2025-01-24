@@ -41,12 +41,14 @@ bevy_reflect = { version = "0.15", default-features = false, optional = true }
 # optional data formats
 toml-span = { version = "0.4", default-features = false, optional = true }
 ason = { version = "1", default-features = false, optional = true }
+jsonc-parser = { version = "0.26", default-features = false, optional = true }
 
 [features]
 default = ["build", "rustfmt"]
 build = ["dep:convert_case", "dep:proc-macro2", "dep:quote"]
 toml = ["dep:toml-span"]
 ason = ["dep:ason"]
+jsonc = ["dep:jsonc-parser"]
 bevy = ["dep:bevy_ui", "dep:bevy_color"]
 reflect = ["dep:bevy_reflect"]
 rustfmt = []

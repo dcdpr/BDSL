@@ -2573,6 +2573,7 @@ dependencies = [
  "convert_case",
  "indoc",
  "insta",
+ "jsonc-parser",
  "prettyplease",
  "proc-macro2",
  "quote",
@@ -3591,6 +3592,12 @@ dependencies = [
  "once_cell",
  "wasm-bindgen",
 ]
+
+[[package]]
+name = "jsonc-parser"
+version = "0.26.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b558af6b49fd918e970471374e7a798b2c9bbcda624a210ffa3901ee5614bc8e"
 
 [[package]]
 name = "khronos-egl"

@@ -28,23 +28,32 @@ fn read_file(path: impl AsRef<str>) -> Result<String, BuildError> {
 
 fn parse_content(content: &str) -> Result<HashMap<String, JsonValue>, BuildError> {
     #[cfg(all(feature = "ason", feature = "toml"))]
-    eprintln!("Warning: both `ason` and `toml` features are enabled. Using `json` parser.");
+    eprintln!(
+        "Warning: any two of `ason`, `toml` or `jsonc` features are enabled. Using `json` parser."
+    );
 
-    #[cfg(all(feature = "ason", not(feature = "toml")))]
+    #[cfg(all(feature = "ason", not(any(feature = "toml", feature = "jsonc"))))]
     {
         let json: ason::ast::AsonNode = ason::parse_from_str(content)?;
         return ason_node_to_json_value(json);
     }
 
-    #[cfg(all(feature = "toml", not(feature = "ason")))]
+    #[cfg(all(feature = "toml", not(any(feature = "ason", feature = "jsonc"))))]
     {
         let value = toml_span::parse(content)?.take();
         return toml_value_to_json_value(value);
     }
 
+    #[cfg(all(feature = "jsonc", not(any(feature = "ason", feature = "toml"))))]
+    {
+        let opts = jsonc_parser::ParseOptions::default();
+        let value = jsonc_parser::parse_to_value(content, &opts)?;
+        jsonc_value_to_json_value(value.ok_or(BuildError::Parse(Error::ExpectedObject))?)
+    }
+
     #[cfg(any(
-        not(any(feature = "ason", feature = "toml")),
-        all(feature = "ason", feature = "toml")
+        not(any(feature = "ason", feature = "toml", feature = "jsonc")),
+        all(feature = "ason", feature = "toml", feature = "jsonc")
     ))]
     return content
         .parse::<JsonValue>()?
@@ -114,16 +123,16 @@ fn deep_merge(target: &mut HashMap<String, JsonValue>, source: HashMap<String, J
     }
 }
 
-#[cfg(all(feature = "toml", not(feature = "ason")))]
+#[cfg(all(feature = "toml", not(any(feature = "ason", feature = "jsonc"))))]
 fn toml_value_to_json_value(
     value: toml_span::value::ValueInner<'_>,
 ) -> Result<HashMap<String, JsonValue>, BuildError> {
     use toml_span::value::ValueInner;
 
     match value {
-        ValueInner::Table(table) => {
+        ValueInner::Table(v) => {
             let mut map = HashMap::new();
-            for (key, mut value) in table {
+            for (key, mut value) in v {
                 map.insert(key.name.to_string(), convert_value(value.take())?);
             }
             Ok(map)
@@ -132,26 +141,26 @@ fn toml_value_to_json_value(
     }
 }
 
-#[cfg(all(feature = "toml", not(feature = "ason")))]
+#[cfg(all(feature = "toml", not(any(feature = "ason", feature = "jsonc"))))]
 fn convert_value(value: toml_span::value::ValueInner<'_>) -> Result<JsonValue, BuildError> {
     use toml_span::value::ValueInner;
 
     match value {
-        ValueInner::String(s) => Ok(JsonValue::String(s.to_string())),
+        ValueInner::String(v) => Ok(JsonValue::String(v.to_string())),
         #[allow(clippy::cast_precision_loss)]
-        ValueInner::Integer(i) => Ok(JsonValue::Number(i as f64)),
-        ValueInner::Float(f) => Ok(JsonValue::Number(f)),
-        ValueInner::Boolean(b) => Ok(JsonValue::Boolean(b)),
-        ValueInner::Array(arr) => {
-            let mut json_arr = Vec::new();
-            for mut item in arr {
-                json_arr.push(convert_value(item.take())?);
+        ValueInner::Integer(v) => Ok(JsonValue::Number(v as f64)),
+        ValueInner::Float(v) => Ok(JsonValue::Number(v)),
+        ValueInner::Boolean(v) => Ok(JsonValue::Boolean(v)),
+        ValueInner::Array(v) => {
+            let mut arr = Vec::new();
+            for mut item in v {
+                arr.push(convert_value(item.take())?);
             }
-            Ok(JsonValue::Array(json_arr))
+            Ok(JsonValue::Array(arr))
         }
-        ValueInner::Table(table) => {
+        ValueInner::Table(v) => {
             let mut map = HashMap::new();
-            for (key, mut value) in table {
+            for (key, mut value) in v {
                 map.insert(key.name.to_string(), convert_value(value.take())?);
             }
             Ok(JsonValue::Object(map))
@@ -159,23 +168,23 @@ fn convert_value(value: toml_span::value::ValueInner<'_>) -> Result<JsonValue, B
     }
 }
 
-#[cfg(all(feature = "ason", not(feature = "toml")))]
+#[cfg(all(feature = "ason", not(any(feature = "toml", feature = "jsonc"))))]
 pub fn ason_node_to_json_value(
     node: ason::ast::AsonNode,
 ) -> Result<HashMap<String, JsonValue>, BuildError> {
     use ason::ast::AsonNode;
 
     match node {
-        AsonNode::Object(pairs) => {
+        AsonNode::Object(v) => {
             let mut map = HashMap::new();
-            for pair in pairs {
+            for pair in v {
                 map.insert(pair.key, convert_node(*pair.value)?);
             }
             Ok(map)
         }
-        AsonNode::Map(pairs) => {
+        AsonNode::Map(v) => {
             let mut map = HashMap::new();
-            for pair in pairs {
+            for pair in v {
                 match convert_node(*pair.name)? {
                     JsonValue::String(key) => {
                         map.insert(key, convert_node(*pair.value)?);
@@ -189,31 +198,31 @@ pub fn ason_node_to_json_value(
     }
 }
 
-#[cfg(all(feature = "ason", not(feature = "toml")))]
+#[cfg(all(feature = "ason", not(any(feature = "toml", feature = "jsonc"))))]
 fn convert_node(node: ason::ast::AsonNode) -> Result<JsonValue, BuildError> {
     use ason::ast::AsonNode;
 
     match node {
-        AsonNode::Number(num) => Ok(JsonValue::Number(convert_number(num))),
-        AsonNode::Boolean(b) => Ok(JsonValue::Boolean(b)),
-        AsonNode::String(s) => Ok(JsonValue::String(s)),
-        AsonNode::List(items) => {
-            let mut json_arr = Vec::new();
-            for item in items {
-                json_arr.push(convert_node(item)?);
+        AsonNode::Number(v) => Ok(JsonValue::Number(convert_number(v))),
+        AsonNode::Boolean(v) => Ok(JsonValue::Boolean(v)),
+        AsonNode::String(v) => Ok(JsonValue::String(v)),
+        AsonNode::List(v) => {
+            let mut arr = Vec::new();
+            for item in v {
+                arr.push(convert_node(item)?);
             }
-            Ok(JsonValue::Array(json_arr))
+            Ok(JsonValue::Array(arr))
         }
-        AsonNode::Object(pairs) => {
+        AsonNode::Object(v) => {
             let mut map = HashMap::new();
-            for pair in pairs {
+            for pair in v {
                 map.insert(pair.key, convert_node(*pair.value)?);
             }
             Ok(JsonValue::Object(map))
         }
-        AsonNode::Map(pairs) => {
+        AsonNode::Map(v) => {
             let mut map = HashMap::new();
-            for pair in pairs {
+            for pair in v {
                 match convert_node(*pair.name)? {
                     JsonValue::String(key) => {
                         map.insert(key, convert_node(*pair.value)?);
@@ -228,24 +237,79 @@ fn convert_node(node: ason::ast::AsonNode) -> Result<JsonValue, BuildError> {
     }
 }
 
-#[cfg(all(feature = "ason", not(feature = "toml")))]
+#[cfg(all(feature = "ason", not(any(feature = "toml", feature = "jsonc"))))]
 fn convert_number(num: ason::ast::Number) -> f64 {
     use ason::ast::Number;
 
     match num {
-        Number::I8(n) => n as f64,
-        Number::U8(n) => n as f64,
-        Number::I16(n) => n as f64,
-        Number::U16(n) => n as f64,
-        Number::I32(n) => n as f64,
-        Number::U32(n) => n as f64,
+        Number::I8(v) => v as f64,
+        Number::U8(v) => v as f64,
+        Number::I16(v) => v as f64,
+        Number::U16(v) => v as f64,
+        Number::I32(v) => v as f64,
+        Number::U32(v) => v as f64,
         #[allow(clippy::cast_precision_loss)]
-        Number::I64(n) => n as f64,
+        Number::I64(v) => v as f64,
         #[allow(clippy::cast_precision_loss)]
-        Number::U64(n) => n as f64,
-        Number::F32(n) => n as f64,
-        Number::F64(n) => n,
+        Number::U64(v) => v as f64,
+        Number::F32(v) => v as f64,
+        Number::F64(v) => v,
     }
+}
+
+#[cfg(all(feature = "jsonc", not(any(feature = "ason", feature = "toml"))))]
+fn jsonc_value_to_json_value(
+    value: jsonc_parser::JsonValue<'_>,
+) -> Result<HashMap<String, JsonValue>, BuildError> {
+    match value {
+        jsonc_parser::JsonValue::Object(v) => {
+            let mut map = HashMap::new();
+            for (key, value) in v {
+                map.insert(key, convert_jsonc_value(value)?);
+            }
+            Ok(map)
+        }
+
+        _ => Err(BuildError::Parse(Error::ExpectedObject)),
+    }
+}
+
+#[cfg(all(feature = "jsonc", not(any(feature = "ason", feature = "toml"))))]
+fn convert_jsonc_value(value: jsonc_parser::JsonValue<'_>) -> Result<JsonValue, BuildError> {
+    match value {
+        jsonc_parser::JsonValue::String(v) => Ok(JsonValue::String(v.into_owned())),
+        jsonc_parser::JsonValue::Number(v) => convert_number(v),
+        jsonc_parser::JsonValue::Boolean(v) => Ok(JsonValue::Boolean(v)),
+        jsonc_parser::JsonValue::Object(v) => {
+            let mut map = HashMap::new();
+            for (key, value) in v {
+                map.insert(key, convert_jsonc_value(value)?);
+            }
+            Ok(JsonValue::Object(map))
+        }
+        jsonc_parser::JsonValue::Array(v) => {
+            let mut arr = Vec::new();
+            for item in v {
+                arr.push(convert_jsonc_value(item)?);
+            }
+            Ok(JsonValue::Array(arr))
+        }
+        jsonc_parser::JsonValue::Null => Ok(JsonValue::Null),
+    }
+}
+
+#[cfg(all(feature = "jsonc", not(any(feature = "ason", feature = "toml"))))]
+fn convert_number(n: &str) -> Result<JsonValue, BuildError> {
+    if let Ok(num) = n.parse::<i64>() {
+        #[allow(clippy::cast_precision_loss)]
+        return Ok(JsonValue::Number(num as f64));
+    }
+
+    if let Ok(num) = n.parse::<f64>() {
+        return Ok(JsonValue::Number(num));
+    }
+
+    Err(BuildError::Parse(Error::ExpectedNumber))
 }
 
 fn generate(tokens: &DesignTokens) -> TokenStream {
@@ -558,8 +622,8 @@ mod tests {
     use super::*;
 
     #[cfg(any(
-        not(any(feature = "ason", feature = "toml")),
-        all(feature = "ason", feature = "toml")
+        not(any(feature = "ason", feature = "toml", feature = "jsonc")),
+        all(feature = "ason", feature = "toml", feature = "jsonc")
     ))]
     #[test]
     fn test_json() {
@@ -590,7 +654,7 @@ mod tests {
         }
     }
 
-    #[cfg(all(feature = "toml", not(feature = "ason")))]
+    #[cfg(all(feature = "toml", not(any(feature = "ason", feature = "jsonc"))))]
     #[test]
     fn test_toml() {
         let test_cases = [indoc! {r#"
@@ -617,7 +681,7 @@ mod tests {
         }
     }
 
-    #[cfg(all(feature = "ason", not(feature = "toml")))]
+    #[cfg(all(feature = "ason", not(any(feature = "toml", feature = "jsonc"))))]
     #[test]
     fn test_ason() {
         let test_cases = [indoc! {r#"
@@ -647,6 +711,41 @@ mod tests {
         }
     }
 
+    #[cfg(all(feature = "jsonc", not(any(feature = "ason", feature = "toml"))))]
+    #[test]
+    fn test_jsonc() {
+        let test_cases = [indoc! {r#"
+                {
+                  "group name": {
+                    "token name": {
+                      "$value": 1234,
+                      "$type": "number",
+                    },
+                  },
+                  // A comment
+                  "alias name": { // Another comment
+                    "$value": "{group name.token name}",
+                  },
+                }
+            "#}];
+
+        for (i, case) in test_cases.iter().enumerate() {
+            let map: HashMap<String, JsonValue> = parse_content(case).unwrap();
+            let tokens = DesignTokens::from_map(&map).unwrap();
+
+            let tokens = generate(&tokens);
+            let abstract_file: File =
+                syn::parse2(tokens.clone()).unwrap_or_else(|err| panic!("{err}:\n\n{tokens}"));
+            let code = prettyplease::unparse(&abstract_file);
+
+            insta::assert_snapshot!(format!("json case {i}"), code.to_string());
+        }
+    }
+
+    #[cfg(any(
+        not(any(feature = "ason", feature = "toml", feature = "jsonc")),
+        all(feature = "ason", feature = "toml", feature = "jsonc")
+    ))]
     #[test]
     fn test_merged_content() {
         let contents = [

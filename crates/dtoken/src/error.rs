@@ -20,6 +20,8 @@ pub enum BuildError {
     TomlParse(toml_span::Error),
     #[cfg(feature = "ason")]
     AsonParse(ason::AsonError),
+    #[cfg(feature = "jsonc")]
+    JsoncParse(jsonc_parser::errors::ParseError),
 }
 
 impl std::error::Error for BuildError {
@@ -32,6 +34,8 @@ impl std::error::Error for BuildError {
             BuildError::TomlParse(v) => Some(v),
             #[cfg(feature = "ason")]
             BuildError::AsonParse(v) => Some(v),
+            #[cfg(feature = "jsonc")]
+            BuildError::JsoncParse(v) => Some(v),
             BuildError::Fmt(v) | BuildError::Read(v) | BuildError::Write(v) => Some(v),
         }
     }
@@ -50,6 +54,8 @@ impl Display for BuildError {
             BuildError::TomlParse(error) => write!(f, "failed to parse toml file: {error}"),
             #[cfg(feature = "ason")]
             BuildError::AsonParse(error) => write!(f, "failed to parse ason file: {error}"),
+            #[cfg(feature = "jsonc")]
+            BuildError::JsoncParse(error) => write!(f, "failed to parse jsonc file: {error}"),
         }
     }
 }
@@ -77,6 +83,13 @@ impl From<toml_span::Error> for BuildError {
 impl From<ason::AsonError> for BuildError {
     fn from(source: ason::AsonError) -> Self {
         Self::AsonParse(source)
+    }
+}
+
+#[cfg(feature = "jsonc")]
+impl From<jsonc_parser::errors::ParseError> for BuildError {
+    fn from(source: jsonc_parser::errors::ParseError) -> Self {
+        Self::JsoncParse(source)
     }
 }
 
