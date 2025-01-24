@@ -13,19 +13,17 @@ use quote::{quote, ToTokens};
 use tinyjson::JsonValue;
 
 pub fn build(path: impl AsRef<str>) -> Result<(), BuildError> {
-    let content = std::fs::read_to_string(path.as_ref()).map_err(BuildError::Read)?;
+    write(&parse_content(&read_file(path)?)?)
+}
 
-    let map: HashMap<String, JsonValue> = parse_content(&content)?;
+pub fn build_merge(paths: &[impl AsRef<str>]) -> Result<(), BuildError> {
+    let map = parse_content_merge(paths.iter().map(read_file).collect::<Result<Vec<_>, _>>()?)?;
 
-    let tokens = DesignTokens::from_map(&map)?;
-    let code = generate(&tokens);
+    write(&map)
+}
 
-    let output = Path::new(&std::env::var("OUT_DIR")?).join("design_tokens.rs");
-
-    std::fs::write(&output, code.to_string()).map_err(BuildError::Write)?;
-    rustfmt(&output)?;
-
-    Ok(())
+fn read_file(path: impl AsRef<str>) -> Result<String, BuildError> {
+    std::fs::read_to_string(path.as_ref()).map_err(BuildError::Read)
 }
 
 fn parse_content(content: &str) -> Result<HashMap<String, JsonValue>, BuildError> {
@@ -53,6 +51,67 @@ fn parse_content(content: &str) -> Result<HashMap<String, JsonValue>, BuildError
         .get()
         .cloned()
         .ok_or(BuildError::Parse(Error::ExpectedObject));
+}
+
+fn parse_content_merge(contents: Vec<String>) -> Result<HashMap<String, JsonValue>, BuildError> {
+    let map = contents
+        .into_iter()
+        .map(|s| parse_content(&s))
+        .collect::<Result<Vec<_>, _>>()?
+        .into_iter()
+        .fold(HashMap::new(), |mut acc, map| {
+            deep_merge(&mut acc, map);
+            acc
+        });
+
+    Ok(map)
+}
+
+fn write(map: &HashMap<String, JsonValue>) -> Result<(), BuildError> {
+    let tokens = DesignTokens::from_map(map)?;
+    let code = generate(&tokens);
+
+    let output = Path::new(&std::env::var("OUT_DIR")?).join("design_tokens.rs");
+
+    std::fs::write(&output, code.to_string()).map_err(BuildError::Write)?;
+    rustfmt(&output)?;
+
+    Ok(())
+}
+
+fn deep_merge(target: &mut HashMap<String, JsonValue>, source: HashMap<String, JsonValue>) {
+    for (key, source_value) in source {
+        match target.get_mut(&key) {
+            Some(target_value) => {
+                // If both values are objects, merge them recursively
+                if target_value.is_object() && source_value.is_object() {
+                    let mut new_target = target_value
+                        .get::<HashMap<_, _>>()
+                        .unwrap()
+                        .iter()
+                        .map(|(k, v)| (k.clone(), v.clone()))
+                        .collect();
+
+                    let source_converted = source_value
+                        .get::<HashMap<_, _>>()
+                        .unwrap()
+                        .iter()
+                        .map(|(k, v)| (k.clone(), v.clone()))
+                        .collect();
+
+                    deep_merge(&mut new_target, source_converted);
+                    *target_value = JsonValue::Object(new_target);
+                } else {
+                    // For non-object values, source overwrites target
+                    *target_value = source_value.clone();
+                }
+            }
+            None => {
+                // If key doesn't exist in target, insert the source value
+                target.insert(key, source_value);
+            }
+        }
+    }
 }
 
 #[cfg(all(feature = "toml", not(feature = "ason")))]
@@ -586,5 +645,51 @@ mod tests {
 
             insta::assert_snapshot!(format!("ason case {i}"), code.to_string());
         }
+    }
+
+    #[test]
+    fn test_merged_content() {
+        let contents = [
+            indoc! {r#"
+                {
+                  "group name": {
+                    "token name": {
+                      "$value": 1234,
+                      "$type": "number"
+                    }
+                  },
+                  "alias name": {
+                    "$value": "{group name.token name}"
+                  }
+                }
+            "#},
+            indoc! {r##"
+                {
+                  "group name": {
+                    "token name": {
+                      "$value": 5678,
+                      "$type": "number"
+                    }
+                  },
+                  "alias name": {
+                    "$type": "color",
+                    "$value": "#ff0000"
+                  },
+                  "new token": {
+                    "$value": "{alias name}"
+                  }
+                }
+            "##},
+        ];
+
+        let map = parse_content_merge(contents.iter().map(ToString::to_string).collect()).unwrap();
+        let tokens = DesignTokens::from_map(&map).unwrap();
+
+        let tokens = generate(&tokens);
+        let abstract_file: File =
+            syn::parse2(tokens.clone()).unwrap_or_else(|err| panic!("{err}:\n\n{tokens}"));
+        let code = prettyplease::unparse(&abstract_file);
+
+        insta::assert_snapshot!("merged content", code.to_string());
     }
 }

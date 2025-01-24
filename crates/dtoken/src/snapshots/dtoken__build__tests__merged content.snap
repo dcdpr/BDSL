@@ -1,0 +1,41 @@
+---
+source: crates/dtoken/src/build.rs
+expression: code.to_string()
+---
+#[allow(clippy::allow_attributes, clippy::too_many_lines)]
+pub fn design_tokens() -> design_tokens::DesignTokens {
+    design_tokens::DesignTokens {
+        alias_name: dtoken::types::color::Color {
+            r: 255u8,
+            g: 0u8,
+            b: 0u8,
+            a: 255u8,
+        },
+        group_name: design_tokens::group_name::GroupName {
+            token_name: dtoken::types::number::Number(5678f64),
+        },
+        new_token: dtoken::types::color::Color {
+            r: 255u8,
+            g: 0u8,
+            b: 0u8,
+            a: 255u8,
+        },
+    }
+}
+#[allow(clippy::allow_attributes, clippy::module_inception)]
+pub mod design_tokens {
+    ///Root-level Design Tokens type
+    #[derive(Debug)]
+    pub struct DesignTokens {
+        pub alias_name: dtoken::types::color::Color,
+        pub group_name: group_name::GroupName,
+        pub new_token: dtoken::types::color::Color,
+    }
+    #[allow(clippy::allow_attributes, clippy::module_inception)]
+    pub mod group_name {
+        #[derive(Debug)]
+        pub struct GroupName {
+            pub token_name: dtoken::types::number::Number,
+        }
+    }
+}
