@@ -10,15 +10,15 @@ use crate::types::alias::Alias;
 use convert_case::{Case, Casing};
 use proc_macro2::{Ident, Span, TokenStream};
 use quote::{quote, ToTokens};
+use tinyjson::JsonValue;
+use toml_span::value::ValueInner;
 
 pub fn build(path: impl AsRef<str>) -> Result<(), BuildError> {
-    use tinyjson::JsonValue;
-
     let content = std::fs::read_to_string(path.as_ref()).map_err(BuildError::Read)?;
-    let json: JsonValue = content.parse()?;
-    let map = json.get().ok_or(Error::ExpectedObject)?;
 
-    let tokens = DesignTokens::from_map(map)?;
+    let map: HashMap<String, JsonValue> = parse_content(&content)?;
+
+    let tokens = DesignTokens::from_map(&map)?;
     let code = generate(&tokens);
 
     let output = Path::new(&std::env::var("OUT_DIR")?).join("design_tokens.rs");
@@ -27,6 +27,62 @@ pub fn build(path: impl AsRef<str>) -> Result<(), BuildError> {
     rustfmt(&output)?;
 
     Ok(())
+}
+
+fn parse_content(content: &str) -> Result<HashMap<String, JsonValue>, BuildError> {
+    if content.trim_start().starts_with('{') {
+        let json: JsonValue = content.parse()?;
+
+        return json
+            .get()
+            .cloned()
+            .ok_or(BuildError::Parse(Error::ExpectedObject));
+    }
+
+    let value = toml_span::parse(content)
+        .map_err(BuildError::TomlParse)?
+        .take();
+
+    toml_value_to_json_value(value)
+}
+
+fn toml_value_to_json_value(
+    value: ValueInner<'_>,
+) -> Result<HashMap<String, JsonValue>, BuildError> {
+    match value {
+        ValueInner::Table(table) => {
+            let mut map = HashMap::new();
+            for (key, mut value) in table {
+                map.insert(key.name.to_string(), convert_value(value.take())?);
+            }
+            Ok(map)
+        }
+        _ => Err(BuildError::Parse(Error::ExpectedObject)),
+    }
+}
+
+fn convert_value(value: ValueInner<'_>) -> Result<JsonValue, BuildError> {
+    match value {
+        ValueInner::String(s) => Ok(JsonValue::String(s.to_string())),
+        #[allow(clippy::cast_precision_loss)]
+        ValueInner::Integer(i) => Ok(JsonValue::Number(i as f64)),
+        ValueInner::Float(f) => Ok(JsonValue::Number(f)),
+        ValueInner::Boolean(b) => Ok(JsonValue::Boolean(b)),
+        ValueInner::Array(arr) => {
+            let mut json_arr = Vec::new();
+            for mut item in arr {
+                json_arr.push(convert_value(item.take())?);
+            }
+            Ok(JsonValue::Array(json_arr))
+        }
+        ValueInner::Table(table) => {
+            let mut map = HashMap::new();
+            for (key, mut value) in table {
+                map.insert(key.name.to_string(), convert_value(value.take())?);
+            }
+            Ok(JsonValue::Object(map))
+        }
+    }
 }
 
 fn generate(tokens: &DesignTokens) -> TokenStream {
@@ -340,7 +396,8 @@ mod tests {
 
     #[test]
     fn test_examples() {
-        let test_cases = vec![indoc! {r#"
+        let test_cases = [
+            indoc! {r#"
                 {
                   "group name": {
                     "token name": {
@@ -352,18 +409,29 @@ mod tests {
                     "$value": "{group name.token name}"
                   }
                 }
-            "#}];
+            "#},
+            indoc! {r#"
+                ["group name"]
 
-        for case in test_cases {
-            let value: JsonValue = case.parse().unwrap();
-            let tokens = DesignTokens::from_map(value.get().unwrap()).unwrap();
+                ["group name"."token name"]
+                "$value" = 1234
+                "$type" = "number"
+
+                ["alias name"]
+                "$value" = "{group name.token name}"
+            "#},
+        ];
+
+        for (i, case) in test_cases.iter().enumerate() {
+            let map: HashMap<String, JsonValue> = parse_content(case).unwrap();
+            let tokens = DesignTokens::from_map(&map).unwrap();
 
             let tokens = generate(&tokens);
             let abstract_file: File =
                 syn::parse2(tokens.clone()).unwrap_or_else(|err| panic!("{err}:\n\n{tokens}"));
             let code = prettyplease::unparse(&abstract_file);
 
-            insta::assert_snapshot!(code.to_string());
+            insta::assert_snapshot!(format!("case {i}"), code.to_string());
         }
     }
 }

@@ -2,6 +2,7 @@
 source: crates/dtoken/src/build.rs
 expression: code.to_string()
 ---
+#[allow(clippy::allow_attributes, clippy::too_many_lines)]
 pub fn design_tokens() -> design_tokens::DesignTokens {
     design_tokens::DesignTokens {
         alias_name: dtoken::types::number::Number(1234f64),
@@ -10,22 +11,20 @@ pub fn design_tokens() -> design_tokens::DesignTokens {
         },
     }
 }
-#[allow(clippy::module_inception)]
+#[allow(clippy::allow_attributes, clippy::module_inception)]
 pub mod design_tokens {
     ///Root-level Design Tokens type
+    #[derive(bevy_reflect::Reflect)]
     #[derive(Debug)]
     pub struct DesignTokens {
-        ///
         pub alias_name: dtoken::types::number::Number,
-        ///
         pub group_name: group_name::GroupName,
     }
-    #[allow(clippy::module_inception)]
+    #[allow(clippy::allow_attributes, clippy::module_inception)]
     pub mod group_name {
-        ///
+        #[derive(bevy_reflect::Reflect)]
         #[derive(Debug)]
         pub struct GroupName {
-            ///
             pub token_name: dtoken::types::number::Number,
         }
     }

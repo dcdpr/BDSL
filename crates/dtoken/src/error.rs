@@ -16,6 +16,7 @@ pub enum BuildError {
     Write(std::io::Error),
     Var(std::env::VarError),
     JsonParse(tinyjson::JsonParseError),
+    TomlParse(toml_span::Error),
 }
 
 impl std::error::Error for BuildError {
@@ -24,6 +25,7 @@ impl std::error::Error for BuildError {
             BuildError::Parse(v) => Some(v),
             BuildError::Var(v) => Some(v),
             BuildError::JsonParse(v) => Some(v),
+            BuildError::TomlParse(v) => Some(v),
             BuildError::Fmt(v) | BuildError::Read(v) | BuildError::Write(v) => Some(v),
         }
     }
@@ -38,6 +40,7 @@ impl Display for BuildError {
             BuildError::Write(error) => write!(f, "failed to write file: {error}"),
             BuildError::Var(error) => write!(f, "failed to read environment variable: {error}"),
             BuildError::JsonParse(error) => write!(f, "failed to parse json file: {error}"),
+            BuildError::TomlParse(error) => write!(f, "failed to parse toml file: {error}"),
         }
     }
 }
@@ -51,6 +54,12 @@ impl From<Error> for BuildError {
 impl From<JsonParseError> for BuildError {
     fn from(source: JsonParseError) -> Self {
         Self::JsonParse(source)
+    }
+}
+
+impl From<toml_span::Error> for BuildError {
+    fn from(source: toml_span::Error) -> Self {
+        Self::TomlParse(source)
     }
 }
 

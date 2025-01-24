@@ -994,6 +994,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "bevy_macro_utils"
+version = "0.15.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9bdb3a681c24abace65bf18ed467ad8befbedb42468b32e459811bfdb01e506c"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.90",
+ "toml_edit 0.22.22",
+]
+
+[[package]]
 name = "bevy_math"
 version = "0.13.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1217,6 +1229,12 @@ version = "0.15.0"
 source = "git+https://github.com/jeanmertz/bevy?branch=jean%2Fdebug-ui-gizmo-size#a1494a2606fa0e65b81bb07aef6e1001a89313e4"
 
 [[package]]
+name = "bevy_ptr"
+version = "0.15.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "aa65df6a190b7dfc84d79f09cf02d47ae046fa86a613e202c31559e06d8d3710"
+
+[[package]]
 name = "bevy_reflect"
 version = "0.13.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1255,6 +1273,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "bevy_reflect"
+version = "0.15.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bab3264acc3b6f48bc23fbd09fdfea6e5d9b7bfec142e4f3333f532acf195bca"
+dependencies = [
+ "assert_type_match",
+ "bevy_ptr 0.15.1",
+ "bevy_reflect_derive 0.15.1",
+ "bevy_utils 0.15.1",
+ "derive_more",
+ "disqualified",
+ "downcast-rs",
+ "erased-serde",
+ "serde",
+]
+
+[[package]]
 name = "bevy_reflect_derive"
 version = "0.13.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1273,6 +1308,19 @@ version = "0.15.0"
 source = "git+https://github.com/jeanmertz/bevy?branch=jean%2Fdebug-ui-gizmo-size#a1494a2606fa0e65b81bb07aef6e1001a89313e4"
 dependencies = [
  "bevy_macro_utils 0.15.0",
+ "proc-macro2",
+ "quote",
+ "syn 2.0.90",
+ "uuid",
+]
+
+[[package]]
+name = "bevy_reflect_derive"
+version = "0.15.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "42f83876a322130ab38a47d5dcf75258944bf76b3387d1acdb3750920fda63e2"
+dependencies = [
+ "bevy_macro_utils 0.15.1",
  "proc-macro2",
  "quote",
  "syn 2.0.90",
@@ -1677,6 +1725,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "bevy_utils"
+version = "0.15.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4f01088c048960ea50ee847c3f668942ecf49ed26be12a1585a5e59b6a941d9a"
+dependencies = [
+ "ahash",
+ "bevy_utils_proc_macros 0.15.1",
+ "getrandom",
+ "hashbrown 0.14.5",
+ "thread_local",
+ "tracing",
+ "web-time 1.1.0",
+]
+
+[[package]]
 name = "bevy_utils_proc_macros"
 version = "0.13.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1691,6 +1754,17 @@ dependencies = [
 name = "bevy_utils_proc_macros"
 version = "0.15.0"
 source = "git+https://github.com/jeanmertz/bevy?branch=jean%2Fdebug-ui-gizmo-size#a1494a2606fa0e65b81bb07aef6e1001a89313e4"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.90",
+]
+
+[[package]]
+name = "bevy_utils_proc_macros"
+version = "0.15.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4a0c3244d543cc964545b7aa074f6fb18a915a7121cf3de5d7ed37a4aae8662d"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -2460,6 +2534,7 @@ name = "dtoken"
 version = "0.1.0"
 dependencies = [
  "bevy_color",
+ "bevy_reflect 0.15.1",
  "bevy_ui",
  "convert_case",
  "indoc",
@@ -2470,6 +2545,7 @@ dependencies = [
  "similar-asserts",
  "syn 2.0.90",
  "tinyjson",
+ "toml-span",
 ]
 
 [[package]]
@@ -4926,6 +5002,15 @@ dependencies = [
  "serde_spanned",
  "toml_datetime",
  "toml_edit 0.22.22",
+]
+
+[[package]]
+name = "toml-span"
+version = "0.4.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "757f36f490e7b3a25ed9fb692d7a0beb1424eabec3f7e8f40f576bece9a8cdc5"
+dependencies = [
+ "smallvec",
 ]
 
 [[package]]
