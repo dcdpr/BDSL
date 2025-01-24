@@ -16,7 +16,10 @@ pub enum BuildError {
     Write(std::io::Error),
     Var(std::env::VarError),
     JsonParse(tinyjson::JsonParseError),
+    #[cfg(feature = "toml")]
     TomlParse(toml_span::Error),
+    #[cfg(feature = "ason")]
+    AsonParse(ason::AsonError),
 }
 
 impl std::error::Error for BuildError {
@@ -25,7 +28,10 @@ impl std::error::Error for BuildError {
             BuildError::Parse(v) => Some(v),
             BuildError::Var(v) => Some(v),
             BuildError::JsonParse(v) => Some(v),
+            #[cfg(feature = "toml")]
             BuildError::TomlParse(v) => Some(v),
+            #[cfg(feature = "ason")]
+            BuildError::AsonParse(v) => Some(v),
             BuildError::Fmt(v) | BuildError::Read(v) | BuildError::Write(v) => Some(v),
         }
     }
@@ -40,7 +46,10 @@ impl Display for BuildError {
             BuildError::Write(error) => write!(f, "failed to write file: {error}"),
             BuildError::Var(error) => write!(f, "failed to read environment variable: {error}"),
             BuildError::JsonParse(error) => write!(f, "failed to parse json file: {error}"),
+            #[cfg(feature = "toml")]
             BuildError::TomlParse(error) => write!(f, "failed to parse toml file: {error}"),
+            #[cfg(feature = "ason")]
+            BuildError::AsonParse(error) => write!(f, "failed to parse ason file: {error}"),
         }
     }
 }
@@ -57,9 +66,17 @@ impl From<JsonParseError> for BuildError {
     }
 }
 
+#[cfg(feature = "toml")]
 impl From<toml_span::Error> for BuildError {
     fn from(source: toml_span::Error) -> Self {
         Self::TomlParse(source)
+    }
+}
+
+#[cfg(feature = "ason")]
+impl From<ason::AsonError> for BuildError {
+    fn from(source: ason::AsonError) -> Self {
+        Self::AsonParse(source)
     }
 }
 

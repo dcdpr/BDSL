@@ -14,7 +14,6 @@ pub fn design_tokens() -> design_tokens::DesignTokens {
 #[allow(clippy::allow_attributes, clippy::module_inception)]
 pub mod design_tokens {
     ///Root-level Design Tokens type
-    #[derive(bevy_reflect::Reflect)]
     #[derive(Debug)]
     pub struct DesignTokens {
         pub alias_name: dtoken::types::number::Number,
@@ -22,7 +21,6 @@ pub mod design_tokens {
     }
     #[allow(clippy::allow_attributes, clippy::module_inception)]
     pub mod group_name {
-        #[derive(bevy_reflect::Reflect)]
         #[derive(Debug)]
         pub struct GroupName {
             pub token_name: dtoken::types::number::Number,

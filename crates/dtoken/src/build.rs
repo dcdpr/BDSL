@@ -11,7 +11,6 @@ use convert_case::{Case, Casing};
 use proc_macro2::{Ident, Span, TokenStream};
 use quote::{quote, ToTokens};
 use tinyjson::JsonValue;
-use toml_span::value::ValueInner;
 
 pub fn build(path: impl AsRef<str>) -> Result<(), BuildError> {
     let content = std::fs::read_to_string(path.as_ref()).map_err(BuildError::Read)?;
@@ -30,25 +29,38 @@ pub fn build(path: impl AsRef<str>) -> Result<(), BuildError> {
 }
 
 fn parse_content(content: &str) -> Result<HashMap<String, JsonValue>, BuildError> {
-    if content.trim_start().starts_with('{') {
-        let json: JsonValue = content.parse()?;
+    #[cfg(all(feature = "ason", feature = "toml"))]
+    eprintln!("Warning: both `ason` and `toml` features are enabled. Using `json` parser.");
 
-        return json
-            .get()
-            .cloned()
-            .ok_or(BuildError::Parse(Error::ExpectedObject));
+    #[cfg(all(feature = "ason", not(feature = "toml")))]
+    {
+        let json: ason::ast::AsonNode = ason::parse_from_str(content)?;
+        return ason_node_to_json_value(json);
     }
 
-    let value = toml_span::parse(content)
-        .map_err(BuildError::TomlParse)?
-        .take();
+    #[cfg(all(feature = "toml", not(feature = "ason")))]
+    {
+        let value = toml_span::parse(content)?.take();
+        return toml_value_to_json_value(value);
+    }
 
-    toml_value_to_json_value(value)
+    #[cfg(any(
+        not(any(feature = "ason", feature = "toml")),
+        all(feature = "ason", feature = "toml")
+    ))]
+    return content
+        .parse::<JsonValue>()?
+        .get()
+        .cloned()
+        .ok_or(BuildError::Parse(Error::ExpectedObject));
 }
 
+#[cfg(all(feature = "toml", not(feature = "ason")))]
 fn toml_value_to_json_value(
-    value: ValueInner<'_>,
+    value: toml_span::value::ValueInner<'_>,
 ) -> Result<HashMap<String, JsonValue>, BuildError> {
+    use toml_span::value::ValueInner;
+
     match value {
         ValueInner::Table(table) => {
             let mut map = HashMap::new();
@@ -61,7 +73,10 @@ fn toml_value_to_json_value(
     }
 }
 
-fn convert_value(value: ValueInner<'_>) -> Result<JsonValue, BuildError> {
+#[cfg(all(feature = "toml", not(feature = "ason")))]
+fn convert_value(value: toml_span::value::ValueInner<'_>) -> Result<JsonValue, BuildError> {
+    use toml_span::value::ValueInner;
+
     match value {
         ValueInner::String(s) => Ok(JsonValue::String(s.to_string())),
         #[allow(clippy::cast_precision_loss)]
@@ -82,6 +97,95 @@ fn convert_value(value: ValueInner<'_>) -> Result<JsonValue, BuildError> {
             }
             Ok(JsonValue::Object(map))
         }
+    }
+}
+
+#[cfg(all(feature = "ason", not(feature = "toml")))]
+pub fn ason_node_to_json_value(
+    node: ason::ast::AsonNode,
+) -> Result<HashMap<String, JsonValue>, BuildError> {
+    use ason::ast::AsonNode;
+
+    match node {
+        AsonNode::Object(pairs) => {
+            let mut map = HashMap::new();
+            for pair in pairs {
+                map.insert(pair.key, convert_node(*pair.value)?);
+            }
+            Ok(map)
+        }
+        AsonNode::Map(pairs) => {
+            let mut map = HashMap::new();
+            for pair in pairs {
+                match convert_node(*pair.name)? {
+                    JsonValue::String(key) => {
+                        map.insert(key, convert_node(*pair.value)?);
+                    }
+                    _ => return Err(BuildError::Parse(Error::ExpectedString)),
+                }
+            }
+            Ok(map)
+        }
+        _ => Err(BuildError::Parse(Error::ExpectedObject)),
+    }
+}
+
+#[cfg(all(feature = "ason", not(feature = "toml")))]
+fn convert_node(node: ason::ast::AsonNode) -> Result<JsonValue, BuildError> {
+    use ason::ast::AsonNode;
+
+    match node {
+        AsonNode::Number(num) => Ok(JsonValue::Number(convert_number(num))),
+        AsonNode::Boolean(b) => Ok(JsonValue::Boolean(b)),
+        AsonNode::String(s) => Ok(JsonValue::String(s)),
+        AsonNode::List(items) => {
+            let mut json_arr = Vec::new();
+            for item in items {
+                json_arr.push(convert_node(item)?);
+            }
+            Ok(JsonValue::Array(json_arr))
+        }
+        AsonNode::Object(pairs) => {
+            let mut map = HashMap::new();
+            for pair in pairs {
+                map.insert(pair.key, convert_node(*pair.value)?);
+            }
+            Ok(JsonValue::Object(map))
+        }
+        AsonNode::Map(pairs) => {
+            let mut map = HashMap::new();
+            for pair in pairs {
+                match convert_node(*pair.name)? {
+                    JsonValue::String(key) => {
+                        map.insert(key, convert_node(*pair.value)?);
+                    }
+                    _ => return Err(BuildError::Parse(Error::ExpectedString)),
+                }
+            }
+            Ok(JsonValue::Object(map))
+        }
+
+        _ => Err(BuildError::Parse(Error::UnexpectedType)),
+    }
+}
+
+#[cfg(all(feature = "ason", not(feature = "toml")))]
+fn convert_number(num: ason::ast::Number) -> f64 {
+    use ason::ast::Number;
+
+    match num {
+        Number::I8(n) => n as f64,
+        Number::U8(n) => n as f64,
+        Number::I16(n) => n as f64,
+        Number::U16(n) => n as f64,
+        Number::I32(n) => n as f64,
+        Number::U32(n) => n as f64,
+        #[allow(clippy::cast_precision_loss)]
+        Number::I64(n) => n as f64,
+        #[allow(clippy::cast_precision_loss)]
+        Number::U64(n) => n as f64,
+        Number::F32(n) => n as f64,
+        Number::F64(n) => n,
     }
 }
 
@@ -394,10 +498,13 @@ mod tests {
 
     use super::*;
 
+    #[cfg(any(
+        not(any(feature = "ason", feature = "toml")),
+        all(feature = "ason", feature = "toml")
+    ))]
     #[test]
-    fn test_examples() {
-        let test_cases = [
-            indoc! {r#"
+    fn test_json() {
+        let test_cases = [indoc! {r#"
                 {
                   "group name": {
                     "token name": {
@@ -409,18 +516,7 @@ mod tests {
                     "$value": "{group name.token name}"
                   }
                 }
-            "#},
-            indoc! {r#"
-                ["group name"]
-
-                ["group name"."token name"]
-                "$value" = 1234
-                "$type" = "number"
-
-                ["alias name"]
-                "$value" = "{group name.token name}"
-            "#},
-        ];
+            "#}];
 
         for (i, case) in test_cases.iter().enumerate() {
             let map: HashMap<String, JsonValue> = parse_content(case).unwrap();
@@ -431,7 +527,64 @@ mod tests {
                 syn::parse2(tokens.clone()).unwrap_or_else(|err| panic!("{err}:\n\n{tokens}"));
             let code = prettyplease::unparse(&abstract_file);
 
-            insta::assert_snapshot!(format!("case {i}"), code.to_string());
+            insta::assert_snapshot!(format!("json case {i}"), code.to_string());
+        }
+    }
+
+    #[cfg(all(feature = "toml", not(feature = "ason")))]
+    #[test]
+    fn test_toml() {
+        let test_cases = [indoc! {r#"
+                ["group name"]
+
+                ["group name"."token name"]
+                "$value" = 1234
+                "$type" = "number"
+
+                ["alias name"]
+                "$value" = "{group name.token name}"
+            "#}];
+
+        for (i, case) in test_cases.iter().enumerate() {
+            let map: HashMap<String, JsonValue> = parse_content(case).unwrap();
+            let tokens = DesignTokens::from_map(&map).unwrap();
+
+            let tokens = generate(&tokens);
+            let abstract_file: File =
+                syn::parse2(tokens.clone()).unwrap_or_else(|err| panic!("{err}:\n\n{tokens}"));
+            let code = prettyplease::unparse(&abstract_file);
+
+            insta::assert_snapshot!(format!("toml case {i}"), code.to_string());
+        }
+    }
+
+    #[cfg(all(feature = "ason", not(feature = "toml")))]
+    #[test]
+    fn test_ason() {
+        let test_cases = [indoc! {r#"
+                [
+                  "group name": [
+                    "token name": [
+                      "$value": 1234
+                      "$type": "number"
+                    ]
+                  ]
+                  "alias name": [
+                    "$value": "{group name.token name}"
+                  ]
+                ]
+            "#}];
+
+        for (i, case) in test_cases.iter().enumerate() {
+            let map: HashMap<String, JsonValue> = parse_content(case).unwrap();
+            let tokens = DesignTokens::from_map(&map).unwrap();
+
+            let tokens = generate(&tokens);
+            let abstract_file: File =
+                syn::parse2(tokens.clone()).unwrap_or_else(|err| panic!("{err}:\n\n{tokens}"));
+            let code = prettyplease::unparse(&abstract_file);
+
+            insta::assert_snapshot!(format!("ason case {i}"), code.to_string());
         }
     }
 }
