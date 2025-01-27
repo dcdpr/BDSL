@@ -12,14 +12,23 @@ use proc_macro2::{Ident, Span, TokenStream};
 use quote::{quote, ToTokens};
 use tinyjson::JsonValue;
 
-pub fn build(path: impl AsRef<str>) -> Result<(), BuildError> {
-    write(&parse_content(&read_file(path)?)?)
+#[derive(Default)]
+pub struct Config {
+    /// List of field names to give a private visibility modifier.
+    ///
+    /// This currently does not do any object traversal. If this list contains a value "foo", then
+    /// any field named "foo", regardless of the depth in the JSON object, will be set to private.
+    pub private_fields: Vec<String>,
 }
 
-pub fn build_merge(paths: &[impl AsRef<str>]) -> Result<(), BuildError> {
+pub fn build(path: impl AsRef<str>, opts: Config) -> Result<(), BuildError> {
+    write(&parse_content(&read_file(path)?)?, opts)
+}
+
+pub fn build_merge(paths: &[impl AsRef<str>], opts: Config) -> Result<(), BuildError> {
     let map = parse_content_merge(paths.iter().map(read_file).collect::<Result<Vec<_>, _>>()?)?;
 
-    write(&map)
+    write(&map, opts)
 }
 
 fn read_file(path: impl AsRef<str>) -> Result<String, BuildError> {
@@ -76,9 +85,9 @@ fn parse_content_merge(contents: Vec<String>) -> Result<HashMap<String, JsonValu
     Ok(map)
 }
 
-fn write(map: &HashMap<String, JsonValue>) -> Result<(), BuildError> {
+fn write(map: &HashMap<String, JsonValue>, opts: Config) -> Result<(), BuildError> {
     let tokens = DesignTokens::from_map(map)?;
-    let code = generate(&tokens);
+    let code = generate(&tokens, opts);
 
     let output = Path::new(&std::env::var("OUT_DIR")?).join("design_tokens.rs");
 
@@ -312,16 +321,17 @@ fn convert_number(n: &str) -> Result<JsonValue, BuildError> {
     Err(BuildError::Parse(Error::ExpectedNumber))
 }
 
-fn generate(tokens: &DesignTokens) -> TokenStream {
-    Generator::new(tokens).generate()
+fn generate(tokens: &DesignTokens, opts: Config) -> TokenStream {
+    Generator::new(tokens, opts).generate()
 }
 
 struct Generator {
     root: Group,
+    opts: Config,
 }
 
 impl Generator {
-    fn new(tokens: &DesignTokens) -> Self {
+    fn new(tokens: &DesignTokens, opts: Config) -> Self {
         let root = Group {
             items: tokens.items.clone(),
             description: Some("Root-level Design Tokens type".to_owned()),
@@ -329,7 +339,7 @@ impl Generator {
             extensions: HashMap::new(),
         };
 
-        Self { root }
+        Self { root, opts }
     }
 
     fn generate(&self) -> TokenStream {
@@ -410,13 +420,20 @@ impl Generator {
             nested.push(group);
         }
 
+        let mut visibilities = vec![];
         let mut fields = vec![];
         let mut types = vec![];
         let mut descs = vec![];
         for (name, token_or_group) in &items {
             let (field, kind) = self.struct_field(name, token_or_group);
             let desc = token_or_group.description().unwrap_or_default();
+            let visibility = if self.opts.private_fields.contains(name) {
+                quote! {}
+            } else {
+                quote! { pub }
+            };
 
+            visibilities.push(visibility);
             fields.push(field);
             types.push(kind);
             descs.push(if desc.is_empty() {
@@ -445,7 +462,7 @@ impl Generator {
             pub struct #group_name {
                 #(
                 #descs
-                pub #fields: #types,
+                #visibilities #fields: #types,
                 )*
             }
 
@@ -599,8 +616,7 @@ fn rustfmt(path: &Path) -> Result<(), BuildError> {
 
     Command::new(std::env::var("RUSTFMT").unwrap_or_else(|_| "rustfmt".to_string()))
         .args(["--emit", "files"])
-        // .args(["--config", "format_strings=true,edition=2024,struct_lit_width=0,struct_lit_single_line=false,struct_variant_width=false"])
-        .args(["--config", "format_strings=true"])
+        .args(["--config", "format_strings=true,max_width=120"])
         .arg(path)
         .output()
         .map_err(BuildError::Fmt)?;
@@ -645,7 +661,7 @@ mod tests {
             let map: HashMap<String, JsonValue> = parse_content(case).unwrap();
             let tokens = DesignTokens::from_map(&map).unwrap();
 
-            let tokens = generate(&tokens);
+            let tokens = generate(&tokens, Config::default());
             let abstract_file: File =
                 syn::parse2(tokens.clone()).unwrap_or_else(|err| panic!("{err}:\n\n{tokens}"));
             let code = prettyplease::unparse(&abstract_file);
@@ -672,7 +688,7 @@ mod tests {
             let map: HashMap<String, JsonValue> = parse_content(case).unwrap();
             let tokens = DesignTokens::from_map(&map).unwrap();
 
-            let tokens = generate(&tokens);
+            let tokens = generate(&tokens, Config::default());
             let abstract_file: File =
                 syn::parse2(tokens.clone()).unwrap_or_else(|err| panic!("{err}:\n\n{tokens}"));
             let code = prettyplease::unparse(&abstract_file);
@@ -702,7 +718,7 @@ mod tests {
             let map: HashMap<String, JsonValue> = parse_content(case).unwrap();
             let tokens = DesignTokens::from_map(&map).unwrap();
 
-            let tokens = generate(&tokens);
+            let tokens = generate(&tokens, Config::default());
             let abstract_file: File =
                 syn::parse2(tokens.clone()).unwrap_or_else(|err| panic!("{err}:\n\n{tokens}"));
             let code = prettyplease::unparse(&abstract_file);
@@ -733,7 +749,7 @@ mod tests {
             let map: HashMap<String, JsonValue> = parse_content(case).unwrap();
             let tokens = DesignTokens::from_map(&map).unwrap();
 
-            let tokens = generate(&tokens);
+            let tokens = generate(&tokens, Config::default());
             let abstract_file: File =
                 syn::parse2(tokens.clone()).unwrap_or_else(|err| panic!("{err}:\n\n{tokens}"));
             let code = prettyplease::unparse(&abstract_file);
@@ -784,11 +800,44 @@ mod tests {
         let map = parse_content_merge(contents.iter().map(ToString::to_string).collect()).unwrap();
         let tokens = DesignTokens::from_map(&map).unwrap();
 
-        let tokens = generate(&tokens);
+        let tokens = generate(&tokens, Config::default());
         let abstract_file: File =
             syn::parse2(tokens.clone()).unwrap_or_else(|err| panic!("{err}:\n\n{tokens}"));
         let code = prettyplease::unparse(&abstract_file);
 
         insta::assert_snapshot!("merged content", code.to_string());
+    }
+
+    #[cfg(any(
+        not(any(feature = "ason", feature = "toml", feature = "jsonc")),
+        all(feature = "ason", feature = "toml", feature = "jsonc")
+    ))]
+    #[test]
+    fn test_private_fields() {
+        let content = indoc! {r#"
+                {
+                  "group name": {
+                    "token name": {
+                      "$value": 1234,
+                      "$type": "number"
+                    }
+                  },
+                  "alias name": {
+                    "$value": "{group name.token name}"
+                  }
+                }
+            "#};
+
+        let map = parse_content(content).unwrap();
+        let tokens = DesignTokens::from_map(&map).unwrap();
+        let opts = Config {
+            private_fields: vec!["group name".to_owned()],
+        };
+        let tokens = generate(&tokens, opts);
+        let abstract_file: File =
+            syn::parse2(tokens.clone()).unwrap_or_else(|err| panic!("{err}:\n\n{tokens}"));
+        let code = prettyplease::unparse(&abstract_file);
+
+        insta::assert_snapshot!("private fields", code);
     }
 }
