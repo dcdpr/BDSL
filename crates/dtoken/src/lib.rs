@@ -20,9 +20,7 @@ pub mod types;
 mod build;
 
 #[cfg(feature = "build")]
-pub use build::build;
-#[cfg(feature = "build")]
-pub use build::build_merge;
+pub use build::{build, build_merge, Config};
 
 #[cfg(feature = "bevy")]
 pub mod bevy;
