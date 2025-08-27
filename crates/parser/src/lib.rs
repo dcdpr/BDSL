@@ -105,7 +105,7 @@ pub fn parse(input: &str) -> Result<Breadboard, Error> {
 }
 
 #[instrument(level = "trace", skip_all)]
-fn parse_comment<'a>(chars: &mut Chars<'_>) -> Vec<String> {
+fn parse_comment(chars: &mut Chars<'_>) -> Vec<String> {
     let mut comment = vec![];
 
     // Continuously parse consecutive comment lines (even if the comments are interleaved with
@@ -497,7 +497,7 @@ fn parse_connections(chars: &mut Chars<'_>) -> Result<Vec<Connection>, Error> {
 }
 
 #[instrument(level = "trace", skip_all)]
-fn parse_level<'a>(chars: &'a mut Chars<'_>) -> usize {
+fn parse_level(chars: &mut Chars<'_>) -> usize {
     // Don't do any implicit trimming, the first character should be a "level" character.
     if !chars.as_str().starts_with('>') {
         return 0;

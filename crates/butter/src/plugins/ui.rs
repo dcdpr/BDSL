@@ -29,6 +29,7 @@ impl Plugin for UiPlugin {
 }
 
 #[instrument(skip_all)]
+#[expect(clippy::too_many_lines)]
 fn apply_base_theme(tokens: Res<DesignTokens>, mut contexts: EguiContexts) {
     let v = &tokens.egui.visuals;
     let c = |c: Color| Color32::from_rgb(c.r, c.g, c.b);

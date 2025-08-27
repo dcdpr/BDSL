@@ -537,6 +537,7 @@ fn run_position_body(
 // }
 
 #[instrument(skip_all)]
+#[expect(clippy::too_many_lines)]
 fn position_place(
     mut cmd: Commands,
     positioning: Query<(Entity, &RequiresPositioning)>,
