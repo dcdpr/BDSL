@@ -37,11 +37,7 @@ pub(crate) struct ConnectionCreated {
 }
 
 #[instrument(skip_all)]
-fn create(
-    mut cmd: Commands,
-    mut affordances: EventReader<AffordanceCreatedEvent>,
-    mut created: EventWriter<ConnectionCreated>,
-) {
+fn create(mut affordances: EventReader<AffordanceCreatedEvent>) {
     for &AffordanceCreatedEvent {
         entity,
         ref connections,

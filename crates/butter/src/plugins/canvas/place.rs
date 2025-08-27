@@ -129,14 +129,16 @@ fn create(
     {
         let mut rng = rng.get(breadboard);
 
-        let mut index = 0;
-        for ast::Place {
-            name,
-            description,
-            items,
-            position,
-            ..
-        } in places.clone()
+        for (
+            index,
+            ast::Place {
+                name,
+                description,
+                items,
+                position,
+                ..
+            },
+        ) in places.clone().into_iter().enumerate()
         {
             let span = info_span!("spawn", ?breadboard, place = field::Empty).entered();
 
@@ -153,9 +155,10 @@ fn create(
                     .insert(Description::from(description.join("\n")));
             }
 
-            let (x, y) = position
-                .map(|pos| (pos.x, pos.y))
-                .unwrap_or_else(|| (Coordinate::Absolute(0), Coordinate::Absolute(0)));
+            let (x, y) = position.map_or_else(
+                || (Coordinate::Absolute(0), Coordinate::Absolute(0)),
+                |pos| (pos.x, pos.y),
+            );
 
             cmd.entity(place)
                 .insert((RequiresPositioning { x, y }, Visibility::Hidden));
@@ -189,8 +192,6 @@ fn create(
                 entity: place,
                 affordances,
             });
-
-            index += 1;
         }
     }
 }
@@ -211,12 +212,12 @@ fn reference_to_affordances(
                 ast::Item::Affordance(a) => {
                     let mut affordance = a.clone();
                     affordance.level += root_level;
-                    affordances.push(affordance)
+                    affordances.push(affordance);
                 }
                 ast::Item::Reference(r) => {
-                    reference_to_affordances(&r.name, root_level + r.level, places, affordances)
+                    reference_to_affordances(&r.name, root_level + r.level, places, affordances);
                 }
-            };
+            }
         }
     }
 }
@@ -246,7 +247,7 @@ fn create_header(
         .load("embedded://bnb_butter/plugins/../../assets/fonts/PermanentMarker-Regular.ttf");
     let image = asset_server.load("embedded://bnb_butter/plugins/../../assets/textures/lines.png");
 
-    let title = create_title(cmd, index + 1, &name, font, &tokens);
+    let title = create_title(cmd, index + 1, &name, font, tokens);
     let underline = create_underline(cmd, atlasses, image, rng);
     cmd.entity(title).add_child(underline);
 
@@ -350,9 +351,13 @@ fn create_underline(
     // };
     let range = 0..10;
 
+    #[expect(clippy::cast_precision_loss)]
     let custom_size = Vec2::new(rng.usize(130..220) as f32, rng.usize(8..12) as f32);
     let transform = Transform {
+        #[expect(clippy::cast_precision_loss)]
         translation: Vec3::new(0., rng.isize(-6..2) as f32, 1.9),
+
+        #[expect(clippy::cast_precision_loss)]
         rotation: Quat::from_rotation_z((rng.isize(-2..2) / 100) as f32),
         ..default()
     };
@@ -423,7 +428,7 @@ fn redraw_underline(
                     );
                 }
                 Ok(None) => {
-                    debug!(?underline, "Waiting on pending title size.")
+                    debug!(?underline, "Waiting on pending title size.");
                 }
                 Err(error) => error!(?underline, %error, "Unexpected error."),
             },
@@ -490,7 +495,7 @@ fn position_body(
                 info!(?body, ?translation, "Repositioned place body.");
             }
             Ok(None) => {
-                debug!(?body, "Waiting on pending size.")
+                debug!(?body, "Waiting on pending size.");
             }
             Err(error) => error!(?body, %error, "Unexpected error."),
         });
@@ -551,6 +556,7 @@ fn position_place(
         debug!(?place, ?x, ?y, "Positioning place.");
 
         let position = match (x, y) {
+            #[expect(clippy::cast_precision_loss)]
             (Coordinate::Absolute(x), Coordinate::Absolute(y)) => Vec2::new(*x as f32, *y as f32),
             (
                 Coordinate::Absolute(x),
@@ -578,8 +584,12 @@ fn position_place(
                     continue;
                 };
 
-                pos.y = pos.y + *offset as f32 + 200.;
+                #[expect(clippy::cast_precision_loss)]
+                {
+                    pos.y += *offset as f32 + 200.;
+                };
 
+                #[expect(clippy::cast_precision_loss)]
                 Vec2::new(*x as f32, pos.y)
             }
             (
@@ -608,8 +618,12 @@ fn position_place(
                     continue;
                 };
 
-                pos.x = pos.x + *offset as f32;
+                #[expect(clippy::cast_precision_loss)]
+                {
+                    pos.x += *offset as f32;
+                };
 
+                #[expect(clippy::cast_precision_loss)]
                 Vec2::new(pos.x, *y as f32)
             }
             (
@@ -650,10 +664,12 @@ fn position_place(
 
                 let offset_x = match offset_x {
                     0 => 100.,
+                    #[expect(clippy::cast_precision_loss)]
                     v => *v as f32,
                 };
 
                 let x = pos.x + offset_x + size.x;
+                #[expect(clippy::cast_precision_loss)]
                 let y = pos.y + *offset_y as f32;
 
                 Vec2::new(x, y)

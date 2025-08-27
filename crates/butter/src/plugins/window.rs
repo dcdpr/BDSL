@@ -60,7 +60,7 @@ fn canvas_redraw(
 ) {
     if breadboard.is_empty() && place.is_empty() && affordance.is_empty() && connection.is_empty() {
         return;
-    };
+    }
 
     breadboard.clear();
     place.clear();

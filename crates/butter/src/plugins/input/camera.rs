@@ -17,6 +17,7 @@ impl Target {
         self.0 = Some(entity);
     }
 
+    #[expect(dead_code)]
     pub fn reset(&mut self) {
         self.0 = None;
     }
@@ -27,7 +28,7 @@ pub(super) struct CameraPlugin;
 impl Plugin for CameraPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<Target>()
-            .add_plugins(PanCamPlugin::default())
+            .add_plugins(PanCamPlugin)
             .add_systems(
                 Update,
                 (
@@ -49,7 +50,7 @@ fn setup(
     let entity = camera.single();
     cmd.entity(entity).insert(PanCam {
         grab_buttons: vec![MouseButton::Left],
-        min_scale: debug.map(|_| 0.1).unwrap_or(1.),
+        min_scale: debug.map_or(1., |_| 0.1),
         max_scale: Some(10.),
         ..default()
     });

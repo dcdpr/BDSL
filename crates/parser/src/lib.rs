@@ -215,7 +215,7 @@ fn parse_coordinate(chars: &mut Chars<'_>) -> Result<Option<Coordinate>, Error> 
     parse_while(chars, |c| c.is_whitespace() && c != '\n');
 
     // If we start with a newline char or there are no more characters, there's no coordinate
-    if chars.clone().next().map_or(true, |c| c == '\n') {
+    if chars.clone().next().is_none_or(|c| c == '\n') {
         return Ok(None);
     }
 
@@ -376,7 +376,7 @@ fn parse_int<E: ToString, T: FromStr<Err = E>>(chars: &mut Chars<'_>) -> Result<
 
     skip_whitespace(chars);
     let str = chars.as_str();
-    while chars.clone().next().map_or(false, |c| c.is_ascii_digit()) {
+    while chars.clone().next().is_some_and(|c| c.is_ascii_digit()) {
         chars.next();
     }
 
@@ -499,7 +499,7 @@ fn parse_connections(chars: &mut Chars<'_>) -> Result<Vec<Connection>, Error> {
 #[instrument(level = "trace", skip_all)]
 fn parse_level<'a>(chars: &'a mut Chars<'_>) -> usize {
     // Don't do any implicit trimming, the first character should be a "level" character.
-    if !chars.as_str().starts_with(">") {
+    if !chars.as_str().starts_with('>') {
         return 0;
     }
 
@@ -517,7 +517,7 @@ fn parse_affordance_or_target_name<'a>(chars: &'a mut Chars<'_>) -> Result<&'a s
         return parse_quoted_string(chars);
     }
 
-    while chars.clone().next().map_or(false, |c| c != '\n') {
+    while chars.clone().next().is_some_and(|c| c != '\n') {
         if chars.as_str().starts_with("->") {
             break;
         }
@@ -538,11 +538,7 @@ fn parse_connection_description(chars: &mut Chars<'_>) -> Result<String, Error> 
     let desc = if let Some('"') = chars.clone().next() {
         parse_quoted_string(chars)?.to_owned()
     } else {
-        while chars
-            .clone()
-            .next()
-            .map_or(false, |c| c != '\n' && c != ')')
-        {
+        while chars.clone().next().is_some_and(|c| c != '\n' && c != ')') {
             chars.next();
         }
 
@@ -584,7 +580,7 @@ fn parse_quoted_string<'a>(chars: &'a mut Chars<'_>) -> Result<&'a str, Error> {
 fn parse_while<'a>(chars: &'a mut Chars<'_>, fun: impl Fn(char) -> bool) -> &'a str {
     let str = chars.as_str();
 
-    while chars.clone().next().map_or(false, &fun) {
+    while chars.clone().next().is_some_and(&fun) {
         chars.next();
     }
 
@@ -595,7 +591,7 @@ fn parse_while<'a>(chars: &'a mut Chars<'_>, fun: impl Fn(char) -> bool) -> &'a 
 fn parse_until<'a>(chars: &'a mut Chars<'_>, until: &str) -> &'a str {
     let str = chars.as_str();
 
-    while chars.clone().next().map_or(false, |c| !until.contains(c)) {
+    while chars.clone().next().is_some_and(|c| !until.contains(c)) {
         chars.next();
     }
 
@@ -606,7 +602,7 @@ fn parse_until<'a>(chars: &'a mut Chars<'_>, until: &str) -> &'a str {
 fn parse_word<'a>(chars: &'a mut Chars<'_>) -> &'a str {
     let str = chars.as_str();
 
-    while chars.clone().next().map_or(false, |c| !c.is_whitespace()) {
+    while chars.clone().next().is_some_and(|c| !c.is_whitespace()) {
         chars.next();
     }
 
@@ -617,7 +613,7 @@ fn parse_word<'a>(chars: &'a mut Chars<'_>) -> &'a str {
 fn parse_line<'a>(chars: &'a mut Chars<'_>) -> &'a str {
     let str = chars.as_str();
 
-    while chars.clone().next().map_or(false, |c| c != '\n') {
+    while chars.clone().next().is_some_and(|c| c != '\n') {
         chars.next();
     }
 
@@ -626,7 +622,7 @@ fn parse_line<'a>(chars: &'a mut Chars<'_>) -> &'a str {
 
 #[instrument(level = "trace", skip_all)]
 fn skip_whitespace(chars: &mut Chars<'_>) {
-    while chars.clone().next().map_or(false, char::is_whitespace) {
+    while chars.clone().next().is_some_and(char::is_whitespace) {
         chars.next();
     }
 }

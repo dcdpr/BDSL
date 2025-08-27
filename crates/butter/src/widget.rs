@@ -14,6 +14,7 @@ use bevy_window::PrimaryWindow;
 use crate::prelude::*;
 
 pub(crate) trait WorldWidgetSystemExt {
+    #[expect(dead_code)]
     fn root_widget<S: RootWidgetSystem<Args = ()> + 'static>(
         &mut self,
         id: impl Hash,

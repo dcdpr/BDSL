@@ -124,12 +124,10 @@ fn spawn_canvas(mut cmd: Commands) {
 fn update_text_computed_size(
     mut sizes: Query<(Entity, &mut ComputedSize, &TextLayoutInfo), Changed<TextLayoutInfo>>,
 ) {
-    for (entity, mut size, layout) in sizes.iter_mut() {
+    for (entity, mut size, layout) in &mut sizes {
         // The logical size of a text node can be zero, which we interpret as "unknown".
-        if layout.logical_size == Vec2::ZERO {
-            if !matches!(size.as_ref(), &ComputedSize::Static(_)) {
-                continue;
-            }
+        if layout.logical_size == Vec2::ZERO && !matches!(size.as_ref(), &ComputedSize::Static(_)) {
+            continue;
         }
 
         let old = *size.as_ref();
@@ -149,7 +147,7 @@ fn update_text_computed_size(
 fn update_transformed_computed_size(
     mut sizes: Query<(Entity, &mut ComputedSize, &Transform), Changed<Transform>>,
 ) {
-    for (entity, mut size, transform) in sizes.iter_mut() {
+    for (entity, mut size, transform) in &mut sizes {
         let _span = trace_span!("Checking if entity needs computed size update", ?entity).entered();
 
         let old = *size.as_ref();
@@ -197,7 +195,7 @@ fn ensure_node_compliance(
             continue;
         };
 
-        let is_leaf = children.map_or(true, |c| c.is_empty());
+        let is_leaf = children.is_none_or(|c| c.is_empty());
         if is_leaf && matches!(computed_size, ComputedSize::Inherit) {
             error!(?node, "Leaf nodes must have known computed size.");
         }

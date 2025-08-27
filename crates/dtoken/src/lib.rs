@@ -6,7 +6,8 @@
 //! read the [Design Tokens specification] for more information.
 //!
 //! ```no_run
-//! dtoken::build("design_tokens.json").unwrap()
+//! # use dtoken::Config;
+//! dtoken::build("design_tokens.json", Config::default()).unwrap()
 //! ```
 //!
 //! [build script]: https://doc.rust-lang.org/cargo/reference/build-scripts.html

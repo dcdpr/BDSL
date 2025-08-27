@@ -31,7 +31,7 @@
     "affordance": {
       "$description": "A single affordance in a place.",
       "font": {
-        "$value": "{fonts.shantell-sans}"
+        "$value": "{_fonts._shantell-sans}"
       },
       "padding_bottom": {
         "$type": "number",
@@ -50,68 +50,68 @@
         "$value": "{colors.text}"
       },
       "hyperlink_color": {
-        "$value": "{colors.rosewater}"
+        "$value": "{colors._rosewater}"
       },
       "faint_bg_color": {
-        "$value": "{colors.surface0}"
+        "$value": "{colors._surface0}"
       },
       "extreme_bg_color": {
-        "$value": "{colors.crust}"
+        "$value": "{colors._crust}"
       },
       "code_bg_color": {
-        "$value": "{colors.mantle}"
+        "$value": "{colors._mantle}"
       },
       "warn_fg_color": {
-        "$value": "{colors.peach}"
+        "$value": "{colors._peach}"
       },
       "error_fg_color": {
-        "$value": "{colors.maroon}"
+        "$value": "{colors._maroon}"
       },
       "window_fill": {
-        "$value": "{colors.base}"
+        "$value": "{colors._base}"
       },
       "panel_fill": {
-        "$value": "{colors.base}"
+        "$value": "{colors._base}"
       },
       "window_stroke": {
         "$value": "{colors.overlay1}"
       },
       "widgets": {
         "noninteractive": {
-          "$value": "{colors.base}"
+          "$value": "{colors._base}"
         },
         "inactive": {
-          "$value": "{colors.surface0}"
+          "$value": "{colors._surface0}"
         },
         "hovered": {
-          "$value": "{colors.surface2}"
+          "$value": "{colors._surface2}"
         },
         "active": {
-          "$value": "{colors.surface1}"
+          "$value": "{colors._surface1}"
         },
         "open": {
-          "$value": "{colors.surface0}"
+          "$value": "{colors._surface0}"
         }
       },
       "selection": {
-        "$value": "{colors.blue}"
+        "$value": "{colors._blue}"
       },
       "window_shadow": {
-        "$value": "{colors.base}"
+        "$value": "{colors._base}"
       },
       "popup_shadow": {
-        "$value": "{colors.base}"
+        "$value": "{colors._base}"
       }
     }
   },
-  "fonts": {
+  "_fonts": {
     "$type": "fontFamily",
-    "shantell-sans": {
+    "_shantell-sans": {
       "$value": [
         "ShantellSans-Regular"
       ]
     },
-    "permanent-marker": {
+    "_permanent-marker": {
       "$value": [
         "PermanentMarker-Regular"
       ]
@@ -119,82 +119,82 @@
   },
   "colors": {
     "$type": "color",
-    "rosewater": {
+    "_rosewater": {
       "$value": "#f2d5cf"
     },
-    "flamingo": {
+    "_flamingo": {
       "$value": "#eebebe"
     },
-    "pink": {
+    "_pink": {
       "$value": "#f4b8e4"
     },
-    "mauve": {
+    "_mauve": {
       "$value": "#ca9ee6"
     },
-    "red": {
+    "_red": {
       "$value": "#e78284"
     },
-    "maroon": {
+    "_maroon": {
       "$value": "#ea999c"
     },
-    "peach": {
+    "_peach": {
       "$value": "#ef9f76"
     },
-    "yellow": {
+    "_yellow": {
       "$value": "#e5c890"
     },
-    "green": {
+    "_green": {
       "$value": "#a6d189"
     },
-    "teal": {
+    "_teal": {
       "$value": "#81c8be"
     },
-    "sky": {
+    "_sky": {
       "$value": "#99d1db"
     },
-    "sapphire": {
+    "_sapphire": {
       "$value": "#85c1dc"
     },
-    "blue": {
+    "_blue": {
       "$value": "#8caaee"
     },
-    "lavender": {
+    "_lavender": {
       "$value": "#babbf1"
     },
     "text": {
       "$value": "#c6d0f5"
     },
-    "subtext1": {
+    "_subtext1": {
       "$value": "#b5bfe2"
     },
-    "subtext0": {
+    "_subtext0": {
       "$value": "#a5adce"
     },
-    "overlay2": {
+    "_overlay2": {
       "$value": "#949cbb"
     },
     "overlay1": {
       "$value": "#838ba7"
     },
-    "overlay0": {
+    "_overlay0": {
       "$value": "#737994"
     },
-    "surface2": {
+    "_surface2": {
       "$value": "#626880"
     },
-    "surface1": {
+    "_surface1": {
       "$value": "#51576d"
     },
-    "surface0": {
+    "_surface0": {
       "$value": "#414559"
     },
-    "base": {
+    "_base": {
       "$value": "#303446"
     },
-    "mantle": {
+    "_mantle": {
       "$value": "#292c3c"
     },
-    "crust": {
+    "_crust": {
       "$value": "#232634"
     }
   }
