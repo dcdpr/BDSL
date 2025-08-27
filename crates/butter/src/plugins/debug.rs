@@ -12,6 +12,8 @@ pub(crate) struct DrawGizmos;
 pub(crate) struct DebugInfiniteZoom;
 
 /// Generic debugging utilities.
+#[derive(Default)]
+#[allow(clippy::struct_excessive_bools)]
 pub(crate) struct DebugPlugin {
     /// Enable tracing.
     pub trace: bool,
@@ -56,20 +58,9 @@ impl DebugPlugin {
     }
 
     #[cfg(not(feature = "trace"))]
+    #[expect(clippy::unused_self)]
     fn enable_tracing(&self) {
-        tracing::warn!("`trace` option enabled, but binary built without `trace` feature")
-    }
-}
-
-impl Default for DebugPlugin {
-    fn default() -> Self {
-        Self {
-            trace: false,
-            ambiguity_detection: false,
-            computed_size_changes: false,
-            draw_gizmos: false,
-            infinite_zoom: false,
-        }
+        tracing::warn!("`trace` option enabled, but binary built without `trace` feature");
     }
 }
 
@@ -86,7 +77,7 @@ impl Plugin for DebugPlugin {
                     ..default()
                 });
             });
-        };
+        }
 
         if self.computed_size_changes {
             app.init_resource::<DebugComputedSize>();

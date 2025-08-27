@@ -120,7 +120,7 @@ fn spawn(
         };
 
         for component in components {
-            places.push(component.deref().clone())
+            places.push(component.deref().clone());
         }
 
         let name = Name::new(name.to_owned());
@@ -134,7 +134,7 @@ fn spawn(
         // Random elements of the breadboard (slight font changes, underline changes, etc, to give
         // it more of a hand-drawn feel) are seeded based on the name of the breadboard, this
         // ensures consistent rendering between sessions.
-        let seed: u64 = name.bytes().fold(0, |acc, n| acc + n as u64);
+        let seed: u64 = name.bytes().fold(0, |acc, n| acc + u64::from(n));
 
         // Spawn new breadboard entity.
         let entity = cmd

@@ -140,6 +140,7 @@ pub struct Component(Place);
 
 impl Component {
     /// Creates a new [`Component`] from the given [`Place`].
+    #[must_use]
     pub fn new(place: Place) -> Self {
         Self(place)
     }

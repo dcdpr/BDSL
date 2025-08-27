@@ -24,7 +24,7 @@ struct SelectedFile(PathBuf);
 
 impl Default for SelectedFile {
     fn default() -> Self {
-        Self(dirs::home_dir().unwrap_or(PathBuf::new()))
+        Self(dirs::home_dir().unwrap_or_default())
     }
 }
 
@@ -43,6 +43,7 @@ impl AsRef<Path> for SelectedFile {
 ///
 /// This allows for breadboard source files to be modified while Butter.app is running.
 #[derive(Resource, Deref, DerefMut)]
+#[expect(dead_code)]
 struct Watcher(());
 
 /// Event triggered when a file was loaded.

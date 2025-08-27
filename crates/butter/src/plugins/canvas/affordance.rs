@@ -76,6 +76,7 @@ impl Default for AffordanceBundle {
 #[derive(Event)]
 pub(crate) struct AffordanceCreatedEvent {
     pub entity: Entity,
+    #[expect(dead_code)]
     pub name: String,
     pub connections: Vec<ast::Connection>,
 }
@@ -129,14 +130,16 @@ fn create(
         // This makes it easier to render, and reposition a group of nested affordances. It also
         // makes it easier to hide a tree of nested affordances by iterating all children and
         // setting them as invisible.
-        let mut index = 0;
         let mut indices = HashMap::new();
-        for ast::Affordance {
-            name,
-            description,
-            connections,
-            level,
-        } in affordances.clone()
+        for (
+            index,
+            ast::Affordance {
+                name,
+                description,
+                connections,
+                level,
+            },
+        ) in affordances.clone().into_iter().enumerate()
         {
             indices.entry(level).or_default();
 
@@ -174,7 +177,6 @@ fn create(
             });
 
             *indices.get_mut(&level).unwrap() += 1;
-            index += 1;
         }
     }
 }
@@ -207,6 +209,7 @@ fn create_title(
         font,
     };
 
+    #[expect(clippy::cast_precision_loss)]
     let x = tokens.canvas.affordance.level_padding.as_f32() * level as f32;
 
     let mut numbers = format!("{}.", place_index + 1);
@@ -218,7 +221,7 @@ fn create_title(
             index.saturating_sub(1)
         };
 
-        numbers.push_str(&format!("{}.", index))
+        numbers.push_str(&format!("{index}."));
     }
     numbers.push(' ');
 
@@ -306,7 +309,7 @@ fn position_affordance(
             };
 
             let height = affordances_height;
-            if translation.y != -height {
+            if (translation.y - -height).abs() > 0.01 {
                 translation.y = -height;
             }
 
@@ -362,7 +365,7 @@ fn toggle_numbering(
                     index.saturating_sub(1)
                 };
 
-                numbers.push_str(&format!("{}.", index))
+                numbers.push_str(&format!("{index}."));
             }
             numbers.push(' ');
 

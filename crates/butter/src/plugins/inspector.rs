@@ -1,14 +1,9 @@
 use crate::prelude::*;
 
 /// Generic debugging utilities.
+#[derive(Default)]
 pub(crate) struct InspectorPlugin {
     pub enable: bool,
-}
-
-impl Default for InspectorPlugin {
-    fn default() -> Self {
-        Self { enable: false }
-    }
 }
 
 impl Plugin for InspectorPlugin {
@@ -28,6 +23,6 @@ impl Plugin for InspectorPlugin {
 
     #[cfg(not(feature = "inspector"))]
     fn build(&self, _: &mut App) {
-        let _enable = self.enable;
+        let _ = self.enable;
     }
 }

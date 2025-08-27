@@ -43,6 +43,7 @@ pub enum ComputedSize {
 }
 
 impl ComputedSize {
+    #[expect(dead_code)]
     pub fn size(self) -> Option<Vec2> {
         match self {
             ComputedSize::Static(size) => Some(size),
@@ -212,7 +213,7 @@ impl<T: QueryFilter + 'static> ComputedSizeParam<'_, '_, T> {
 
             // Inherited computed sizes are calculated next.
             ComputedSize::Inherit => {}
-        };
+        }
 
         // Initialize bounding box extremes.
         let mut min_x = f32::INFINITY;
@@ -241,7 +242,7 @@ impl<T: QueryFilter + 'static> ComputedSizeParam<'_, '_, T> {
         // If the node has a single child, we can take its computed size, without the need to look
         // at the position on the canvas.
         let single_child = children.len() == 1;
-        for &child in children.iter() {
+        for &child in children {
             // If a child node's size is still pending, then we abort calculating its parent node
             // size as well.
             let Some(child_size) = self.calculate_size_for_entity(child)? else {
@@ -330,7 +331,7 @@ impl<T: QueryFilter + 'static> ComputedSizeParam<'_, '_, T> {
 
             // Inherited computed sizes are calculated next.
             ComputedSize::Inherit => {}
-        };
+        }
 
         let children = self
             .children
@@ -342,7 +343,7 @@ impl<T: QueryFilter + 'static> ComputedSizeParam<'_, '_, T> {
         let mut max_x = f32::NEG_INFINITY;
         let mut max_y = f32::NEG_INFINITY;
 
-        for &child in children.iter() {
+        for &child in children {
             let Some(translation) = self.calculate_global_translation_for_entity(child)? else {
                 return Ok(None);
             };
@@ -359,8 +360,8 @@ impl<T: QueryFilter + 'static> ComputedSizeParam<'_, '_, T> {
         }
 
         Ok(Some(Vec3::new(
-            (min_x + max_x) / 2.,
-            (min_y + max_y) / 2.,
+            min_x.midpoint(max_x),
+            min_y.midpoint(max_y),
             0.0,
         )))
     }
@@ -418,6 +419,7 @@ pub(crate) fn debug_computed_size_changed(
 }
 
 #[derive(Event)]
+#[expect(dead_code)]
 pub(crate) struct ComputedSizeUpdatedEvent {
     /// The source entity for which the computed size was updated.
     pub source: Entity,
@@ -436,6 +438,7 @@ pub(crate) struct ComputedSizeUpdatedEvent {
 }
 
 impl ComputedSizeUpdatedEvent {
+    #[expect(dead_code)]
     pub fn contains(&self, entity: Entity) -> bool {
         self.source == entity || self.ancestors.contains(&entity)
     }
@@ -556,7 +559,6 @@ pub fn render_computed_size_gizmo(
 
 #[cfg(test)]
 mod tests {
-    use super::*;
 
     #[test]
     fn test_name() {}
