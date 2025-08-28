@@ -9,14 +9,14 @@ pub(crate) struct InspectorPlugin {
 impl Plugin for InspectorPlugin {
     #[cfg(feature = "inspector")]
     fn build(&self, app: &mut App) {
-        use bevy_inspector_egui::quick::WorldInspectorPlugin;
+        use bevy::inspector_egui::quick::WorldInspectorPlugin;
 
         if !self.enable {
             return;
         }
 
         app.add_plugins((
-            bevy_core::TypeRegistrationPlugin,
+            bevy::core::TypeRegistrationPlugin,
             WorldInspectorPlugin::default().run_if(input_toggle_active(false, KeyCode::KeyI)),
         ));
     }

@@ -1,6 +1,6 @@
-use bevy_a11y::AccessibilityPlugin;
-use bevy_window::{PresentMode, RequestRedraw, Window};
-use bevy_winit::{WinitPlugin, WinitSettings};
+use bevy::a11y::AccessibilityPlugin;
+use bevy::window::{PresentMode, RequestRedraw, Window};
+use bevy::winit::{WinitPlugin, WinitSettings};
 
 use crate::prelude::*;
 
@@ -33,7 +33,7 @@ impl Plugin for WindowPlugin {
             .init_resource::<ForceRedraw>()
             .add_plugins((
                 AccessibilityPlugin,
-                bevy_window::WindowPlugin {
+                bevy::window::WindowPlugin {
                     primary_window: Some(Window {
                         title: "Butter: A Buttery Smooth Breadboarding UI.".into(),
                         present_mode: PresentMode::AutoVsync,

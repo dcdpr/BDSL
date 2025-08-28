@@ -450,7 +450,7 @@ impl Generator {
         };
 
         let bevy_reflect = if cfg!(feature = "bevy") {
-            quote! { #[derive(bevy_reflect::Reflect)] }
+            quote! { #[derive(bevy::reflect::Reflect)] }
         } else {
             quote! {}
         };

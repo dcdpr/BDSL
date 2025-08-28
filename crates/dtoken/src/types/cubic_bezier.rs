@@ -30,7 +30,7 @@ use crate::error::Error;
 
 /// See module-level documentation.
 #[derive(Debug, Clone, Copy, PartialEq)]
-#[cfg_attr(feature = "reflect", derive(bevy_reflect::Reflect))]
+#[cfg_attr(feature = "reflect", derive(bevy::reflect::Reflect))]
 pub struct CubicBezier {
     pub p1x: f64,
     pub p1y: f64,

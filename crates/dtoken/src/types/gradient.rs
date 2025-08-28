@@ -108,7 +108,7 @@ use super::color::Color;
 
 /// See module-level documentation.
 #[derive(Debug, Clone, PartialEq)]
-#[cfg_attr(feature = "reflect", derive(bevy_reflect::Reflect))]
+#[cfg_attr(feature = "reflect", derive(bevy::reflect::Reflect))]
 pub struct Gradient {
     pub stops: Vec<GradientStop>,
 }
@@ -142,7 +142,7 @@ impl TryFrom<&[JsonValue]> for Gradient {
 }
 
 #[derive(Debug, Clone, PartialEq)]
-#[cfg_attr(feature = "reflect", derive(bevy_reflect::Reflect))]
+#[cfg_attr(feature = "reflect", derive(bevy::reflect::Reflect))]
 pub struct GradientStop {
     pub color: Color,
     pub position: f64,

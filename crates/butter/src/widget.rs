@@ -6,10 +6,10 @@
 
 use std::hash::{Hash, Hasher as _};
 
-use bevy_ecs::system::{SystemParam, SystemState};
+use bevy::ecs::system::{SystemParam, SystemState};
 use bevy_egui::{egui, egui::Context, EguiContext};
-use bevy_utils::{AHasher, HashMap};
-use bevy_window::PrimaryWindow;
+use bevy::utils::{AHasher, HashMap};
+use bevy::window::PrimaryWindow;
 
 use crate::prelude::*;
 
@@ -71,8 +71,8 @@ impl WorldWidgetSystemExt for World {
             //
             //thread 'main' panicked at crates/butter/src/widget.rs:69:14:
             // Cannot get single query result: No entities fit the query
-            // bevy_ecs::query::state::QueryState<&mut bevy_egui::EguiContext,
-            // bevy_ecs::query::filter::With<bevy_window::window::PrimaryWindow>>
+            // bevy::ecs::query::state::QueryState<&mut bevy_egui::EguiContext,
+            // bevy::ecs::query::filter::With<bevy::window::window::PrimaryWindow>>
             .single_mut(self)
             .get_mut()
             .clone();

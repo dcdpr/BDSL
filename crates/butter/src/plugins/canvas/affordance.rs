@@ -8,7 +8,7 @@
 //! For detailed information on individual parts of this plugin, please refer to the respective
 //! documentation within this module.
 
-use bevy_utils::HashMap;
+use bevy::utils::HashMap;
 
 use crate::prelude::*;
 

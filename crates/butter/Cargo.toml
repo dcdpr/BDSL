@@ -16,33 +16,7 @@ ast = { package = "bnb-ast", path = "../ast", default-features = false }
 dtoken = { path = "../dtoken", default-features = false }
 parser = { package = "bnb-parser", path = "../parser", default-features = false }
 
-# Core Bevy crates.
-bevy_a11y = { version = "0.13", default-features = false }
-bevy_app = { version = "0.13", default-features = false }
-bevy_asset = { version = "0.13", default-features = false }
-bevy_core = { version = "0.13", default-features = false }
-bevy_core_pipeline = { version = "0.13", default-features = false }
-bevy_derive = { version = "0.13", default-features = false }
-bevy_ecs = { version = "0.13", default-features = false }
-bevy_gizmos = { version = "0.13", default-features = false, features = [
-  "bevy_sprite",
-] }
-bevy_hierarchy = { version = "0.13", default-features = false }
-bevy_input = { version = "0.13", default-features = false }
-bevy_math = { version = "0.13", default-features = false }
-bevy_reflect = { version = "0.13", default-features = false }
-bevy_render = { version = "0.13", default-features = false, features = ["png"] }
-bevy_sprite = { version = "0.13", default-features = false }
-bevy_text = { version = "0.13", default-features = false }
-bevy_time = { version = "0.13", default-features = false }
-bevy_transform = { version = "0.13", default-features = false }
-bevy_utils = { version = "0.13", default-features = false }
-bevy_window = { version = "0.13", default-features = false }
-bevy_winit = { version = "0.13", default-features = false }
-
-# Dynamic linking, see: <https://bevyengine.org/learn/book/getting-started/setup/#enable-fast-compiles-optional>.
-bevy_dylib = { version = "0.13", default-features = false, optional = true }
-bevy_internal = { version = "0.13", default-features = false, optional = true }
+bevy = { version = "0.13" }
 
 # Other crates.
 bevy_egui = { version = "0.25", default-features = false, features = [
@@ -79,9 +53,6 @@ tracing-subscriber = { version = "0.3", default-features = false, optional = tru
 ] }
 bevy_tweening = { version = "0.10", default-features = false }
 
-[target.'cfg(target_os = "linux")'.dependencies]
-bevy_winit = { version = "0.13", default-features = false, features = ["x11"] }
-
 [build-dependencies]
 dtoken = { path = "../dtoken", default-features = false, features = [
   "build",
@@ -90,6 +61,6 @@ dtoken = { path = "../dtoken", default-features = false, features = [
 
 [features]
 default = ["fast-compile"]
-fast-compile = ["dep:bevy_dylib", "bevy_internal/dynamic_linking"]
+fast-compile = ["bevy/dynamic_linking"]
 trace = ["dep:tracing-subscriber"]
 inspector = ["dep:bevy-inspector-egui"]

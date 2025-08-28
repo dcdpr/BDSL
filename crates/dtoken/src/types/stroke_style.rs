@@ -19,7 +19,7 @@ use super::dimension::Dimension;
 
 /// See module docs.
 #[derive(Debug, Clone, PartialEq)]
-#[cfg_attr(feature = "reflect", derive(bevy_reflect::Reflect))]
+#[cfg_attr(feature = "reflect", derive(bevy::reflect::Reflect))]
 pub enum StrokeStyle {
     Solid,
     Dashed,
@@ -36,7 +36,7 @@ pub enum StrokeStyle {
 }
 
 #[derive(Debug, Copy, Clone, PartialEq)]
-#[cfg_attr(feature = "reflect", derive(bevy_reflect::Reflect))]
+#[cfg_attr(feature = "reflect", derive(bevy::reflect::Reflect))]
 pub enum LineCap {
     Round,
     Butt,

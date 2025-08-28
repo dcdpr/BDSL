@@ -54,7 +54,7 @@ use super::{dimension::Dimension, font_family::FontFamily, font_weight::FontWeig
 
 /// See module-level documentation.
 #[derive(Debug, Clone, PartialEq)]
-#[cfg_attr(feature = "reflect", derive(bevy_reflect::Reflect))]
+#[cfg_attr(feature = "reflect", derive(bevy::reflect::Reflect))]
 pub struct Typography {
     pub font_family: FontFamily,
     pub font_size: Dimension,

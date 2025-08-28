@@ -27,7 +27,7 @@ use crate::error::Error;
 
 /// See module documentation.
 #[derive(Debug, Clone, Copy, PartialEq)]
-#[cfg_attr(feature = "reflect", derive(bevy_reflect::Reflect))]
+#[cfg_attr(feature = "reflect", derive(bevy::reflect::Reflect))]
 pub struct Color {
     pub r: u8,
     pub g: u8,

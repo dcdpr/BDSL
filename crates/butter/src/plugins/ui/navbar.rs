@@ -1,4 +1,4 @@
-use bevy_ecs::system::{SystemParam, SystemState};
+use bevy::ecs::system::{SystemParam, SystemState};
 use bevy_egui::egui::{self, Vec2};
 
 use crate::{

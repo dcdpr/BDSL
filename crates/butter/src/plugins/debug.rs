@@ -1,4 +1,4 @@
-use bevy_ecs::schedule::{LogLevel, ScheduleBuildSettings};
+use bevy::ecs::schedule::{LogLevel, ScheduleBuildSettings};
 
 use crate::prelude::*;
 
@@ -43,7 +43,7 @@ impl DebugPlugin {
             .add_directive("bevy_render=error".parse().unwrap())
             .add_directive("wgpu_core=error".parse().unwrap())
             .add_directive("wgpu_hal=error".parse().unwrap())
-            .add_directive("bevy_time::virt=error".parse().unwrap())
+            .add_directive("bevy::time::virt=error".parse().unwrap())
             .add_directive("bevy_mod_raycast=error".parse().unwrap())
             .add_directive("bevy_egui=error".parse().unwrap())
             .add_directive("naga=error".parse().unwrap());
@@ -84,7 +84,7 @@ impl Plugin for DebugPlugin {
         }
 
         if self.draw_gizmos {
-            app.add_plugins(bevy_gizmos::GizmoPlugin)
+            app.add_plugins(bevy::gizmos::GizmoPlugin)
                 .init_resource::<DrawGizmos>();
         }
 

@@ -29,7 +29,7 @@ use crate::error::Error;
 
 /// See module-level documentation.
 #[derive(Debug, Clone, PartialEq)]
-#[cfg_attr(feature = "reflect", derive(bevy_reflect::Reflect))]
+#[cfg_attr(feature = "reflect", derive(bevy::reflect::Reflect))]
 pub struct Duration {
     pub milliseconds: f64,
 }

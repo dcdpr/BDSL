@@ -1,4 +1,4 @@
-use bevy_ui::Val;
+use bevy::ui::Val;
 
 use crate::types::{color::Color, dimension::Dimension};
 
@@ -11,10 +11,10 @@ impl From<Dimension> for Val {
     }
 }
 
-impl From<Color> for bevy_color::Color {
+impl From<Color> for bevy::color::Color {
     fn from(value: Color) -> Self {
-        use bevy_color::ColorToComponents;
+        use bevy::color::ColorToComponents;
 
-        bevy_color::Srgba::from_f32_array(value.to_rgba()).into()
+        bevy::color::Srgba::from_f32_array(value.to_rgba()).into()
     }
 }

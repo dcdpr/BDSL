@@ -12,9 +12,9 @@
 //! documentation within this module.
 
 use ast::Coordinate;
-use bevy_asset::Assets;
-use bevy_hierarchy::Parent;
-use bevy_sprite::{Sprite, SpriteSheetBundle, TextureAtlas, TextureAtlasLayout};
+use bevy::asset::Assets;
+use bevy::hierarchy::Parent;
+use bevy::sprite::{Sprite, SpriteSheetBundle, TextureAtlas, TextureAtlasLayout};
 use tracing::field;
 
 use crate::{plugins::input::Target, prelude::*};

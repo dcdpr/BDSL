@@ -1,9 +1,9 @@
-use bevy_core::{FrameCountPlugin, TaskPoolPlugin};
-use bevy_core_pipeline::CorePipelinePlugin;
-use bevy_render::RenderPlugin;
-use bevy_sprite::SpritePlugin;
-use bevy_text::TextPlugin;
-use bevy_time::TimePlugin;
+use bevy::core::{FrameCountPlugin, TaskPoolPlugin};
+use bevy::core_pipeline::CorePipelinePlugin;
+use bevy::render::RenderPlugin;
+use bevy::sprite::SpritePlugin;
+use bevy::text::TextPlugin;
+use bevy::time::TimePlugin;
 
 use crate::prelude::*;
 

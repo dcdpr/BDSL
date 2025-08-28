@@ -1,5 +1,5 @@
-use bevy_ecs::query::QueryFilter;
-use bevy_gizmos::gizmos::Gizmos;
+use bevy::ecs::query::QueryFilter;
+use bevy::gizmos::gizmos::Gizmos;
 
 use crate::prelude::*;
 
@@ -19,7 +19,7 @@ use super::debug::{DebugComputedSize, DrawGizmos};
 /// - Each leaf node in the tree *CANNOT* have an inherited computed size.
 ///
 /// There are many ways in which a computed size can be calculated, but one example is based on
-/// [`bevy_text::TextLayoutInfo`], which provides its own computed size at the end of an update
+/// [`bevy::text::TextLayoutInfo`], which provides its own computed size at the end of an update
 /// cycle.
 #[derive(Debug, Component, Default, Copy, Clone, Reflect, PartialEq)]
 pub enum ComputedSize {
@@ -27,7 +27,7 @@ pub enum ComputedSize {
     /// data to be generated before the final size can be determined.
     ///
     /// For example, an entity with the `Text` component will get the computed size defined once
-    /// [`bevy_text::TextPipeline::queue_text()`] runs, and the [`bevy_text::TextLayoutInfo`]
+    /// [`bevy::text::TextPipeline::queue_text()`] runs, and the [`bevy::text::TextLayoutInfo`]
     /// component is added.
     #[default]
     Pending,

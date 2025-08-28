@@ -34,7 +34,7 @@ use super::{color::Color, dimension::Dimension};
 
 /// See module-level documentation.
 #[derive(Debug, Clone, PartialEq)]
-#[cfg_attr(feature = "reflect", derive(bevy_reflect::Reflect))]
+#[cfg_attr(feature = "reflect", derive(bevy::reflect::Reflect))]
 pub struct Shadow {
     pub color: Color,
     pub offset_x: Dimension,
