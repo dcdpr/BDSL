@@ -14,7 +14,7 @@
 use ast::Coordinate;
 use bevy::asset::Assets;
 use bevy::hierarchy::Parent;
-use bevy::sprite::{Sprite, SpriteSheetBundle, TextureAtlas, TextureAtlasLayout};
+use bevy::sprite::{Sprite, SpriteBundle, TextureAtlas, TextureAtlasLayout};
 use tracing::field;
 
 use crate::{plugins::input::Target, prelude::*};
@@ -282,13 +282,13 @@ fn create_title(
 ) -> Entity {
     let name_style = TextStyle {
         font_size: tokens.canvas.place.header.title.font_size.as_f32(),
-        color: Color::BLACK,
+        color: css::BLACK.into(),
         font: font.clone(),
     };
 
     let number_style = TextStyle {
         font_size: tokens.canvas.place.header.title.number.font_size.as_f32(),
-        color: Color::DARK_GRAY,
+        color: css::DARK_GRAY.into(),
         font,
     };
 
@@ -341,7 +341,7 @@ fn create_underline(
     texture: Handle<Image>,
     rng: &mut RngComponent,
 ) -> Entity {
-    let layout = TextureAtlasLayout::from_grid(Vec2::new(1420.0, 80.0), 1, 20, None, None);
+    let layout = TextureAtlasLayout::from_grid(UVec2::new(1420, 80), 1, 20, None, None);
     let layout = atlasses.add(layout);
 
     // TODO
@@ -364,21 +364,23 @@ fn create_underline(
 
     let underline = cmd
         .spawn(UnderlineBundle::default())
-        .insert(SpriteSheetBundle {
-            atlas: TextureAtlas {
+        .insert((
+            SpriteBundle {
+                sprite: Sprite {
+                    custom_size: Some(custom_size),
+                    flip_x: rng.bool(),
+                    flip_y: rng.bool(),
+                    ..default()
+                },
+                texture,
+                transform,
+                ..default()
+            },
+            TextureAtlas {
                 index: rng.usize(range),
                 layout,
             },
-            sprite: Sprite {
-                custom_size: Some(custom_size),
-                flip_x: rng.bool(),
-                flip_y: rng.bool(),
-                ..default()
-            },
-            transform,
-            texture,
-            ..default()
-        })
+        ))
         .insert(ComputedSize::Static(custom_size))
         .id();
 

@@ -510,7 +510,7 @@ pub fn render_computed_size_gizmo(
         let (size, color) = match size {
             ComputedSize::Pending => continue,
             ComputedSize::Inherit => match calculated_sizes.size_of(entity)? {
-                Some(size) => (size, Color::BLUE),
+                Some(size) => (size, css::BLUE),
                 _ => continue,
             },
             ComputedSize::Static(size) => {
@@ -520,7 +520,7 @@ pub fn render_computed_size_gizmo(
                     pos.x += (padding.left - padding.right) / 2.;
                 }
 
-                (*size, Color::GREEN)
+                (*size, css::GREEN)
             }
         };
 
@@ -529,25 +529,25 @@ pub fn render_computed_size_gizmo(
             if padding.bottom > 0. {
                 // pos.y += padding.bottom / 2.;
                 let p = Vec2::new(pos.x, pos.y - size.y / 2. - padding.bottom / 2.);
-                gizmos.rect_2d(p, 0., Vec2::new(size.x, padding.bottom), Color::RED);
+                gizmos.rect_2d(p, 0., Vec2::new(size.x, padding.bottom), css::RED);
             }
 
             if padding.top > 0. {
                 // pos.y -= padding.top / 2.;
                 let p = Vec2::new(pos.x, pos.y + size.y / 2. + padding.top / 2.);
-                gizmos.rect_2d(p, 0., Vec2::new(size.x, padding.top), Color::RED);
+                gizmos.rect_2d(p, 0., Vec2::new(size.x, padding.top), css::RED);
             }
 
             if padding.left > 0. {
                 // pos.x += padding.left / 2.;
                 let p = Vec2::new(pos.x - size.x / 2. - padding.left / 2., pos.y);
-                gizmos.rect_2d(p, 0., Vec2::new(padding.left, size.y), Color::RED);
+                gizmos.rect_2d(p, 0., Vec2::new(padding.left, size.y), css::RED);
             }
 
             if padding.right > 0. {
                 // pos.x -= padding.right / 2.;
                 let p = Vec2::new(pos.x + size.x / 2. + padding.right / 2., pos.y);
-                gizmos.rect_2d(p, 0., Vec2::new(padding.right, size.y), Color::RED);
+                gizmos.rect_2d(p, 0., Vec2::new(padding.right, size.y), css::RED);
             }
         }
 

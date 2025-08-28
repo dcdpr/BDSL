@@ -2,6 +2,7 @@ use bevy::core::{FrameCountPlugin, TaskPoolPlugin};
 use bevy::core_pipeline::CorePipelinePlugin;
 use bevy::render::RenderPlugin;
 use bevy::sprite::SpritePlugin;
+use bevy::state::app::StatesPlugin;
 use bevy::text::TextPlugin;
 use bevy::time::TimePlugin;
 
@@ -24,6 +25,7 @@ impl Plugin for BevyPlugin {
             TransformPlugin,
             SpritePlugin,
             TextPlugin,
+            StatesPlugin,
         ))
         // TODO: move these to their own plugin?
         .add_plugins(bevy_mod_picking::DefaultPickingPlugins)

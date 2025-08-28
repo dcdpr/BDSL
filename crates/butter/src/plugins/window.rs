@@ -1,6 +1,6 @@
 use bevy::a11y::AccessibilityPlugin;
 use bevy::window::{PresentMode, RequestRedraw, Window};
-use bevy::winit::{WinitPlugin, WinitSettings};
+use bevy::winit::{WakeUp, WinitPlugin, WinitSettings};
 
 use crate::prelude::*;
 
@@ -28,7 +28,7 @@ impl ForceRedraw {
 
 impl Plugin for WindowPlugin {
     fn build(&self, app: &mut App) {
-        app.insert_resource(ClearColor(Color::rgb(0.945, 0.945, 0.941)))
+        app.insert_resource(ClearColor(Color::srgb(0.945, 0.945, 0.941)))
             .insert_resource(WinitSettings::desktop_app())
             .init_resource::<ForceRedraw>()
             .add_plugins((
@@ -41,7 +41,7 @@ impl Plugin for WindowPlugin {
                     }),
                     ..default()
                 },
-                WinitPlugin::default(),
+                WinitPlugin::<WakeUp>::default(),
             ))
             .add_systems(
                 Update,

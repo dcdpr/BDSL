@@ -22,7 +22,7 @@ impl Plugin for UiPlugin {
                     // Systems that create Egui widgets should be run during the `CoreSet::Update`
                     // set, or after the `EguiSet::BeginFrame` system (which belongs to the
                     // `CoreSet::PreUpdate` set).
-                    .after(EguiSet::BeginFrame),
+                    .after(EguiSet::BeginPass),
             )
             .add_systems(Update, render);
     }

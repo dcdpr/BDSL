@@ -8,7 +8,7 @@
 //! For detailed information on individual parts of this plugin, please refer to the respective
 //! documentation within this module.
 
-use bevy::utils::HashMap;
+use bevy::{color::palettes::css, utils::HashMap};
 
 use crate::prelude::*;
 
@@ -205,7 +205,7 @@ fn create_title(
 
     let number_style = TextStyle {
         font_size: 13.,
-        color: Color::DARK_GRAY,
+        color: css::DARK_GRAY.into(),
         font,
     };
 

@@ -51,7 +51,7 @@ fn setup(
     cmd.entity(entity).insert(PanCam {
         grab_buttons: vec![MouseButton::Left],
         min_scale: debug.map_or(1., |_| 0.1),
-        max_scale: Some(10.),
+        max_scale: 10.,
         ..default()
     });
 }
