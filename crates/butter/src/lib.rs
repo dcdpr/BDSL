@@ -27,7 +27,7 @@ pub fn run(config: Config) {
                 trace: debug,
                 ambiguity_detection: debug,
                 computed_size_changes: debug,
-                draw_gizmos: false,
+                draw_gizmos: debug,
                 infinite_zoom: debug,
             },
             UiPlugin,

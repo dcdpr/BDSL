@@ -83,10 +83,6 @@ impl From<String> for Description {
 #[derive(Component, Default)]
 pub(super) struct Title;
 
-/// Designates the number span of a [`Title`]
-#[derive(Component, Default)]
-pub(super) struct TitleNumberSpan;
-
 /// Bundle of required components for affordance title entities.
 #[derive(Bundle, Default)]
 pub(super) struct TitleBundle {
@@ -108,5 +104,27 @@ impl TitleBundle {
     pub(crate) fn with_transform(mut self, transform: Transform) -> Self {
         self.transform = transform;
         self
+    }
+}
+
+/// Designates the number span of a [`Title`]
+#[derive(Component, Default)]
+pub(super) struct TitleNumberSpan;
+
+#[derive(Bundle, Default)]
+pub(super) struct TitleNumberSpanBundle {
+    text: TextSpan,
+    marker: TitleNumberSpan,
+    visibility: Visibility,
+    transform: Transform,
+    size: ComputedSize,
+}
+
+impl TitleNumberSpanBundle {
+    pub fn new(text: impl Into<String>) -> Self {
+        Self {
+            text: TextSpan::new(text),
+            ..default()
+        }
     }
 }

@@ -15,7 +15,10 @@ use crate::prelude::*;
 use super::{
     breadboard::ShowNumbers,
     place::{Place, PlaceCreatedEvent},
-    shared::{Body, Description, Header, Index, Title, TitleBundle, TitleNumberSpan},
+    shared::{
+        Body, Description, Header, Index, Title, TitleBundle, TitleNumberSpan,
+        TitleNumberSpanBundle,
+    },
     CanvasSet,
 };
 
@@ -252,12 +255,17 @@ fn create_title(
         ))
         .with_children(|parent| {
             parent.spawn((
-                TitleNumberSpan,
-                TextSpan::new(numbers),
+                TitleNumberSpanBundle::new(numbers),
                 numbers_font,
                 numbers_color,
             ));
-            parent.spawn((TextSpan::new(name), name_font, name_color));
+            parent.spawn((
+                TextSpan::new(name),
+                name_font,
+                name_color,
+                Transform::default(),
+                ComputedSize::Pending,
+            ));
         })
         .id();
 

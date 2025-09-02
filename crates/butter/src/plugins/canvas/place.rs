@@ -20,7 +20,7 @@ use tracing::field;
 
 use crate::{plugins::input::Target, prelude::*};
 
-use super::shared::TitleNumberSpan;
+use super::shared::{TitleNumberSpan, TitleNumberSpanBundle};
 use super::{
     breadboard::{BreadboardCreatedEvent, ShowNumbers},
     shared::{Body, BodyBundle, Description, HeaderBundle, Index, Title, TitleBundle},
@@ -319,12 +319,17 @@ fn create_title(
         // title), so that enabling/disabling numbers does not move the original title, or
         // re-size the underline.
         parent.spawn((
-            TitleNumberSpan,
-            TextSpan::new(format!("{index}. ")),
+            TitleNumberSpanBundle::new(format!("{index}. ")),
             numbers_font,
             numbers_color,
         ));
-        parent.spawn((TextSpan::new(name), name_font, name_color));
+        parent.spawn((
+            TextSpan::new(name),
+            name_font,
+            name_color,
+            Transform::default(),
+            ComputedSize::Pending,
+        ));
     })
     .id()
 }
@@ -378,7 +383,11 @@ fn create_underline(
     let underline = cmd
         .spawn(UnderlineBundle::default())
         .insert((
-            Sprite::from_atlas_image(texture, TextureAtlas::from(layout)),
+            {
+                let mut sprite = Sprite::from_atlas_image(texture, TextureAtlas::from(layout));
+                sprite.custom_size = Some(custom_size);
+                sprite
+            },
             transform,
         ))
         .insert(ComputedSize::Static(custom_size))

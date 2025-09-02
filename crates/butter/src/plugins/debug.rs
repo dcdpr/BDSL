@@ -46,6 +46,9 @@ impl DebugPlugin {
             .add_directive("bevy::time::virt=error".parse().unwrap())
             .add_directive("bevy_mod_raycast=error".parse().unwrap())
             .add_directive("bevy_egui=error".parse().unwrap())
+            .add_directive("bevy_time=error".parse().unwrap())
+            .add_directive("cosmic_text=error".parse().unwrap())
+            .add_directive("winit=error".parse().unwrap())
             .add_directive("naga=error".parse().unwrap());
 
         tracing_subscriber::fmt()

@@ -25,6 +25,11 @@ bevy_egui = { version = "0.33", default-features = false, features = [
 ] }
 # TODO: Swap for version 0.23 once new release is out.
 bevy-inspector-egui = { version = "0.30", default-features = false, features = [
+  "bevy_core_pipeline",
+  "bevy_render",
+  "documentation",
+  "egui_clipboard",
+  "egui_open_url",
   "highlight_changes",
 ], optional = true }
 bevy_pancam = { version = "0.17", default-features = false, features = [

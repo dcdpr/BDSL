@@ -9,7 +9,7 @@ pub(crate) struct InspectorPlugin {
 impl Plugin for InspectorPlugin {
     #[cfg(feature = "inspector")]
     fn build(&self, app: &mut App) {
-        use bevy::inspector_egui::quick::WorldInspectorPlugin;
+        use bevy_inspector_egui::quick::WorldInspectorPlugin;
 
         if !self.enable {
             return;
