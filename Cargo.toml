@@ -31,10 +31,7 @@ assigning_clones = "allow"
 ignored_unit_patterns = "allow"
 format_push_string = "allow"
 type_complexity = "allow"
-
-[patch.crates-io]
-bevy_ui = { git = "https://github.com/jeanmertz/bevy", branch = "jean/debug-ui-gizmo-size" }
-bevy_color = { git = "https://github.com/jeanmertz/bevy", branch = "jean/debug-ui-gizmo-size" }
+too_many_arguments = "allow"
 
 # Enable a small amount of optimization in the dev profile.
 [profile.dev]

@@ -1,7 +1,7 @@
 use std::time::Duration;
 
 use bevy_pancam::{PanCam, PanCamPlugin};
-use bevy_tweening::{lens::TransformPositionLens, Animator, EaseFunction, Tween};
+use bevy_tweening::{lens::TransformPositionLens, Animator, Tween};
 
 use crate::{plugins::debug::DebugInfiniteZoom, prelude::*};
 
@@ -32,7 +32,7 @@ impl Plugin for CameraPlugin {
             .add_systems(
                 Update,
                 (
-                    setup.run_if(any_with_component::<Camera>.and_then(run_once())),
+                    setup.run_if(any_with_component::<Camera>.and(run_once)),
                     redraw_during_camera_movement.run_if(camera_moving),
                     focus
                         .run_if(resource_changed::<Target>)

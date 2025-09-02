@@ -8,14 +8,14 @@
 //! For detailed information on individual parts of this plugin, please refer to the respective
 //! documentation within this module.
 
-use bevy::{color::palettes::css, utils::HashMap};
+use bevy::{color::palettes::css, hierarchy::ChildBuild as _, utils::HashMap};
 
 use crate::prelude::*;
 
 use super::{
     breadboard::ShowNumbers,
     place::{Place, PlaceCreatedEvent},
-    shared::{Body, Description, Header, Index, Title, TitleBundle},
+    shared::{Body, Description, Header, Index, Title, TitleBundle, TitleNumberSpan},
     CanvasSet,
 };
 
@@ -29,7 +29,7 @@ impl Plugin for AffordancePlugin {
             (
                 (
                     position_affordance.map(err).run_if(run_position_affordance),
-                    create.run_if(on_event::<PlaceCreatedEvent>()),
+                    create.run_if(on_event::<PlaceCreatedEvent>),
                 )
                     .chain(),
                 toggle_numbering.run_if(resource_changed::<ShowNumbers>),
@@ -50,8 +50,8 @@ struct Affordance;
 #[derive(Bundle)]
 struct AffordanceBundle {
     marker: Affordance,
-    visibility: VisibilityBundle,
-    transform: TransformBundle,
+    visibility: Visibility,
+    transform: Transform,
     size: ComputedSize,
 }
 
@@ -197,17 +197,31 @@ fn create_title(
 ) -> Entity {
     let span = info_span!("spawn", %name, title = field::Empty).entered();
 
-    let name_style = TextStyle {
-        font_size: 16.,
-        color: Color::BLACK,
+    let name_font = TextFont {
         font: font.clone(),
+        font_size: 16.,
+        ..default()
     };
+    let name_color = TextColor(css::BLACK.into());
 
-    let number_style = TextStyle {
+    let numbers_font = TextFont {
+        font: font.clone(),
         font_size: 13.,
-        color: css::DARK_GRAY.into(),
-        font,
+        ..default()
     };
+    let numbers_color = TextColor(css::DARK_GRAY.into());
+
+    // let name_style = TextStyle {
+    //     font_size: 16.,
+    //     color: Color::BLACK,
+    //     font: font.clone(),
+    // };
+    //
+    // let number_style = TextStyle {
+    //     font_size: 13.,
+    //     color: css::DARK_GRAY.into(),
+    //     font,
+    // };
 
     #[expect(clippy::cast_precision_loss)]
     let x = tokens.canvas.affordance.level_padding.as_f32() * level as f32;
@@ -226,19 +240,24 @@ fn create_title(
     numbers.push(' ');
 
     let title = cmd
-        .spawn(TitleBundle::new(name.to_owned()))
-        .insert(Text2dBundle {
-            text: Text::from_sections([
-                TextSection::new(numbers, number_style),
-                TextSection::new(name, name_style),
-            ]),
+        .spawn((
+            TitleBundle::new(name.to_owned()).with_transform(Transform::from_xyz(-40. + x, 0., 2.)),
+            Text2d::default(),
             // TODO: left-align text, based on the left edge of the place (title).
-            text_anchor: Anchor::TopLeft,
-            text_2d_bounds: Text2dBounds {
-                size: Vec2::new(200., f32::INFINITY),
+            Anchor::TopLeft,
+            TextBounds {
+                width: Some(200.),
+                height: None,
             },
-            transform: Transform::from_xyz(-40. + x, 0., 2.),
-            ..default()
+        ))
+        .with_children(|parent| {
+            parent.spawn((
+                TitleNumberSpan,
+                TextSpan::new(numbers),
+                numbers_font,
+                numbers_color,
+            ));
+            parent.spawn((TextSpan::new(name), name_font, name_color));
         })
         .id();
 
@@ -331,20 +350,23 @@ fn run_position_affordance(
 
 fn toggle_numbering(
     show: Res<ShowNumbers>,
-    mut titles: Query<(&Parent, &mut Text), With<Title>>,
+    titles: Query<&Parent, With<Title>>,
+    mut title_number_spans: Query<(&Parent, &mut TextSpan), With<TitleNumberSpan>>,
     affordances: Query<Entity, With<Affordance>>,
     places: Query<Entity, With<Place>>,
     indices: Query<&Index>,
     levels: Query<&NestingLevel>,
     parents: Query<&Parent>,
 ) {
-    let texts = titles.iter_mut().filter_map(|(parent, text)| {
-        affordances.get(parent.get()).ok().and_then(|affordance| {
-            levels.get(affordance).ok().and_then(|level| {
-                parents
-                    .iter_ancestors(affordance)
-                    .find_map(|v| places.get(v).and_then(|place| indices.get(place)).ok())
-                    .map(|place_index| (place_index, level, text))
+    let texts = title_number_spans.iter_mut().filter_map(|(title, text)| {
+        titles.get(title.get()).ok().and_then(|parent| {
+            affordances.get(parent.get()).ok().and_then(|affordance| {
+                levels.get(affordance).ok().and_then(|level| {
+                    parents
+                        .iter_ancestors(affordance)
+                        .find_map(|v| places.get(v).and_then(|place| indices.get(place)).ok())
+                        .map(|place_index| (place_index, level, text))
+                })
             })
         })
     });
@@ -369,11 +391,11 @@ fn toggle_numbering(
             }
             numbers.push(' ');
 
-            text.sections[0].value = numbers;
+            text.0 = numbers;
 
             *indices.get_mut(&level).unwrap() += 1;
         } else {
-            text.sections[0].value.clear();
+            text.0.clear();
         }
     }
 }

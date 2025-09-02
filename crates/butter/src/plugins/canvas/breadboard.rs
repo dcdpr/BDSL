@@ -25,7 +25,7 @@ impl Plugin for BreadboardPlugin {
             .add_systems(
                 Update,
                 (
-                    spawn.run_if(on_event::<FileLoadedEvent>()),
+                    spawn.run_if(on_event::<FileLoadedEvent>),
                     make_visible.run_if(|q: Query<&Visibility, With<Breadboard>>| {
                         q.iter().any(|v| v == Visibility::Hidden)
                     }),
@@ -45,8 +45,8 @@ pub(crate) struct Breadboard;
 pub(super) struct BreadboardBundle {
     name: Name,
     marker: Breadboard,
-    visibility: VisibilityBundle,
-    transform: TransformBundle,
+    visibility: Visibility,
+    transform: Transform,
     size: ComputedSize,
 }
 
@@ -66,12 +66,9 @@ impl BreadboardBundle {
     pub(super) fn new(name: Name) -> Self {
         Self {
             name,
-            visibility: VisibilityBundle {
-                // Start off as hidden, until all children are spawned and positioned correctly.
-                // This prevents any visual glitches during the initial render.
-                visibility: Visibility::Hidden,
-                ..default()
-            },
+            // Start off as hidden, until all children are spawned and positioned correctly.
+            // This prevents any visual glitches during the initial render.
+            visibility: Visibility::Hidden,
             ..default()
         }
     }

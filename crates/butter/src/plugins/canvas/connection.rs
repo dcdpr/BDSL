@@ -10,7 +10,7 @@ impl Plugin for ConnectionPlugin {
         app.add_event::<ConnectionCreated>().add_systems(
             Update,
             create
-                .run_if(on_event::<AffordanceCreatedEvent>())
+                .run_if(on_event::<AffordanceCreatedEvent>)
                 .in_set(CanvasSet::Connection),
         );
     }
@@ -24,8 +24,8 @@ struct Connection;
 #[derive(Bundle, Default)]
 struct ConnectionBundle {
     marker: Connection,
-    visibility: VisibilityBundle,
-    transform: TransformBundle,
+    visibility: Visibility,
+    transform: Transform,
     size: ComputedSize,
 }
 

@@ -2,7 +2,7 @@ mod navbar;
 
 use bevy_egui::{
     egui::{self, Color32, CursorIcon, Visuals},
-    EguiContexts, EguiPlugin, EguiSet,
+    EguiContexts, EguiPlugin, EguiPreUpdateSet,
 };
 use dtoken::types::color::Color;
 
@@ -16,13 +16,13 @@ impl Plugin for UiPlugin {
             .add_systems(
                 PreUpdate,
                 apply_base_theme
-                    .run_if(run_once())
+                    .run_if(run_once)
                     // From `bevy_egui` documentation:
                     //
                     // Systems that create Egui widgets should be run during the `CoreSet::Update`
                     // set, or after the `EguiSet::BeginFrame` system (which belongs to the
                     // `CoreSet::PreUpdate` set).
-                    .after(EguiSet::BeginPass),
+                    .after(EguiPreUpdateSet::BeginPass),
             )
             .add_systems(Update, render);
     }

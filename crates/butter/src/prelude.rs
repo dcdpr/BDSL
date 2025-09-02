@@ -16,6 +16,7 @@ pub(crate) use bevy::ecs::system::{SystemParam, SystemState};
 pub(crate) use bevy::hierarchy::{
     BuildChildren as _, Children, DespawnRecursiveExt as _, HierarchyQueryExt as _, Parent,
 };
+pub(crate) use bevy::image::prelude::*;
 pub(crate) use bevy::input::common_conditions::*;
 pub(crate) use bevy::input::prelude::*;
 pub(crate) use bevy::math::prelude::*;
@@ -25,11 +26,10 @@ pub(crate) use bevy::render::prelude::*;
 pub(crate) use bevy::sprite::Anchor;
 pub(crate) use bevy::state::app::AppExtStates as _;
 pub(crate) use bevy::text::prelude::*;
-pub(crate) use bevy::text::{Text2dBounds, TextLayoutInfo};
+pub(crate) use bevy::text::{TextBounds, TextLayoutInfo};
 pub(crate) use bevy::transform::prelude::*;
 pub(crate) use bevy::utils::prelude::*;
 pub(crate) use bevy_egui::egui;
-pub(crate) use bevy_mod_picking::prelude::*;
 pub(crate) use bevy_turborand::{DelegatedRng as _, RngComponent};
 pub(crate) use tracing::{
     debug, error, field, info, info_span, instrument, trace, trace_span, warn,

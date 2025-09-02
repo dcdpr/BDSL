@@ -16,27 +16,21 @@ ast = { package = "bnb-ast", path = "../ast", default-features = false }
 dtoken = { path = "../dtoken", default-features = false }
 parser = { package = "bnb-parser", path = "../parser", default-features = false }
 
-bevy = { version = "0.14" }
+bevy = { version = "0.15" }
 
 # Other crates.
-bevy_egui = { version = "0.30", default-features = false, features = [
+bevy_egui = { version = "0.33", default-features = false, features = [
   "default_fonts",
   "render",
 ] }
 # TODO: Swap for version 0.23 once new release is out.
-bevy-inspector-egui = { git = "https://github.com/Aztro-dev/bevy-inspector-egui", default-features = false, features = [
+bevy-inspector-egui = { version = "0.30", default-features = false, features = [
   "highlight_changes",
 ], optional = true }
-bevy_mod_picking = { version = "0.20", default-features = false, features = [
-  "selection",
-  "backend_sprite",
-  "backend_raycast",
-  "debug",
-] }
-bevy_pancam = { version = "0.15", default-features = false, features = [
+bevy_pancam = { version = "0.17", default-features = false, features = [
   "bevy_egui",
 ] }
-bevy_turborand = { version = "0.9", default-features = false, features = [
+bevy_turborand = { version = "0.10", default-features = false, features = [
   "wyrand",
 ] }
 dirs = { version = "6", default-features = false }
@@ -51,7 +45,7 @@ tracing-subscriber = { version = "0.3", default-features = false, optional = tru
   "env-filter",
   "json",
 ] }
-bevy_tweening = { version = "0.11", default-features = false }
+bevy_tweening = { version = "0.12", default-features = false }
 
 [build-dependencies]
 dtoken = { path = "../dtoken", default-features = false, features = [

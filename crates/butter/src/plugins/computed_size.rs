@@ -529,29 +529,29 @@ pub fn render_computed_size_gizmo(
             if padding.bottom > 0. {
                 // pos.y += padding.bottom / 2.;
                 let p = Vec2::new(pos.x, pos.y - size.y / 2. - padding.bottom / 2.);
-                gizmos.rect_2d(p, 0., Vec2::new(size.x, padding.bottom), css::RED);
+                gizmos.rect_2d(p, Vec2::new(size.x, padding.bottom), css::RED);
             }
 
             if padding.top > 0. {
                 // pos.y -= padding.top / 2.;
                 let p = Vec2::new(pos.x, pos.y + size.y / 2. + padding.top / 2.);
-                gizmos.rect_2d(p, 0., Vec2::new(size.x, padding.top), css::RED);
+                gizmos.rect_2d(p, Vec2::new(size.x, padding.top), css::RED);
             }
 
             if padding.left > 0. {
                 // pos.x += padding.left / 2.;
                 let p = Vec2::new(pos.x - size.x / 2. - padding.left / 2., pos.y);
-                gizmos.rect_2d(p, 0., Vec2::new(padding.left, size.y), css::RED);
+                gizmos.rect_2d(p, Vec2::new(padding.left, size.y), css::RED);
             }
 
             if padding.right > 0. {
                 // pos.x -= padding.right / 2.;
                 let p = Vec2::new(pos.x + size.x / 2. + padding.right / 2., pos.y);
-                gizmos.rect_2d(p, 0., Vec2::new(padding.right, size.y), css::RED);
+                gizmos.rect_2d(p, Vec2::new(padding.right, size.y), css::RED);
             }
         }
 
-        gizmos.rect_2d(pos, 0., size, color);
+        gizmos.rect_2d(pos, size, color);
     }
 
     Ok(())

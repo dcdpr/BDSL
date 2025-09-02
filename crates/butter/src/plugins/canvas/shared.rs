@@ -20,8 +20,8 @@ pub(super) struct Header;
 #[derive(Bundle)]
 pub(super) struct HeaderBundle {
     marker: Header,
-    visibility: VisibilityBundle,
-    transform: TransformBundle,
+    visibility: Visibility,
+    transform: Transform,
     size: ComputedSize,
 }
 
@@ -47,8 +47,8 @@ pub(super) struct Body;
 #[derive(Bundle)]
 pub(super) struct BodyBundle {
     marker: Body,
-    visibility: VisibilityBundle,
-    transform: TransformBundle,
+    visibility: Visibility,
+    transform: Transform,
     size: ComputedSize,
 }
 
@@ -83,13 +83,17 @@ impl From<String> for Description {
 #[derive(Component, Default)]
 pub(super) struct Title;
 
+/// Designates the number span of a [`Title`]
+#[derive(Component, Default)]
+pub(super) struct TitleNumberSpan;
+
 /// Bundle of required components for affordance title entities.
 #[derive(Bundle, Default)]
 pub(super) struct TitleBundle {
     name: Name,
     marker: Title,
-    visibility: VisibilityBundle,
-    transform: TransformBundle,
+    visibility: Visibility,
+    transform: Transform,
     size: ComputedSize,
 }
 
@@ -99,5 +103,10 @@ impl TitleBundle {
             name: name.into(),
             ..default()
         }
+    }
+
+    pub(crate) fn with_transform(mut self, transform: Transform) -> Self {
+        self.transform = transform;
+        self
     }
 }

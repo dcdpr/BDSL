@@ -87,7 +87,7 @@ impl Plugin for CanvasPlugin {
         .add_systems(
             Update,
             (
-                spawn_canvas.run_if(run_once()),
+                spawn_canvas.run_if(run_once),
                 update_text_computed_size.run_if(
                     |q: Query<(), (With<ComputedSize>, Changed<TextLayoutInfo>)>| !q.is_empty(),
                 ),
@@ -108,11 +108,7 @@ impl Plugin for CanvasPlugin {
 /// elements.
 #[instrument(skip_all)]
 fn spawn_canvas(mut cmd: Commands) {
-    cmd.spawn((
-        Canvas,
-        VisibilityBundle::default(),
-        TransformBundle::default(),
-    ));
+    cmd.spawn((Canvas, Visibility::default(), Transform::default()));
 }
 
 /// Ensures text entities have a computed size aligned with their text layout.
@@ -126,12 +122,12 @@ fn update_text_computed_size(
 ) {
     for (entity, mut size, layout) in &mut sizes {
         // The logical size of a text node can be zero, which we interpret as "unknown".
-        if layout.logical_size == Vec2::ZERO && !matches!(size.as_ref(), &ComputedSize::Static(_)) {
+        if layout.size == Vec2::ZERO && !matches!(size.as_ref(), &ComputedSize::Static(_)) {
             continue;
         }
 
         let old = *size.as_ref();
-        if size.set_if_neq(ComputedSize::Static(layout.logical_size)) {
+        if size.set_if_neq(ComputedSize::Static(layout.size)) {
             let new = size.as_ref();
             debug!(?entity, ?old, ?new, "Updated ComputedSize text component");
         }

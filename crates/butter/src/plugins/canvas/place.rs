@@ -13,12 +13,14 @@
 
 use ast::Coordinate;
 use bevy::asset::Assets;
-use bevy::hierarchy::Parent;
-use bevy::sprite::{Sprite, SpriteBundle, TextureAtlas, TextureAtlasLayout};
+use bevy::hierarchy::{ChildBuild as _, Parent};
+use bevy::picking::events::{Click, Pointer};
+use bevy::sprite::{Sprite, TextureAtlas, TextureAtlasLayout};
 use tracing::field;
 
 use crate::{plugins::input::Target, prelude::*};
 
+use super::shared::TitleNumberSpan;
 use super::{
     breadboard::{BreadboardCreatedEvent, ShowNumbers},
     shared::{Body, BodyBundle, Description, HeaderBundle, Index, Title, TitleBundle},
@@ -37,7 +39,7 @@ impl Plugin for PlacePlugin {
             Update,
             (
                 (
-                    create.run_if(on_event::<BreadboardCreatedEvent>()),
+                    create.run_if(on_event::<BreadboardCreatedEvent>),
                     redraw_underline.run_if(run_redraw_underline),
                     position_body.run_if(run_position_body),
                 )
@@ -74,8 +76,8 @@ struct RequiresPositioning {
 #[derive(Bundle)]
 struct PlaceBundle {
     marker: Place,
-    visibility: VisibilityBundle,
-    transform: TransformBundle,
+    visibility: Visibility,
+    transform: Transform,
     size: ComputedSize,
 }
 
@@ -255,11 +257,11 @@ fn create_header(
         .spawn(HeaderBundle::default())
         .insert(PlaceHeader)
         .insert(Padding::default().bottom(tokens.canvas.place.header.padding_bottom.as_f32()))
-        .insert(On::<Pointer<Click>>::run(
-            |event: Listener<Pointer<Click>>, mut target: ResMut<Target>| {
-                target.set(event.target);
+        .observe(
+            |trigger: Trigger<Pointer<Click>>, mut target: ResMut<Target>| {
+                target.set(trigger.entity());
             },
-        ))
+        )
         .add_child(title)
         .id();
     span.record("header", format!("{header:?}"));
@@ -280,39 +282,51 @@ fn create_title(
     font: Handle<Font>,
     tokens: &DesignTokens,
 ) -> Entity {
-    let name_style = TextStyle {
-        font_size: tokens.canvas.place.header.title.font_size.as_f32(),
-        color: css::BLACK.into(),
+    let name_font = TextFont {
         font: font.clone(),
+        font_size: tokens.canvas.place.header.title.font_size.as_f32(),
+        ..default()
     };
 
-    let number_style = TextStyle {
+    let name_color = TextColor(css::BLACK.into());
+
+    let numbers_font = TextFont {
+        font: font.clone(),
         font_size: tokens.canvas.place.header.title.number.font_size.as_f32(),
-        color: css::DARK_GRAY.into(),
-        font,
+        ..default()
     };
 
-    cmd.spawn(TitleBundle::new(name.to_owned()))
-        .insert(Padding::default().bottom(tokens.canvas.place.header.title.padding_bottom.as_f32()))
-        .insert(Text2dBundle {
-            text: Text::from_sections([
-                // TODO:
-                //
-                // Render numbering separate from title (calculated to render to the left of the
-                // title), so that enabling/disabling numbers does not move the original title, or
-                // re-size the underline.
-                TextSection::new(format!("{index}. "), number_style),
-                TextSection::new(name, name_style),
-            ])
-            .with_justify(JustifyText::Center),
-            text_anchor: Anchor::TopCenter,
-            text_2d_bounds: Text2dBounds {
-                size: Vec2::new(200., f32::INFINITY),
-            },
-            transform: Transform::from_xyz(0., 0., 2.),
+    let numbers_color = TextColor(css::DARK_GRAY.into());
+
+    cmd.spawn((
+        TitleBundle::new(name.to_owned()).with_transform(Transform::from_xyz(0., 0., 2.)),
+        Text2d::default(),
+        TextLayout {
+            justify: JustifyText::Center,
             ..default()
-        })
-        .id()
+        },
+        Anchor::TopCenter,
+        TextBounds {
+            width: Some(200.),
+            height: None,
+        },
+        Padding::default().bottom(tokens.canvas.place.header.title.padding_bottom.as_f32()),
+    ))
+    .with_children(|parent| {
+        // TODO:
+        //
+        // Render numbering separate from title (calculated to render to the left of the
+        // title), so that enabling/disabling numbers does not move the original title, or
+        // re-size the underline.
+        parent.spawn((
+            TitleNumberSpan,
+            TextSpan::new(format!("{index}. ")),
+            numbers_font,
+            numbers_color,
+        ));
+        parent.spawn((TextSpan::new(name), name_font, name_color));
+    })
+    .id()
 }
 
 /// Marker component for underline entities.
@@ -323,8 +337,8 @@ pub(crate) struct Underline;
 #[derive(Bundle, Default)]
 pub(super) struct UnderlineBundle {
     marker: Underline,
-    visibility: VisibilityBundle,
-    transform: TransformBundle,
+    visibility: Visibility,
+    transform: Transform,
 }
 
 /// Generates an underline entity with randomized visual attributes.
@@ -349,7 +363,6 @@ fn create_underline(
     //     Theme::Light => 0..10,
     //     Theme::Dark => 10..20,
     // };
-    let range = 0..10;
 
     #[expect(clippy::cast_precision_loss)]
     let custom_size = Vec2::new(rng.usize(130..220) as f32, rng.usize(8..12) as f32);
@@ -365,21 +378,8 @@ fn create_underline(
     let underline = cmd
         .spawn(UnderlineBundle::default())
         .insert((
-            SpriteBundle {
-                sprite: Sprite {
-                    custom_size: Some(custom_size),
-                    flip_x: rng.bool(),
-                    flip_y: rng.bool(),
-                    ..default()
-                },
-                texture,
-                transform,
-                ..default()
-            },
-            TextureAtlas {
-                index: rng.usize(range),
-                layout,
-            },
+            Sprite::from_atlas_image(texture, TextureAtlas::from(layout)),
+            transform,
         ))
         .insert(ComputedSize::Static(custom_size))
         .id();
@@ -693,25 +693,29 @@ fn position_place(
 
 fn toggle_numbering(
     show: Res<ShowNumbers>,
-    mut titles: Query<(&Parent, &mut Text), With<Title>>,
+    // mut titles: Query<(&Parent, &mut Text), With<Title>>,
+    titles: Query<&Parent, With<Title>>,
+    mut title_number_spans: Query<(&Parent, &mut TextSpan), With<TitleNumberSpan>>,
     places: Query<Entity, With<Place>>,
     headers: Query<&Parent, With<PlaceHeader>>,
     indices: Query<&Index>,
 ) {
-    let texts = titles.iter_mut().filter_map(|(parent, text)| {
-        headers
-            .get(parent.get())
-            .and_then(|parent| places.get(parent.get()))
-            .and_then(|place| indices.get(place))
-            .map(|index| (index, text))
-            .ok()
+    let texts = title_number_spans.iter_mut().filter_map(|(parent, text)| {
+        titles.get(parent.get()).ok().and_then(|parent| {
+            headers
+                .get(parent.get())
+                .and_then(|parent| places.get(parent.get()))
+                .and_then(|place| indices.get(place))
+                .map(|index| (index, text))
+                .ok()
+        })
     });
 
     for (&Index(index), mut text) in texts {
         if **show {
-            text.sections[0].value = format!("{}. ", index + 1);
+            text.0 = format!("{}. ", index + 1);
         } else {
-            text.sections[0].value.clear();
+            text.0.clear();
         }
     }
 }
