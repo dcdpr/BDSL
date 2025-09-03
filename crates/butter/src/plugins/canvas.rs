@@ -176,7 +176,7 @@ fn ensure_node_compliance(
     children: Query<&Children>,
     nodes: Query<(Option<&Children>, &ComputedSize), With<Transform>>,
 ) {
-    let Ok(canvas) = root.get_single() else {
+    let Ok(canvas) = root.single() else {
         let component = std::any::type_name::<Canvas>();
         error!(%component, "Canvas does not have single root entity with marker component.");
         return;
@@ -191,7 +191,7 @@ fn ensure_node_compliance(
             continue;
         };
 
-        let is_leaf = children.is_none_or(|c| c.is_empty());
+        let is_leaf = children.is_none_or(RelationshipTarget::is_empty);
         if is_leaf && matches!(computed_size, ComputedSize::Inherit) {
             error!(?node, "Leaf nodes must have known computed size.");
         }

@@ -36,7 +36,7 @@ impl Plugin for SchedulePlugin {
         .init_state::<AppState>()
         .add_systems(
             Update,
-            apply_deferred
+            ApplyDeferred
                 .after(AppSet::DespawnEntities)
                 .before(AppSet::UserInput),
         );

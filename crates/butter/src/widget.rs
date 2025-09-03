@@ -6,10 +6,10 @@
 
 use std::hash::{Hash, Hasher as _};
 
+use ahash::AHasher;
 use bevy::ecs::system::{SystemParam, SystemState};
+use bevy::platform::collections::HashMap;
 use bevy_egui::{egui, egui::Context, EguiContext};
-use bevy::utils::{AHasher, HashMap};
-use bevy::window::PrimaryWindow;
 
 use crate::prelude::*;
 
@@ -66,14 +66,9 @@ impl WorldWidgetSystemExt for World {
 
     fn egui_context_scope<R>(&mut self, f: impl FnOnce(&mut Self, Context) -> R) -> R {
         let ctx = self
-            .query_filtered::<&mut EguiContext, With<PrimaryWindow>>()
-            // FIXME: this sometimes panics when exiting the app.
-            //
-            //thread 'main' panicked at crates/butter/src/widget.rs:69:14:
-            // Cannot get single query result: No entities fit the query
-            // bevy::ecs::query::state::QueryState<&mut bevy_egui::EguiContext,
-            // bevy::ecs::query::filter::With<bevy::window::window::PrimaryWindow>>
+            .query_filtered::<&mut EguiContext, With<Camera>>()
             .single_mut(self)
+            .expect("TODO")
             .get_mut()
             .clone();
 

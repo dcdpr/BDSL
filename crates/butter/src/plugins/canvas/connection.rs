@@ -16,18 +16,18 @@ impl Plugin for ConnectionPlugin {
     }
 }
 
-/// Marker component for connection entities.
-#[derive(Component, Default)]
-struct Connection;
-
-/// Bundle of required components for place entities.
-#[derive(Bundle, Default)]
-struct ConnectionBundle {
-    marker: Connection,
-    visibility: Visibility,
-    transform: Transform,
-    size: ComputedSize,
-}
+// /// Marker component for connection entities.
+// #[derive(Component, Default)]
+// struct Connection;
+//
+// /// Bundle of required components for place entities.
+// #[derive(Bundle, Default)]
+// struct ConnectionBundle {
+//     marker: Connection,
+//     visibility: Visibility,
+//     transform: Transform,
+//     size: ComputedSize,
+// }
 
 #[derive(Event)]
 #[allow(dead_code)]

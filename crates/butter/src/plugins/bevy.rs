@@ -1,5 +1,6 @@
-use bevy::core::{FrameCountPlugin, TaskPoolPlugin};
+use bevy::app::TaskPoolPlugin;
 use bevy::core_pipeline::CorePipelinePlugin;
+use bevy::diagnostic::FrameCountPlugin;
 use bevy::picking::DefaultPickingPlugins;
 use bevy::render::RenderPlugin;
 use bevy::sprite::SpritePlugin;
@@ -24,7 +25,7 @@ impl Plugin for BevyPlugin {
             CorePipelinePlugin,
             TimePlugin,
             TransformPlugin,
-            SpritePlugin::default(),
+            SpritePlugin,
             TextPlugin,
             StatesPlugin,
             DefaultPickingPlugins,

@@ -16,15 +16,15 @@ ast = { package = "bnb-ast", path = "../ast", default-features = false }
 dtoken = { path = "../dtoken", default-features = false }
 parser = { package = "bnb-parser", path = "../parser", default-features = false }
 
-bevy = { version = "0.15" }
+bevy = { version = "0.16" }
 
 # Other crates.
-bevy_egui = { version = "0.33", default-features = false, features = [
+bevy_egui = { version = "0.36", default-features = false, features = [
   "default_fonts",
   "render",
 ] }
 # TODO: Swap for version 0.23 once new release is out.
-bevy-inspector-egui = { version = "0.30", default-features = false, features = [
+bevy-inspector-egui = { version = "0.33", default-features = false, features = [
   "bevy_core_pipeline",
   "bevy_render",
   "documentation",
@@ -32,15 +32,16 @@ bevy-inspector-egui = { version = "0.30", default-features = false, features = [
   "egui_open_url",
   "highlight_changes",
 ], optional = true }
-bevy_pancam = { version = "0.17", default-features = false, features = [
+bevy_pancam = { version = "0.18", default-features = false, features = [
   "bevy_egui",
 ] }
-bevy_turborand = { version = "0.10", default-features = false, features = [
+bevy_turborand = { version = "0.11", default-features = false, features = [
   "wyrand",
 ] }
 dirs = { version = "6", default-features = false }
 rfd = { version = "0.15", default-features = false, features = ["gtk3"] }
-thiserror = { version = "1", default-features = false }
+thiserror = { version = "2", default-features = false }
+ahash = { version = "0.8", default-features = false }
 tracing = { version = "0.1", default-features = false, features = [
   "attributes",
 ] }
@@ -50,7 +51,7 @@ tracing-subscriber = { version = "0.3", default-features = false, optional = tru
   "env-filter",
   "json",
 ] }
-bevy_tweening = { version = "0.12", default-features = false }
+bevy_tweening = { version = "0.13", default-features = false }
 
 [build-dependencies]
 dtoken = { path = "../dtoken", default-features = false, features = [

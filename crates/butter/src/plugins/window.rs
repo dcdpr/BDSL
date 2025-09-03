@@ -69,7 +69,7 @@ fn canvas_redraw(
 
     debug!("canvas_redraw");
 
-    redraw.send(RequestRedraw);
+    redraw.write(RequestRedraw);
 }
 
 fn force_redraw(mut redraw: EventWriter<RequestRedraw>, mut force_redraw: ResMut<ForceRedraw>) {
@@ -79,5 +79,5 @@ fn force_redraw(mut redraw: EventWriter<RequestRedraw>, mut force_redraw: ResMut
 
     debug!("force_redraw");
 
-    redraw.send(RequestRedraw);
+    redraw.write(RequestRedraw);
 }

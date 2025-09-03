@@ -9,13 +9,9 @@ pub(crate) use bevy::app::prelude::*;
 pub(crate) use bevy::asset::{AssetServer, Handle};
 pub(crate) use bevy::color::palettes::css;
 pub(crate) use bevy::color::prelude::*;
-pub(crate) use bevy::core::Name;
 pub(crate) use bevy::core_pipeline::prelude::*;
 pub(crate) use bevy::ecs::prelude::*;
 pub(crate) use bevy::ecs::system::{SystemParam, SystemState};
-pub(crate) use bevy::hierarchy::{
-    BuildChildren as _, Children, DespawnRecursiveExt as _, HierarchyQueryExt as _, Parent,
-};
 pub(crate) use bevy::image::prelude::*;
 pub(crate) use bevy::input::common_conditions::*;
 pub(crate) use bevy::input::prelude::*;

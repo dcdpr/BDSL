@@ -24,7 +24,7 @@ impl RootWidgetSystem for NavBar {
         egui::TopBottomPanel::top("navbar")
             .show_separator_line(false)
             .show(ctx, |ui| {
-                egui::menu::bar(ui, |ui| {
+                egui::MenuBar::new().ui(ui, |ui| {
                     ui.set_height(40.);
                     ui.style_mut().spacing.button_padding = Vec2::splat(10.);
                     ui.add_system::<LoadButton>(world, "load_button");

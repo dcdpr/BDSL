@@ -69,7 +69,7 @@ fn load(source: Res<SelectedFile>, mut event: EventWriter<FileLoadedEvent>) {
         return;
     };
 
-    event.send(FileLoadedEvent { name, contents });
+    event.write(FileLoadedEvent { name, contents });
 }
 
 #[derive(SystemParam)]

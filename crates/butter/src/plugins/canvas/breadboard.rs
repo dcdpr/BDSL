@@ -126,7 +126,7 @@ fn spawn(
         boards
             .iter()
             .filter_map(|(entity, n)| (n == &name).then_some(entity))
-            .for_each(|entity| cmd.entity(entity).despawn_recursive());
+            .for_each(|entity| cmd.entity(entity).despawn());
 
         // Random elements of the breadboard (slight font changes, underline changes, etc, to give
         // it more of a hand-drawn feel) are seeded based on the name of the breadboard, this
@@ -137,13 +137,13 @@ fn spawn(
         let entity = cmd
             .spawn(BreadboardBundle::new(name))
             .insert(RngComponent::with_seed(seed))
-            .set_parent(canvas.single())
+            .insert(ChildOf(canvas.single().expect("TODO error handling")))
             .id();
 
         span.record("breadboard", format!("{entity:?}"));
 
         // Trigger creation event.
-        created.send(BreadboardCreatedEvent { entity, places });
+        created.write(BreadboardCreatedEvent { entity, places });
     }
 }
 

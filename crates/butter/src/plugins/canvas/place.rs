@@ -13,9 +13,8 @@
 
 use ast::Coordinate;
 use bevy::asset::Assets;
-use bevy::hierarchy::{ChildBuild as _, Parent};
 use bevy::picking::events::{Click, Pointer};
-use bevy::sprite::{Sprite, TextureAtlas, TextureAtlasLayout};
+use bevy::sprite::Sprite;
 use tracing::field;
 
 use crate::{plugins::input::Target, prelude::*};
@@ -146,7 +145,7 @@ fn create(
 
             let place = cmd
                 .spawn(PlaceBundle::default())
-                .set_parent(breadboard)
+                .insert(ChildOf(breadboard))
                 .insert(Index(index))
                 .id();
             span.record("place", format!("{place:?}"));
@@ -190,7 +189,7 @@ fn create(
             }
 
             // TODO: Should this trigger *after* title & underline are positioned?
-            created.send(PlaceCreatedEvent {
+            created.write(PlaceCreatedEvent {
                 entity: place,
                 affordances,
             });
@@ -259,7 +258,7 @@ fn create_header(
         .insert(Padding::default().bottom(tokens.canvas.place.header.padding_bottom.as_f32()))
         .observe(
             |trigger: Trigger<Pointer<Click>>, mut target: ResMut<Target>| {
-                target.set(trigger.entity());
+                target.set(trigger.target());
             },
         )
         .add_child(title)
@@ -400,9 +399,9 @@ fn create_underline(
 #[instrument(skip_all)]
 fn redraw_underline(
     headers: Query<(), With<PlaceHeader>>,
-    titles: Query<(Entity, &Parent), With<Title>>,
+    titles: Query<(Entity, &ChildOf), With<Title>>,
     sizes: ComputedSizeParam<Without<Underline>>,
-    mut underlines: Query<(Entity, &Parent, &mut Sprite, &mut Transform), With<Underline>>,
+    mut underlines: Query<(Entity, &ChildOf, &mut Sprite, &mut Transform), With<Underline>>,
 ) {
     const UNDERLINE_STRETCH: f32 = 0.6;
 
@@ -412,10 +411,10 @@ fn redraw_underline(
             let transform = transform.map_unchanged(|t| &mut t.translation);
 
             titles
-                .get(parent.get())
+                .get(parent.parent())
                 .and_then(|(title, parent)| {
                     headers
-                        .get(parent.get())
+                        .get(parent.parent())
                         .map(|_| (underline, sprite, transform, sizes.size_of(title)))
                 })
                 .ok()
@@ -443,8 +442,8 @@ fn redraw_underline(
 }
 
 fn run_redraw_underline(
-    underlines: Query<&Parent, With<Underline>>,
-    titles: Query<&Parent, Changed<ComputedSize>>,
+    underlines: Query<&ChildOf, With<Underline>>,
+    titles: Query<&ChildOf, Changed<ComputedSize>>,
     headers: Query<(), With<PlaceHeader>>,
 ) -> bool {
     // Get all underlines.
@@ -452,9 +451,9 @@ fn run_redraw_underline(
         titles
             // And for those underlines, find the parent title with changed
             // computed size.
-            .get(v.get())
+            .get(v.parent())
             // And those titles should be part of the place `Header`.
-            .map(|v| headers.contains(v.get()))
+            .map(|v| headers.contains(v.parent()))
             // Check if there's a match, and skip if there isn't.
             .is_ok()
     })
@@ -480,9 +479,9 @@ fn create_body(cmd: &mut Commands) -> Entity {
 /// associated header entities, based on the header's computed size.
 #[instrument(skip_all)]
 fn position_body(
-    headers: Query<(Entity, &Parent), (With<PlaceHeader>, Changed<ComputedSize>)>,
+    headers: Query<(Entity, &ChildOf), (With<PlaceHeader>, Changed<ComputedSize>)>,
     sizes: ComputedSizeParam<Without<Body>>,
-    mut transforms: Query<(Entity, &Parent, &mut Transform), With<Body>>,
+    mut transforms: Query<(Entity, &ChildOf, &mut Transform), With<Body>>,
 ) {
     transforms
         .iter_mut()
@@ -492,7 +491,7 @@ fn position_body(
             headers
                 .iter()
                 .find_map(|(header, p)| {
-                    (p.get() == parent.get()).then_some((body, sizes.size_of(header)))
+                    (p.parent() == parent.parent()).then_some((body, sizes.size_of(header)))
                 })
                 .map(|(body, size)| (body, transform, size))
         })
@@ -509,12 +508,12 @@ fn position_body(
 }
 
 fn run_position_body(
-    bodies: Query<&Parent, With<Body>>,
-    headers: Query<&Parent, (With<PlaceHeader>, Changed<ComputedSize>)>,
+    bodies: Query<&ChildOf, With<Body>>,
+    headers: Query<&ChildOf, (With<PlaceHeader>, Changed<ComputedSize>)>,
 ) -> bool {
     bodies
         .iter()
-        .any(|b| headers.iter().any(|h| h.get() == b.get()))
+        .any(|b| headers.iter().any(|h| h.parent() == b.parent()))
 }
 
 // fn position_place(
@@ -558,7 +557,7 @@ fn position_place(
         ),
     >,
     sizes: ComputedSizeParam<()>,
-    parent: Query<&Parent>,
+    children: Query<&ChildOf>,
 ) -> Result<(), Error> {
     for (place, RequiresPositioning { x, y }) in &positioning {
         debug!(?place, ?x, ?y, "Positioning place.");
@@ -581,7 +580,7 @@ fn position_place(
                     continue;
                 };
 
-                let Some(entity) = parent
+                let Some(entity) = children
                     .iter_ancestors(name)
                     .find_map(|parent| places.get(parent).ok())
                 else {
@@ -615,7 +614,7 @@ fn position_place(
                     continue;
                 };
 
-                let Some(entity) = parent
+                let Some(entity) = children
                     .iter_ancestors(name)
                     .find_map(|parent| places.get(parent).ok())
                 else {
@@ -655,7 +654,7 @@ fn position_place(
                     continue;
                 };
 
-                let Some(entity) = parent
+                let Some(entity) = children
                     .iter_ancestors(name)
                     .find_map(|parent| places.get(parent).ok())
                 else {
@@ -698,18 +697,18 @@ fn position_place(
 
 fn toggle_numbering(
     show: Res<ShowNumbers>,
-    // mut titles: Query<(&Parent, &mut Text), With<Title>>,
-    titles: Query<&Parent, With<Title>>,
-    mut title_number_spans: Query<(&Parent, &mut TextSpan), With<TitleNumberSpan>>,
+    // mut titles: Query<(&ChildOf, &mut Text), With<Title>>,
+    titles: Query<&ChildOf, With<Title>>,
+    mut title_number_spans: Query<(&ChildOf, &mut TextSpan), With<TitleNumberSpan>>,
     places: Query<Entity, With<Place>>,
-    headers: Query<&Parent, With<PlaceHeader>>,
+    headers: Query<&ChildOf, With<PlaceHeader>>,
     indices: Query<&Index>,
 ) {
     let texts = title_number_spans.iter_mut().filter_map(|(parent, text)| {
-        titles.get(parent.get()).ok().and_then(|parent| {
+        titles.get(parent.parent()).ok().and_then(|parent| {
             headers
-                .get(parent.get())
-                .and_then(|parent| places.get(parent.get()))
+                .get(parent.parent())
+                .and_then(|parent| places.get(parent.parent()))
                 .and_then(|place| indices.get(place))
                 .map(|index| (index, text))
                 .ok()

@@ -47,7 +47,7 @@ fn setup(
     camera: Query<Entity, With<Camera>>,
     debug: Option<Res<DebugInfiniteZoom>>,
 ) {
-    let entity = camera.single();
+    let entity = camera.single().expect("TODO error handling");
     cmd.entity(entity).insert(PanCam {
         grab_buttons: vec![MouseButton::Left],
         min_scale: debug.map_or(1., |_| 0.1),
@@ -63,7 +63,7 @@ fn focus(
     transforms: Query<&GlobalTransform>,
 ) {
     let Some(target) = target.get() else { return };
-    let (camera_entity, camera_transform) = camera.single_mut();
+    let (camera_entity, camera_transform) = camera.single_mut().expect("TODO error handling");
 
     let Ok(transform) = transforms.get(target) else {
         warn!(?target, "camera target missing transform");
@@ -102,7 +102,7 @@ fn camera_moving(
         .get()
         .and_then(|target| transforms.get(target).ok())
         .and_then(|target_transform| {
-            camera.get_single().ok().map(|camera_transform| {
+            camera.single().ok().map(|camera_transform| {
                 camera_transform.translation.xy() != target_transform.translation().xy()
             })
         })

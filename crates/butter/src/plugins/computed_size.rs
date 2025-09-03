@@ -460,18 +460,18 @@ pub(crate) fn computed_size_updated(
     mut writer: EventWriter<ComputedSizeUpdatedEvent>,
     changes: Query<Entity, Changed<ComputedSize>>,
     sizes: Query<&ComputedSize>,
-    parents: Query<&Parent>,
+    children: Query<&ChildOf>,
     calculated_sizes: ComputedSizeParam<()>,
 ) -> Result<(), crate::Error> {
     for source in &changes {
         let mut ancestors: Vec<Entity> = vec![];
 
-        find_ancestors(source, &mut ancestors, &sizes, &parents);
+        find_ancestors(source, &mut ancestors, &sizes, &children);
 
         let size = calculated_sizes.size_of(source)?;
         let translation = calculated_sizes.global_translation_of(source)?;
 
-        writer.send(ComputedSizeUpdatedEvent {
+        writer.write(ComputedSizeUpdatedEvent {
             source,
             ancestors,
             size,
@@ -486,12 +486,12 @@ fn find_ancestors(
     source: Entity,
     ancestors: &mut Vec<Entity>,
     sizes: &Query<&ComputedSize>,
-    parents: &Query<&Parent>,
+    children: &Query<&ChildOf>,
 ) {
-    if let Ok(parent) = parents.get(source).map(Parent::get) {
+    if let Ok(parent) = children.get(source).map(ChildOf::parent) {
         if let Ok(ComputedSize::Inherit) = sizes.get(parent) {
             ancestors.push(parent);
-            find_ancestors(parent, ancestors, sizes, parents);
+            find_ancestors(parent, ancestors, sizes, children);
         }
     }
 }

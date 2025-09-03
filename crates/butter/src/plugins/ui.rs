@@ -2,7 +2,7 @@ mod navbar;
 
 use bevy_egui::{
     egui::{self, Color32, CursorIcon, Visuals},
-    EguiContexts, EguiPlugin, EguiPreUpdateSet,
+    EguiContexts, EguiPlugin, EguiPreUpdateSet, EguiPrimaryContextPass,
 };
 use dtoken::types::color::Color;
 
@@ -12,7 +12,7 @@ pub(crate) struct UiPlugin;
 
 impl Plugin for UiPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins(EguiPlugin)
+        app.add_plugins(EguiPlugin::default())
             .add_systems(
                 PreUpdate,
                 apply_base_theme
@@ -24,7 +24,7 @@ impl Plugin for UiPlugin {
                     // `CoreSet::PreUpdate` set).
                     .after(EguiPreUpdateSet::BeginPass),
             )
-            .add_systems(Update, render);
+            .add_systems(EguiPrimaryContextPass, render);
     }
 }
 
@@ -34,107 +34,116 @@ fn apply_base_theme(tokens: Res<DesignTokens>, mut contexts: EguiContexts) {
     let v = &tokens.egui.visuals;
     let c = |c: Color| Color32::from_rgb(c.r, c.g, c.b);
 
-    let old = contexts.ctx_mut().style().visuals.clone();
-    contexts.ctx_mut().set_visuals(Visuals {
-        override_text_color: Some(c(v.override_text_color)),
-        hyperlink_color: c(v.hyperlink_color),
-        faint_bg_color: c(v.faint_bg_color),
-        extreme_bg_color: c(v.extreme_bg_color),
-        code_bg_color: c(v.code_bg_color),
-        warn_fg_color: c(v.warn_fg_color),
-        error_fg_color: c(v.error_fg_color),
-        window_fill: c(v.window_fill),
-        panel_fill: c(v.panel_fill),
-        window_stroke: egui::Stroke {
-            color: c(v.window_stroke),
-            ..old.window_stroke
-        },
-        widgets: egui::style::Widgets {
-            noninteractive: egui::style::WidgetVisuals {
-                bg_fill: c(v.widgets.noninteractive),
-                weak_bg_fill: c(v.widgets.noninteractive),
-                bg_stroke: egui::Stroke {
+    let old = contexts
+        .ctx_mut()
+        .expect("TODO error handling")
+        .style()
+        .visuals
+        .clone();
+
+    contexts
+        .ctx_mut()
+        .expect("TODO error handling")
+        .set_visuals(Visuals {
+            override_text_color: Some(c(v.override_text_color)),
+            hyperlink_color: c(v.hyperlink_color),
+            faint_bg_color: c(v.faint_bg_color),
+            extreme_bg_color: c(v.extreme_bg_color),
+            code_bg_color: c(v.code_bg_color),
+            warn_fg_color: c(v.warn_fg_color),
+            error_fg_color: c(v.error_fg_color),
+            window_fill: c(v.window_fill),
+            panel_fill: c(v.panel_fill),
+            window_stroke: egui::Stroke {
+                color: c(v.window_stroke),
+                ..old.window_stroke
+            },
+            widgets: egui::style::Widgets {
+                noninteractive: egui::style::WidgetVisuals {
+                    bg_fill: c(v.widgets.noninteractive),
+                    weak_bg_fill: c(v.widgets.noninteractive),
+                    bg_stroke: egui::Stroke {
+                        color: c(tokens.colors.overlay_1),
+                        ..default()
+                    },
+                    fg_stroke: egui::Stroke {
+                        color: c(tokens.colors.text),
+                        width: 3.0,
+                    },
+                    ..old.widgets.noninteractive
+                },
+                inactive: egui::style::WidgetVisuals {
+                    bg_fill: c(v.widgets.inactive),
+                    weak_bg_fill: c(v.widgets.inactive),
+                    bg_stroke: egui::Stroke {
+                        color: c(tokens.colors.overlay_1),
+                        ..default()
+                    },
+                    fg_stroke: egui::Stroke {
+                        color: c(tokens.colors.text),
+                        width: 3.0,
+                    },
+                    ..old.widgets.inactive
+                },
+                hovered: egui::style::WidgetVisuals {
+                    bg_fill: c(v.widgets.hovered),
+                    weak_bg_fill: c(v.widgets.hovered),
+                    bg_stroke: egui::Stroke {
+                        color: c(tokens.colors.overlay_1),
+                        ..default()
+                    },
+                    fg_stroke: egui::Stroke {
+                        color: c(tokens.colors.text),
+                        width: 3.0,
+                    },
+                    ..old.widgets.inactive
+                },
+                active: egui::style::WidgetVisuals {
+                    bg_fill: c(v.widgets.active),
+                    weak_bg_fill: c(v.widgets.active),
+                    bg_stroke: egui::Stroke {
+                        color: c(tokens.colors.overlay_1),
+                        ..default()
+                    },
+                    fg_stroke: egui::Stroke {
+                        color: c(tokens.colors.text),
+                        width: 3.0,
+                    },
+                    ..old.widgets.inactive
+                },
+                open: egui::style::WidgetVisuals {
+                    bg_fill: c(v.widgets.open),
+                    weak_bg_fill: c(v.widgets.open),
+                    bg_stroke: egui::Stroke {
+                        color: c(tokens.colors.overlay_1),
+                        ..default()
+                    },
+                    fg_stroke: egui::Stroke {
+                        color: c(tokens.colors.text),
+                        width: 3.0,
+                    },
+                    ..old.widgets.inactive
+                },
+            },
+            selection: egui::style::Selection {
+                bg_fill: c(v.selection).linear_multiply(0.4),
+                stroke: egui::Stroke {
                     color: c(tokens.colors.overlay_1),
-                    ..default()
+                    ..old.selection.stroke
                 },
-                fg_stroke: egui::Stroke {
-                    color: c(tokens.colors.text),
-                    width: 3.0,
-                },
-                ..old.widgets.noninteractive
             },
-            inactive: egui::style::WidgetVisuals {
-                bg_fill: c(v.widgets.inactive),
-                weak_bg_fill: c(v.widgets.inactive),
-                bg_stroke: egui::Stroke {
-                    color: c(tokens.colors.overlay_1),
-                    ..default()
-                },
-                fg_stroke: egui::Stroke {
-                    color: c(tokens.colors.text),
-                    width: 3.0,
-                },
-                ..old.widgets.inactive
+            window_shadow: egui::epaint::Shadow {
+                color: c(v.window_shadow),
+                ..old.window_shadow
             },
-            hovered: egui::style::WidgetVisuals {
-                bg_fill: c(v.widgets.hovered),
-                weak_bg_fill: c(v.widgets.hovered),
-                bg_stroke: egui::Stroke {
-                    color: c(tokens.colors.overlay_1),
-                    ..default()
-                },
-                fg_stroke: egui::Stroke {
-                    color: c(tokens.colors.text),
-                    width: 3.0,
-                },
-                ..old.widgets.inactive
+            popup_shadow: egui::epaint::Shadow {
+                color: c(v.popup_shadow),
+                ..old.popup_shadow
             },
-            active: egui::style::WidgetVisuals {
-                bg_fill: c(v.widgets.active),
-                weak_bg_fill: c(v.widgets.active),
-                bg_stroke: egui::Stroke {
-                    color: c(tokens.colors.overlay_1),
-                    ..default()
-                },
-                fg_stroke: egui::Stroke {
-                    color: c(tokens.colors.text),
-                    width: 3.0,
-                },
-                ..old.widgets.inactive
-            },
-            open: egui::style::WidgetVisuals {
-                bg_fill: c(v.widgets.open),
-                weak_bg_fill: c(v.widgets.open),
-                bg_stroke: egui::Stroke {
-                    color: c(tokens.colors.overlay_1),
-                    ..default()
-                },
-                fg_stroke: egui::Stroke {
-                    color: c(tokens.colors.text),
-                    width: 3.0,
-                },
-                ..old.widgets.inactive
-            },
-        },
-        selection: egui::style::Selection {
-            bg_fill: c(v.selection).linear_multiply(0.4),
-            stroke: egui::Stroke {
-                color: c(tokens.colors.overlay_1),
-                ..old.selection.stroke
-            },
-        },
-        window_shadow: egui::epaint::Shadow {
-            color: c(v.window_shadow),
-            ..old.window_shadow
-        },
-        popup_shadow: egui::epaint::Shadow {
-            color: c(v.popup_shadow),
-            ..old.popup_shadow
-        },
-        dark_mode: false,
-        interact_cursor: Some(CursorIcon::PointingHand),
-        ..default()
-    });
+            dark_mode: false,
+            interact_cursor: Some(CursorIcon::PointingHand),
+            ..default()
+        });
 }
 
 /// Main rendering system for the UI layer.

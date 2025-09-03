@@ -8,7 +8,7 @@
 //! For detailed information on individual parts of this plugin, please refer to the respective
 //! documentation within this module.
 
-use bevy::{color::palettes::css, hierarchy::ChildBuild as _, utils::HashMap};
+use bevy::{color::palettes::css, platform::collections::HashMap};
 
 use crate::prelude::*;
 
@@ -104,7 +104,7 @@ fn create(
     mut cmd: Commands,
     mut places: EventReader<PlaceCreatedEvent>,
     indices: Query<&Index>,
-    bodies: Query<(Entity, &Parent), With<Body>>,
+    bodies: Query<(Entity, &ChildOf), With<Body>>,
     mut created: EventWriter<AffordanceCreatedEvent>,
     asset_server: Res<AssetServer>,
     tokens: Res<DesignTokens>,
@@ -119,7 +119,7 @@ fn create(
 
         let Some(body) = bodies
             .iter()
-            .find_map(|(entity, parent)| (parent.get() == place).then_some(entity))
+            .find_map(|(entity, parent)| (parent.parent() == place).then_some(entity))
         else {
             warn!(?place, "Place body not found.");
             continue;
@@ -154,7 +154,7 @@ fn create(
                 .insert(NestingLevel(level))
                 .insert(Index(index))
                 .insert(Padding::default().bottom(tokens.canvas.affordance.padding_bottom.as_f32()))
-                .set_parent(body)
+                .insert(ChildOf(body))
                 .id();
 
             span.record("affordance", format!("{affordance:?}"));
@@ -173,7 +173,7 @@ fn create(
             let title = create_title(&mut cmd, place_index, &indices, level, &name, font, &tokens);
             cmd.entity(affordance).add_child(title);
 
-            created.send(AffordanceCreatedEvent {
+            created.write(AffordanceCreatedEvent {
                 entity: affordance,
                 name,
                 connections,
@@ -282,16 +282,18 @@ fn create_title(
 #[instrument(skip_all)]
 fn position_affordance(
     places: Query<Entity, With<Place>>,
-    headers: Query<(Entity, &Parent), With<Header>>,
-    bodies: Query<(Entity, &Parent), With<Body>>,
+    headers: Query<(Entity, &ChildOf), With<Header>>,
+    bodies: Query<(Entity, &ChildOf), With<Body>>,
     sizes: ComputedSizeParam<Without<Transform>>,
-    titles: Query<&Parent, (With<Title>, Changed<ComputedSize>)>,
-    mut affordances: Query<(Entity, &Parent, &Index, &mut Transform), With<Affordance>>,
+    titles: Query<&ChildOf, (With<Title>, Changed<ComputedSize>)>,
+    mut affordances: Query<(Entity, &ChildOf, &Index, &mut Transform), With<Affordance>>,
 ) -> Result<(), Error> {
     for place in &places {
         let Some(header_size) = headers
             .iter()
-            .find_map(|(header, parent)| (parent.get() == place).then_some(sizes.size_of(header)))
+            .find_map(|(header, parent)| {
+                (parent.parent() == place).then_some(sizes.size_of(header))
+            })
             .transpose()?
             .flatten()
         else {
@@ -301,7 +303,7 @@ fn position_affordance(
 
         let Some(body) = bodies
             .iter()
-            .find_map(|(body, parent)| (parent.get() == place).then_some(body))
+            .find_map(|(body, parent)| (parent.parent() == place).then_some(body))
         else {
             error!(?place, "No place body found.");
             continue;
@@ -310,14 +312,16 @@ fn position_affordance(
         let mut affordances: Vec<_> = affordances
             .iter_mut()
             .filter_map(|(affordance, parent, index, transform)| {
-                (parent.get() == body).then_some((affordance, index, transform))
+                (parent.parent() == body).then_some((affordance, index, transform))
             })
             .filter_map(|(affordance, index, transform)| {
                 let transform = transform.map_unchanged(|t| &mut t.translation);
 
                 titles
                     .iter()
-                    .find_map(|parent| (parent.get() == affordance).then_some((affordance, index)))
+                    .find_map(|parent| {
+                        (parent.parent() == affordance).then_some((affordance, index))
+                    })
                     .map(|(affordance, index)| (affordance, index, transform))
             })
             .collect();
@@ -349,33 +353,36 @@ fn position_affordance(
 
 fn run_position_affordance(
     affordances: Query<Entity, With<Affordance>>,
-    titles: Query<&Parent, (With<Title>, Changed<ComputedSize>)>,
+    titles: Query<&ChildOf, (With<Title>, Changed<ComputedSize>)>,
 ) -> bool {
     titles
         .iter()
-        .any(|parent| affordances.contains(parent.get()))
+        .any(|parent| affordances.contains(parent.parent()))
 }
 
 fn toggle_numbering(
     show: Res<ShowNumbers>,
-    titles: Query<&Parent, With<Title>>,
-    mut title_number_spans: Query<(&Parent, &mut TextSpan), With<TitleNumberSpan>>,
+    titles: Query<&ChildOf, With<Title>>,
+    mut title_number_spans: Query<(&ChildOf, &mut TextSpan), With<TitleNumberSpan>>,
     affordances: Query<Entity, With<Affordance>>,
     places: Query<Entity, With<Place>>,
     indices: Query<&Index>,
     levels: Query<&NestingLevel>,
-    parents: Query<&Parent>,
+    children: Query<&ChildOf>,
 ) {
     let texts = title_number_spans.iter_mut().filter_map(|(title, text)| {
-        titles.get(title.get()).ok().and_then(|parent| {
-            affordances.get(parent.get()).ok().and_then(|affordance| {
-                levels.get(affordance).ok().and_then(|level| {
-                    parents
-                        .iter_ancestors(affordance)
-                        .find_map(|v| places.get(v).and_then(|place| indices.get(place)).ok())
-                        .map(|place_index| (place_index, level, text))
+        titles.get(title.parent()).ok().and_then(|parent| {
+            affordances
+                .get(parent.parent())
+                .ok()
+                .and_then(|affordance| {
+                    levels.get(affordance).ok().and_then(|level| {
+                        children
+                            .iter_ancestors(affordance)
+                            .find_map(|v| places.get(v).and_then(|place| indices.get(place)).ok())
+                            .map(|place_index| (place_index, level, text))
+                    })
                 })
-            })
         })
     });
 
