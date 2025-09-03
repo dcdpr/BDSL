@@ -301,10 +301,6 @@ fn create_title(
     cmd.spawn((
         TitleBundle::new(name.to_owned()).with_transform(Transform::from_xyz(0., 0., 2.)),
         Text2d::default(),
-        TextLayout {
-            justify: JustifyText::Center,
-            ..default()
-        },
         Anchor::TopCenter,
         TextBounds {
             width: Some(200.),
